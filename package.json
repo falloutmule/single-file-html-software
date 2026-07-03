@@ -1,0 +1,15 @@
+{
+  "name": "single-file-html-software",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build-single-file.mjs",
+    "verify": "node tools/verify-single-file.mjs",
+    "serve": "npx serve -l 8098",
+    "test": "npx playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}
