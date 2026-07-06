@@ -18,16 +18,19 @@ single-file-html-software/
 │       ├── simulation.js              # Pure state logic (no DOM/canvas access)
 │       └── save.js                    # Serialize/deserialize durable state
 ├── dist/                              # Generated output (never edit)
-│   └── index.html                    # Single-file release artifact
+│   └── index.html                     # Single-file release artifact
 ├── docs/                              # Design documents
 │   ├── architecture/
 │   │   └── overview.md                # This file
+│   ├── handoff/
+│   │   ├── README.md                  # Handoff contract index
+│   │   └── bitmap-static-asset-handoff.md # Exact bitmap asset handoff rules
 │   ├── testing/
 │   │   └── testing-contract.md        # Build candidate test requirements
 │   ├── engines/
-│   │   └── canvas2d-baseline.md        # Canvas 2D engine specification
+│   │   └── canvas2d-baseline.md       # Canvas 2D engine specification
 │   └── controls/
-│       └── mobile-controls.md          # Mobile input patterns
+│       └── mobile-controls.md         # Mobile input patterns
 └── tests/                             # Test infrastructure
     ├── smoke.spec.js                  # Playwright smoke tests
     └── fixtures/                      # Test fixtures and helpers
@@ -101,6 +104,21 @@ Durable state persistence:
 
 **This layer owns:** serialization, deserialization, storage backend.
 
+### 7. Handoff Contract Layer (`docs/handoff/`)
+
+Defines machine-readable and agent-readable rules for carrying artifacts from external chatbots into Hermes and then into SFHS runtimes.
+
+For the SNC building/prop handoff, the active contract is **bitmap static assets**:
+
+- canonical assets are bitmap payloads, preferably `image/png` data URIs
+- SVG is not the canonical format for this handoff
+- procedural redraw instructions are not the canonical format
+- every asset carries exact bytes plus SHA-256
+- Hermes verifies hashes before integration
+- target asset classes are houses, offices, strip malls, cars, trucks, and dumpsters unless explicitly expanded
+
+**This layer owns:** handoff rules, exactness constraints, artifact-read policy, and integration guardrails.
+
 ## Build Pipeline
 
 ```
@@ -118,38 +136,4 @@ src/core/*.js           ──┼──► Build Tool ──► dist/index.html
 1. **Inline all JS** — concatenate and optionally minify all `src/core/*.js` modules into `<script>` tags.
 2. **Inline all CSS** — embed `styles.css` into a `<style>` tag.
 3. **Embed assets** — convert any images/audio to base64 data URIs.
-4. **Self-contained output** — the resulting `dist/index.html` makes zero network requests after load.
-5. **No source maps in output** — keep the file clean and self-contained.
-
-### Build Tooling (Milestone 0)
-
-A simple Node.js script or Make target that:
-- Reads `src/shell/index.html` as the template.
-- Inlines all core modules in dependency order.
-- Inlines CSS.
-- Writes to `dist/index.html`.
-
-Future milestones may upgrade to a bundler (esbuild, rollup) for module handling.
-
-## Data Flow
-
-```
-┌──────────┐    raw events    ┌────────────┐   actions    ┌────────────┐
-│  Browser  │ ──────────────► │ Input Layer │ ──────────► │ Simulation │
-│ (pointer, │                 │ (action map)│             │ (pure logic)│
-│  keyboard,│                 └────────────┘             └──────┬─────┘
-│  touch)   │                                                │ state
-└──────────┘                                                ▼
-                                                     ┌────────────┐
-                                                     │   Render    │
-                                                     │ (read-only) │
-                                                     └──────┬─────┘
-                                                            │
-                                                            ▼
-                                                     ┌────────────┐
-                                                     │ Canvas + DOM│
-                                                     │  (display)  │
-                                                     └────────────┘
-```
-
-The simulation produces state; the render consumes it. This separation ensures rendering bugs cannot corrupt game state, and the simulation can be tested independently of any visual output.
+4. **Preserve handoff exactness** — if a handoff asset claims an exact bitmap SHA-256, the build must not rewrite or regenerate that payload.
