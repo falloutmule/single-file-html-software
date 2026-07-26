@@ -1,5 +1,14 @@
 node_modules/
-dist/
+coverage/
+playwright-report/
 test-results/
-*.png
-!site/screenshots/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+examples/*/dist/
+.sfhs-ci/
+.sfhs-ci-download/
+.sfhs-determinism/
+.sfhs-browser/
+.sfhs-evidence/

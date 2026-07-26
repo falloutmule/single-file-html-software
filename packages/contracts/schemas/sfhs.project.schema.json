@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sfhs.dev/schemas/sfhs.project@1",
+  "title": "SFHS project manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "project",
+    "adapter",
+    "source",
+    "viewport",
+    "assets",
+    "runtime",
+    "storage",
+    "build",
+    "test"
+  ],
+  "properties": {
+    "schema": {
+      "const": "sfhs.project@1"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "version"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "title": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$" }
+      }
+    },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "versionRange", "renderer"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "versionRange": { "type": "string", "minLength": 1 },
+        "renderer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required", "webgpu", "unsupportedBehavior"],
+          "properties": {
+            "required": { "const": "webgl" },
+            "webgpu": { "const": "disabled" },
+            "unsupportedBehavior": { "const": "show-capability-page" }
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["html", "entry", "styles", "publicDir"],
+      "properties": {
+        "html": { "type": "string", "minLength": 1 },
+        "entry": { "type": "string", "minLength": 1 },
+        "styles": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "publicDir": { "type": "string", "minLength": 1 }
+      }
+    },
+    "viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "logicalWidth", "logicalHeight", "maxDevicePixelRatio", "orientation"],
+      "properties": {
+        "mode": { "enum": ["fixed", "adaptive", "fixed-contain", "fixed-cover"] },
+        "scalePolicy": { "enum": ["contain", "cover", "stretch", "integer-scale"] },
+        "logicalWidth": { "type": "integer", "minimum": 1 },
+        "logicalHeight": { "type": "integer", "minimum": 1 },
+        "maxDevicePixelRatio": { "type": "number", "minimum": 1 },
+        "orientation": { "const": "adaptive" }
+      }
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest", "runtimeExternalUrls", "inline", "maximumSingleAssetBytes"],
+      "properties": {
+        "manifest": { "type": "string", "minLength": 1 },
+        "runtimeExternalUrls": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "inline": { "const": "all" },
+        "maximumSingleAssetBytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["simulationHz", "maximumFrameDeltaMs", "pauseWhenHidden", "domOverlay"],
+      "properties": {
+        "simulationHz": { "type": "integer", "minimum": 1 },
+        "maximumFrameDeltaMs": { "type": "integer", "minimum": 1 },
+        "pauseWhenHidden": { "type": "boolean" },
+        "domOverlay": { "type": "boolean" }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localStorage", "exportImportFallback"],
+      "properties": {
+        "localStorage": { "enum": ["optional", "required", "disabled"] },
+        "exportImportFallback": { "type": "boolean" }
+      }
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output", "minify", "sourceMaps", "canonicalLineEnding", "failOnExternalReference", "failOnDynamicChunk"],
+      "properties": {
+        "output": { "type": "string", "minLength": 1 },
+        "minify": { "type": "boolean" },
+        "sourceMaps": { "const": "external-evidence-only" },
+        "canonicalLineEnding": { "const": "lf" },
+        "failOnExternalReference": { "type": "boolean" },
+        "failOnDynamicChunk": { "type": "boolean" }
+      }
+    },
+    "test": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseURL", "browsers", "viewports", "screenshots", "fileProtocolSmoke"],
+      "properties": {
+        "baseURL": { "type": "string", "minLength": 1 },
+        "browsers": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "viewports": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "screenshots": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "fileProtocolSmoke": { "type": "boolean" }
+      }
+    }
+  }
+}

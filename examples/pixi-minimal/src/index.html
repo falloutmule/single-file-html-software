@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>SFHS Pixi Minimal Fixture</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="fixture-page">
+      <section id="fixture-shell" class="fixture-shell" data-phase="ready" aria-labelledby="fixture-title">
+        <h1 id="fixture-title" class="fixture-heading">SFHS Pixi Minimal</h1>
+        <p class="fixture-copy fixture-copy-intro">An authored PixiJS v8 fixture with a WebGL-required capability boundary.</p>
+        <button id="fixture-start" class="fixture-start" type="button">Start WebGL fixture</button>
+        <p id="fixture-status" class="fixture-status" aria-live="polite">Ready to check WebGL capability.</p>
+        <div id="pixi-host" class="pixi-host" aria-label="PixiJS fixture canvas"></div>
+        <dl class="fixture-hud" aria-label="Runtime diagnostics">
+          <div><dt>Phase</dt><dd><output id="fixture-hud-phase">ready</output></dd></div>
+          <div><dt>Ticks</dt><dd><output id="fixture-hud-ticks">0</output></dd></div>
+          <div><dt>Player</dt><dd><output id="fixture-hud-player">240, 270</output></dd></div>
+          <div><dt>Target</dt><dd><output id="fixture-hud-activations">0</output></dd></div>
+          <div><dt>Audio</dt><dd><output id="fixture-hud-audio">locked</output></dd></div>
+          <div><dt>View</dt><dd><output id="fixture-hud-orientation">portrait</output></dd></div>
+        </dl>
+        <div class="fixture-controls" aria-label="Movement controls">
+          <button class="fixture-control fixture-control-up" type="button" data-fixture-action="move-up" aria-label="Move up">↑</button>
+          <button class="fixture-control fixture-control-left" type="button" data-fixture-action="move-left" aria-label="Move left">←</button>
+          <button class="fixture-control fixture-control-down" type="button" data-fixture-action="move-down" aria-label="Move down">↓</button>
+          <button class="fixture-control fixture-control-right" type="button" data-fixture-action="move-right" aria-label="Move right">→</button>
+        </div>
+        <p class="fixture-copy fixture-copy-help">Use WASD, arrow keys, or the direction controls. Tap the white target to activate it.</p>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

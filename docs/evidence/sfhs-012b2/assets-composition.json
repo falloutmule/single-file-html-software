@@ -1,0 +1,12 @@
+{
+  "schema": "sfhs.pixi-canvas-assets@1",
+  "base": "fbf77b59596c4b9c4fd28383de0144bee6eed3fb",
+  "implemented": ["drawImage", "createLinearGradient", "createRadialGradient", "fillText", "font", "textAlign", "imageSmoothingEnabled", "globalCompositeOperation"],
+  "observedCompositeModes": ["multiply"],
+  "unsupported": ["createPattern", "clip", "shadowBlur", "filter", "getImageData", "putImageData", "createImageData"],
+  "texturePolicy": { "registryOnly": true, "remoteLoading": false, "cacheCap": 64 },
+  "textPolicy": { "font": "700 16px system-ui", "alignment": "center", "remoteFonts": false },
+  "gradientPolicy": { "linear": "Pixi FillGradient", "radial": "Pixi FillGradient", "cacheKey": "geometry-and-stops", "cacheCap": 64 },
+  "browserFixture": { "visiblePixiCanvases": 1, "visibleCanvas2dContexts": 0, "documentRequests": 1 },
+  "verdict": "AUTOMATED_PASS"
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "sfhs.artifact@1",
+  "artifact": {
+    "path": "dist/index.html",
+    "bytes": 4096,
+    "sha256": "not-a-sha256",
+    "buildId": "sfhs-example-001"
+  },
+  "source": {
+    "sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+  },
+  "toolchain": {
+    "node": "v24.14.0",
+    "pnpm": "11.9.0",
+    "sfhs": "0.1.0"
+  }
+}

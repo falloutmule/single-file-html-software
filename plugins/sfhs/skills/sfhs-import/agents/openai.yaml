@@ -1,0 +1,4 @@
+interface:
+  display_name: "SFHS Import"
+  short_description: "Import existing HTML projects into SFHS"
+  default_prompt: "Use $sfhs-import to inventory this project and plan a static-first SFHS migration."

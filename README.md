@@ -1,108 +1,337 @@
-# Single-File HTML Software (SFHS)
+# SFHS
 
-> **Work in progress.** SFHS is an experimental system for building self-contained HTML games and interactive software. Its architecture, plugin contracts, and project layout are still changing.
+**Single-File HTML Software**
 
-The release idea is simple: produce one `index.html` that can be opened in a modern browser without a server, CDN, or external runtime assets.
+> **Work in progress:** this repository now carries the actual SFHS development
+> system imported from canonical source commit
+> `6df0194815d375c5525292a57729792716d05fd2`. Interfaces, package layout, and
+> workflows may change. It is not a stable SDK, npm package, or production
+> support promise.
 
-## Current development focus
+PixiJS v8 is the active development lane, not the permanent definition of
+SFHS. Canvas 2D, DOM/CSS, raycasting, and future application lanes remain in
+scope when working projects justify them.
 
-SFHS is currently developing around a **PixiJS-first game lane** because recent work has focused on mobile rendering, touch input, fullscreen behavior, single-file packaging, browser verification, and visual-effects experiments.
+- Project version: 0.1.0
+- Primary target: stable Android Chrome on Samsung Galaxy S21 Ultra
+- Secondary target: desktop Chromium on PC
 
-PixiJS is the active lane, not the permanent definition of SFHS. The project also preserves or explores:
+This is the living project guide: what SFHS is, what it provides, how to use
+it, and what remains before a public release.
 
-- **Canvas 2D** for lightweight games, prototypes, compatibility imports, and simple interactive software.
-- **Raycasting** for pseudo-3D and first-person experiments.
-- **DOM/CSS** for document, dashboard, editor, form, and text-heavy software.
-- Future lanes such as SVG, Three.js, Babylon.js, WebGPU, audio-focused software, and other browser-native approaches.
+## What we actually built
 
-See [`docs/RENDERER-LANES.md`](docs/RENDERER-LANES.md).
+SFHS is much more than a test runner. It is a complete, AI-friendly workflow
+for turning readable browser-game source into one portable, inspectable, and
+repeatable HTML artifact.
 
-## What exists today
+The idea is simple: creators should be able to work in clean source files while
+SFHS handles the difficult final-mile work of packaging the game, finding common
+mistakes, exercising the real output in a browser, and preserving proof of what
+passed. Instead of handing someone a fragile folder full of dependencies, SFHS
+can produce one `index.html` containing the experience.
 
-The repository currently contains the original Canvas 2D foundation:
+Here is what that includes:
 
-- a mobile-aware HTML shell;
-- action-mapped pointer and keyboard input;
-- deterministic simulation/render separation;
-- save/load scaffolding;
-- a build step that emits `dist/index.html`;
-- self-containment verification;
-- Playwright smoke tests.
+- **A PixiJS v8 game foundation.** SFHS includes a modern WebGL rendering
+  foundation, a working example, and a reusable adapter boundary. A creator can
+  begin with game rules and presentation instead of rebuilding basic PixiJS
+  startup and lifecycle plumbing for every project.
 
-That foundation remains useful, but it is no longer the full project definition. Newer Pixi-oriented work and the plugin-system experiments are being tracked as separate development phases before they are generalized into stable repository code.
+- **A fixed-step game loop.** Simulation advances at a predictable rate instead
+  of tying game rules directly to an inconsistent display frame rate. This makes
+  movement and game behavior easier to reason about, reproduce, and test.
 
-See:
+- **Keyboard and touchscreen controls.** The foundation supports desktop input
+  and phone-friendly pointer controls through the same action-based model. A
+  game can target mobile and PC without maintaining two unrelated control
+  systems.
 
-- [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md)
-- [`docs/PHASES.md`](docs/PHASES.md)
-- [`docs/DECISIONS.md`](docs/DECISIONS.md)
-- [`docs/ROADMAP.md`](docs/ROADMAP.md)
-- [`docs/PLUGIN-SYSTEM-WIP.md`](docs/PLUGIN-SYSTEM-WIP.md)
+- **Android portrait and landscape layout handling.** The game surface, HUD,
+  and touch controls adapt to both orientations with safe-area and containment
+  rules. The primary target is stable Android Chrome on a Samsung Galaxy S21
+  Ultra, with desktop Chromium as the secondary target.
 
-## Project status language
+- **Embedded images, audio, CSS, and JavaScript.** SFHS packages required runtime
+  resources into the final HTML instead of leaving a trail of easy-to-break
+  file paths and hosting dependencies.
 
-SFHS documentation distinguishes between:
+- **A deterministic one-file HTML packer.** Given the same verified source and
+  environment, SFHS produces byte-identical output. This makes a build easier
+  to compare, audit, archive, and trust.
 
-- **Verified** — directly tested or inspected.
-- **In progress** — active implementation work.
-- **Experimental** — useful research without a stable contract.
-- **Proposed** — a direction that has not been implemented.
-- **Blocked** — work cannot honestly advance without a concrete dependency or decision.
-- **Superseded** — preserved history that is no longer the active direction.
+- **A scanner that rejects accidental external dependencies.** SFHS looks for
+  scripts, styles, images, fonts, imports, workers, media, and other references
+  that would make the game depend on an unexpected runtime URL. The default is
+  to fail closed instead of shipping a file that only works while a third-party
+  service remains available.
 
-A passing automated test does not automatically mean a feature is usable on a physical device. Physical acceptance remains separate when touch, layout, performance, or visual clarity matter.
+- **Exact-file verification using hashes.** Every artifact receives a SHA-256
+  identity. SFHS verifies the generated bytes against the current source so the
+  file being reviewed can be proven to be the file that was built.
 
-## Preview repository
+- **Real Chromium interaction and layout testing.** SFHS exercises the exact
+  packed HTML in Chromium. It checks startup, keyboard and pointer input,
+  lifecycle behavior, assets, phone layouts, context-loss classification, and
+  unexpected network or page errors—not just whether source-level unit tests
+  pass.
 
-Temporary browser candidates are hosted separately in [`falloutmule/sfhs-preview`](https://github.com/falloutmule/sfhs-preview).
+- **Release evidence and safety gates.** Commands, versions, artifact hashes,
+  browser results, screenshots, and blockers can be collected into a contained
+  evidence run. SFHS reports what is proven and keeps unverified claims blocked.
 
-That repository is a replaceable review slot. It is not the authoritative source, a release archive, or proof that a candidate has been accepted.
+- **A reusable Codex plugin.** The repository includes a validated SFHS plugin
+  that teaches Codex how to route authoring, PixiJS, import, verification, and
+  release work through the same toolchain. It is repository-local and ready for
+  an explicitly authorized active-profile installation.
 
-## Quick start for the original Canvas 2D foundation
+- **A thin Hermes adapter.** Hermes can prepare bounded builder and independent
+  checker tasks while calling the same SFHS CLI. This avoids creating a second,
+  incompatible implementation of the build and release rules.
 
-```bash
-git clone https://github.com/falloutmule/single-file-html-software.git
-cd single-file-html-software
-npm install
-npm run build
-npm run verify
-npm test
-```
+- **An importer proving an existing HTML game can be moved into SFHS.** A small
+  non-SNC game was inventoried, migrated behind the SFHS contracts, packed into
+  one file, and behavior-tested. That proves SFHS can support more than projects
+  created from its own example.
 
-The generated candidate is:
+Together, these pieces make SFHS a portable production pipeline for small
+browser games and interactive software: readable while being developed, simple
+to distribute when packed, and evidence-driven when it is time to decide whether
+an artifact is ready. Tests are one layer of the system; the larger product is
+the path from authored source to a verified single-file experience.
+
+## What is SFHS?
+
+SFHS stands for **Single-File HTML Software**.
+
+It lets you build a small browser game or interactive program from normal,
+readable source files and then package the whole project into **one HTML file**.
+That final file contains the JavaScript, CSS, PixiJS code, and game assets it
+needs, so it does not need a separate `scripts`, `styles`, or `assets` folder at
+runtime.
+
+In simple terms:
 
 ```text
-dist/index.html
+Readable game files -> SFHS checks them -> one self-contained index.html
 ```
 
-The current commands describe the original foundation only. They do not yet represent a finished multi-lane plugin system.
+SFHS is the toolchain, not the game itself. The included `pixi-minimal` project
+is a small example showing how to use it.
 
-## Core principles being carried forward
+SFHS is a standalone project. It is **not part of SNC**, and it does not copy or
+change SNC game code.
 
-- One self-contained HTML release artifact.
-- No required runtime network access.
-- Human-readable source is authoritative; generated output is not edited directly.
-- Input is translated into named actions before simulation.
-- Simulation and rendering remain separated.
-- Rendering does not mutate gameplay state.
-- Durable state is serialized without DOM, renderer, cache, or particle objects.
-- Mobile layouts account for dynamic viewport changes, safe areas, pointer IDs, and `pointercancel`.
-- Build and browser evidence must be tied to the exact candidate being discussed.
-- Renderer-specific behavior belongs in a lane or plugin instead of silently becoming universal SFHS behavior.
+## What should I edit?
 
-## Repository purpose right now
+For the included PixiJS example, edit files here:
 
-This public repository is being used to:
+```text
+examples/pixi-minimal/src/
+```
 
-- keep the project visible and versioned;
-- maintain awareness of current and past directions;
-- record lessons from working games and software;
-- develop the plugin boundary gradually;
-- track multiple renderer lanes without prematurely supporting all of them;
-- preserve evidence and blockers honestly.
+The important files are:
 
-It is **not yet** a hardened SDK, stable public API, npm package, or contributor-ready framework.
+- `src/index.html` - the basic page structure.
+- `src/styles.css` - the page, game area, HUD, and mobile layout.
+- `src/main.ts` - startup and game-specific behavior.
+- `src/simulation.ts` - renderer-independent game state and rules.
+- `src/assets/manifest.json` - the list of assets to embed.
+- `sfhs.project.json` - the project's SFHS build and test settings.
 
-## License
+Do **not** hand-edit this file:
 
-MIT
+```text
+examples/pixi-minimal/dist/index.html
+```
+
+That is generated output. SFHS will replace it the next time the project is
+packed. Always make changes in `src/`, then generate a new HTML file.
+
+## Requirements
+
+Install these before using the repository:
+
+- Node.js 24 or newer.
+- pnpm 11.9.0.
+- A Chromium-based browser for the automated browser tests.
+
+The main runtime target is stable Android Chrome on a physical Samsung Galaxy
+S21 Ultra (`SM-G998*`). Desktop Chromium on a PC is the secondary target.
+
+## First-time setup
+
+Open PowerShell in the SFHS repository:
+
+```powershell
+cd C:\Users\fallo\Documents\SFHS
+pnpm install --frozen-lockfile
+```
+
+Then confirm the workspace is healthy:
+
+```powershell
+pnpm check
+```
+
+`pnpm check` runs the repository's lint, type, and unit tests.
+
+## Build the included PixiJS example
+
+Use these commands from the repository root:
+
+```powershell
+pnpm sfhs inspect --json --project examples/pixi-minimal
+pnpm sfhs validate --json --project examples/pixi-minimal
+pnpm sfhs pack --json --project examples/pixi-minimal
+pnpm sfhs verify --json --project examples/pixi-minimal
+```
+
+What each command does:
+
+1. `inspect` shows which project and adapter SFHS found.
+2. `validate` checks the manifest and source layout.
+3. `pack` builds everything into one HTML file.
+4. `verify` checks that the generated file matches the current source and does
+   not contain forbidden external runtime references.
+
+After `pack` succeeds, the generated game is here:
+
+```text
+examples/pixi-minimal/dist/index.html
+```
+
+You can open that file in Chrome to try the fixture. The page will show an
+honest capability message instead of pretending to run if WebGL is unavailable.
+
+## The normal editing workflow
+
+Use this loop when changing the example:
+
+1. Edit a file under `examples/pixi-minimal/src/`.
+2. Run a proportional check for the file you changed.
+3. Pack a fresh HTML file.
+4. Verify that exact generated file.
+5. Open or browser-test the generated file.
+
+For example, after changing `src/main.ts`:
+
+```powershell
+pnpm sfhs check --json --project examples/pixi-minimal --changed examples/pixi-minimal/src/main.ts
+pnpm sfhs pack --json --project examples/pixi-minimal
+pnpm sfhs verify --json --project examples/pixi-minimal
+```
+
+The `check` command chooses relevant tests from the path passed to `--changed`.
+Use `pnpm check` when you want the full repository-level lint, type, and unit
+test suite.
+
+## Run the stronger checks
+
+Before treating an artifact as a release candidate, run:
+
+```powershell
+pnpm determinism
+pnpm browser-scenarios
+```
+
+- `determinism` builds twice in isolated copies and confirms that both HTML
+  files are byte-for-byte identical.
+- `browser-scenarios` tests the exact packed bytes in Chromium, including boot,
+  input, lifecycle, embedded assets, context loss, phone layouts, and the
+  file-protocol classification.
+
+The generated artifact is intentionally ignored by Git. Source files and proof
+documents are versioned; generated `dist/index.html` files are not the source of
+truth.
+
+## Prepare release evidence
+
+This command runs the complete local release matrix and writes a contained
+evidence record:
+
+```powershell
+pnpm sfhs release prepare --json --project examples/pixi-minimal --evidence .sfhs-evidence/my-release-run
+```
+
+Release preparation does **not** publish, deploy, push, or install anything.
+
+At present, release preparation is expected to stop on
+`SFHS_RELEASE_PHYSICAL_DEVICE_REQUIRED` until the exact artifact has passed the
+documented portrait and landscape checks on a physical Samsung Galaxy S21 Ultra.
+That message is a release blocker, not evidence that an ordinary local build is
+broken.
+
+The final independent release checker also requires:
+
+- physical Samsung Galaxy S21 Ultra evidence;
+- permission to install and discover the repository-local Codex plugin;
+- a public Git remote;
+- matching Windows and Linux determinism evidence.
+
+Until those items are supplied, its correct verdict is:
+
+```text
+BLOCKED_ON_EXTERNAL_DECISION
+```
+
+## Starting another SFHS project
+
+The easiest starting point is the included Pixi example:
+
+1. Copy `examples/pixi-minimal` to a new folder under `examples/`.
+2. Do not copy `node_modules` or `dist`.
+3. Give the new project a unique package name in `package.json`.
+4. Change its ID, title, version, and settings in `sfhs.project.json`.
+5. Replace the example source and assets under `src/`.
+6. Run `inspect`, `validate`, `check`, `pack`, and `verify` against the new path.
+
+Keep simulation state in ordinary serializable data. Input should update actions,
+actions should update simulation, and rendering should only display the result.
+Rendering must not secretly change gameplay state.
+
+## Common messages
+
+### `SFHS_VERIFY_ARTIFACT_MISSING`
+
+Run `pack` before `verify`. Tests may deliberately remove ignored generated
+output, so packing immediately before verification is safe and normal.
+
+### `SFHS_RELEASE_PHYSICAL_DEVICE_REQUIRED`
+
+The local checks passed, but release still needs the physical S21 Ultra run.
+Follow `docs/SAMSUNG-S21-ULTRA-PHYSICAL-ACCEPTANCE.md`.
+
+### `SFHS_RELEASE_PUBLIC_REMOTE_UNCONFIGURED`
+
+The project has no approved public Git remote. This affects the final release
+gate, not local authoring or packing.
+
+### The WebGL capability page appears
+
+The current Pixi adapter requires WebGL. SFHS intentionally reports unsupported
+hardware or browser settings instead of claiming that an untested Canvas or
+WebGPU fallback works.
+
+## Useful project documents
+
+- `README.md` - this living project overview and usage guide.
+- `AGENTS.md` - repository boundaries and safety rules.
+- `docs/SFHS-V0.1-FINISH-PLAN.md` - the implementation and release roadmap.
+- `docs/SAMSUNG-S21-ULTRA-PHYSICAL-ACCEPTANCE.md` - required phone test.
+- `docs/evidence/SFHS-010A-010B-RELEASE-GATE.md` - current verified state and
+  remaining blockers.
+
+## The short version
+
+For everyday use, remember this:
+
+```powershell
+# Edit readable files under examples/<project>/src first.
+pnpm sfhs check --json --project examples/pixi-minimal --changed examples/pixi-minimal/src/main.ts
+pnpm sfhs pack --json --project examples/pixi-minimal
+pnpm sfhs verify --json --project examples/pixi-minimal
+```
+
+Edit the source, check it, generate one HTML file, and verify the exact file you
+will run. Never treat generated `dist/index.html` as the editable source.

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sfhs.local/schemas/sfhs.renderer-classification.schema.json",
+  "title": "SFHS renderer classification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "classification", "primary", "secondary", "confidence", "evidence", "blockingFindings", "verdict"],
+  "properties": {
+    "schema": { "const": "sfhs.renderer-classification@1" },
+    "classification": { "enum": ["CANVAS_2D", "PIXI", "DOM", "SVG", "WEBGL_GENERIC", "MIXED_INTENTIONAL", "MIXED_REDUNDANT", "UNKNOWN"] },
+    "primary": { "anyOf": [{ "type": "null" }, { "$ref": "#/$defs/surface" }] },
+    "secondary": { "type": "array", "items": { "$ref": "#/$defs/surface" } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "blockingFindings": { "type": "array", "items": { "type": "string" } },
+    "verdict": { "enum": ["BLOCKED_ON_ADAPTER_MISMATCH", "BLOCKED_ON_RENDERER_AMBIGUITY", "BLOCKED_ON_UNSUPPORTED_RENDERER", "MIGRATION_REQUIRED", "ANALYSIS_PASS"] }
+  },
+  "$defs": {
+    "surface": {
+      "type": "object",
+      "required": ["id", "kind", "meaningful", "visible", "hitTest"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["CANVAS_2D", "PIXI", "DOM", "SVG", "WEBGL_GENERIC", "UNKNOWN"] },
+        "meaningful": { "type": "boolean" },
+        "visible": { "type": "boolean" },
+        "hitTest": { "type": "boolean" }
+      }
+    }
+  }
+}

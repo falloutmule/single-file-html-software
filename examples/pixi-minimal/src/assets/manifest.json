@@ -1,0 +1,13 @@
+{
+  "bundles": [
+    {
+      "name": "fixture",
+      "assets": [
+        { "alias": "fixture-atlas-image", "src": "./fixture-atlas.png" },
+        { "alias": "fixture-atlas-data", "src": "./fixture-atlas.json" },
+        { "alias": "fixture-target", "src": "./target.svg" },
+        { "alias": "fixture-audio-unlock", "src": "./audio-unlock.wav" }
+      ]
+    }
+  ]
+}

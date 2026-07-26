@@ -1,0 +1,20 @@
+{
+  "name": "@sfhs/verifier",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@sfhs/contracts": "workspace:*",
+    "@sfhs/core": "workspace:*",
+    "acorn": "8.17.0",
+    "parse5": "8.0.1",
+    "postcss": "8.5.20"
+  },
+  "devDependencies": {
+    "@sfhs/builder": "workspace:*",
+    "@sfhs/packer": "workspace:*"
+  }
+}

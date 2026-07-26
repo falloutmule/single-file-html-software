@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <title>SFHS Hermes Minimal Import</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main id="fixture-shell" class="collector" data-phase="ready" aria-labelledby="collector-title">
+      <header class="collector-hud">
+        <h1 id="collector-title">Collect the star</h1>
+        <p>Score: <output id="score">0</output> - BUILD: import1</p>
+      </header>
+      <p id="fixture-status" class="collector-status" aria-live="polite">Ready to check WebGL capability.</p>
+      <button id="fixture-start" class="collector-start" type="button">Start collector</button>
+      <section id="pixi-host" class="collector-view" aria-label="Collector game view"></section>
+      <nav class="collector-controls" aria-label="Movement controls">
+        <button type="button" class="collector-button" id="btn-left" aria-label="Move left">&larr;</button>
+        <button type="button" class="collector-button" id="btn-right" aria-label="Move right">&rarr;</button>
+      </nav>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

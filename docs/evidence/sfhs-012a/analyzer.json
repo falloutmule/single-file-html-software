@@ -1,0 +1,1506 @@
+{
+  "schema": "sfhs.canvas-analyzer-evidence@1",
+  "task": "SFHS-012A",
+  "sourceRoot": "C:\\tmp\\sfhs-homeostasis-013a\\examples\\homeostasis",
+  "staticAnalysis": {
+    "schema": "sfhs.canvas-static-analysis@1",
+    "files": [
+      "main.ts",
+      "renderer.ts",
+      "simulation-engine.ts",
+      "simulation-mechanics.ts",
+      "simulation-rules.ts",
+      "simulation-state.ts"
+    ],
+    "canvasCreationLocations": [
+      {
+        "file": "main.ts",
+        "line": 46,
+        "column": 16
+      },
+      {
+        "file": "main.ts",
+        "line": 146,
+        "column": 34
+      }
+    ],
+    "contextAcquisitionLocations": [
+      {
+        "file": "main.ts",
+        "line": 47,
+        "column": 7
+      },
+      {
+        "file": "main.ts",
+        "line": 148,
+        "column": 25
+      },
+      {
+        "file": "main.ts",
+        "line": 160,
+        "column": 25
+      },
+      {
+        "file": "renderer.ts",
+        "line": 53,
+        "column": 13
+      }
+    ],
+    "offscreenCanvasLocations": [],
+    "canvasToCanvasDrawLocations": [],
+    "unbalancedRestoreLocations": [],
+    "operations": [
+      {
+        "operation": "arc",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 154,
+            "column": 60
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 327
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 336
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 584
+          },
+          {
+            "file": "main.ts",
+            "line": 241,
+            "column": 424
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 43
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 270
+          },
+          {
+            "file": "main.ts",
+            "line": 246,
+            "column": 158
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 186
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 464
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 575
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 734
+          },
+          {
+            "file": "main.ts",
+            "line": 253,
+            "column": 75
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 235
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 311
+          },
+          {
+            "file": "main.ts",
+            "line": 256,
+            "column": 188
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "beginPath",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 150,
+            "column": 27
+          },
+          {
+            "file": "main.ts",
+            "line": 153,
+            "column": 5
+          },
+          {
+            "file": "main.ts",
+            "line": 154,
+            "column": 46
+          },
+          {
+            "file": "main.ts",
+            "line": 155,
+            "column": 84
+          },
+          {
+            "file": "main.ts",
+            "line": 156,
+            "column": 115
+          },
+          {
+            "file": "main.ts",
+            "line": 161,
+            "column": 48
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 151
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 313
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 252
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 457
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 320
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 568
+          },
+          {
+            "file": "main.ts",
+            "line": 241,
+            "column": 408
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 50
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 8
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 27
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 254
+          },
+          {
+            "file": "main.ts",
+            "line": 246,
+            "column": 142
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 176
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 170
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 270
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 448
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 559
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 718
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 3
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 542
+          },
+          {
+            "file": "main.ts",
+            "line": 252,
+            "column": 215
+          },
+          {
+            "file": "main.ts",
+            "line": 253,
+            "column": 59
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 219
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 295
+          },
+          {
+            "file": "main.ts",
+            "line": 256,
+            "column": 73
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "closePath",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 150,
+            "column": 219
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 238
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 181
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 179
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "createLinearGradient",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 12
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "createRadialGradient",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 151,
+            "column": 14
+          },
+          {
+            "file": "main.ts",
+            "line": 235,
+            "column": 56
+          },
+          {
+            "file": "main.ts",
+            "line": 241,
+            "column": 218
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 266
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 204
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 150
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "drawImage",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 254
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 339
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "ellipse",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 153,
+            "column": 19
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 165
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 286
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 558
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "fill",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 151,
+            "column": 152
+          },
+          {
+            "file": "main.ts",
+            "line": 153,
+            "column": 159
+          },
+          {
+            "file": "main.ts",
+            "line": 154,
+            "column": 155
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 199
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 371
+          },
+          {
+            "file": "main.ts",
+            "line": 241,
+            "column": 453
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 344
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 221
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 71
+          },
+          {
+            "file": "main.ts",
+            "line": 246,
+            "column": 189
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 214
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 341
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 492
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 405
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 596
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 346
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "fillRect",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 235,
+            "column": 286
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 321
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 395
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 428
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 545
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 704
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "fillText",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 160
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 822
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "getImageData",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "renderer.ts",
+            "line": 55,
+            "column": 21
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "lineTo",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 150,
+            "column": 190
+          },
+          {
+            "file": "main.ts",
+            "line": 156,
+            "column": 154
+          },
+          {
+            "file": "main.ts",
+            "line": 156,
+            "column": 175
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 286
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 491
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 205
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 148
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 208
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 224
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 258
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 146
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "moveTo",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 150,
+            "column": 204
+          },
+          {
+            "file": "main.ts",
+            "line": 155,
+            "column": 98
+          },
+          {
+            "file": "main.ts",
+            "line": 156,
+            "column": 129
+          },
+          {
+            "file": "main.ts",
+            "line": 161,
+            "column": 62
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 268
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 473
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 221
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 164
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 192
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 242
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 162
+          },
+          {
+            "file": "main.ts",
+            "line": 252,
+            "column": 231
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "quadraticCurveTo",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 155,
+            "column": 130
+          },
+          {
+            "file": "main.ts",
+            "line": 161,
+            "column": 101
+          },
+          {
+            "file": "main.ts",
+            "line": 252,
+            "column": 257
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "restore",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 638
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 653
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 427
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 407
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 288
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 353
+          },
+          {
+            "file": "main.ts",
+            "line": 253,
+            "column": 154
+          },
+          {
+            "file": "main.ts",
+            "line": 256,
+            "column": 236
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "rotate",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 160,
+            "column": 65
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 202
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 166
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 79
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "save",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 58
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 168
+          },
+          {
+            "file": "main.ts",
+            "line": 241,
+            "column": 150
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 132
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 49
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 92
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 152
+          },
+          {
+            "file": "main.ts",
+            "line": 256,
+            "column": 22
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "scale",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 241,
+            "column": 184
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 95
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 186
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "setTransform",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 64,
+            "column": 3
+          },
+          {
+            "file": "main.ts",
+            "line": 235,
+            "column": 3
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "stroke",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 151,
+            "column": 238
+          },
+          {
+            "file": "main.ts",
+            "line": 155,
+            "column": 167
+          },
+          {
+            "file": "main.ts",
+            "line": 156,
+            "column": 195
+          },
+          {
+            "file": "main.ts",
+            "line": 161,
+            "column": 187
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 245
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 314
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 518
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 454
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 639
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 411
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 274
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 325
+          },
+          {
+            "file": "main.ts",
+            "line": 246,
+            "column": 239
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 275
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 605
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 788
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 494
+          },
+          {
+            "file": "main.ts",
+            "line": 252,
+            "column": 332
+          },
+          {
+            "file": "main.ts",
+            "line": 253,
+            "column": 141
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 276
+          },
+          {
+            "file": "main.ts",
+            "line": 256,
+            "column": 223
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "strokeRect",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 588
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "translate",
+        "kind": "method",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 148,
+            "column": 68
+          },
+          {
+            "file": "main.ts",
+            "line": 160,
+            "column": 46
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 179
+          },
+          {
+            "file": "main.ts",
+            "line": 241,
+            "column": 161
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 143
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 60
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 103
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 163
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "fillStyle",
+        "kind": "property-write",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 151,
+            "column": 135
+          },
+          {
+            "file": "main.ts",
+            "line": 153,
+            "column": 87
+          },
+          {
+            "file": "main.ts",
+            "line": 154,
+            "column": 119
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 136
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 256
+          },
+          {
+            "file": "main.ts",
+            "line": 235,
+            "column": 269
+          },
+          {
+            "file": "main.ts",
+            "line": 241,
+            "column": 389
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 254
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 197
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 3
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 82
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 289
+          },
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 348
+          },
+          {
+            "file": "main.ts",
+            "line": 246,
+            "column": 118
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 126
+          },
+          {
+            "file": "main.ts",
+            "line": 249,
+            "column": 225
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 432
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 388
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 507
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 153
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 412
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 487
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 637
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 745
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "font",
+        "kind": "property-write",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 106
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 769
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "globalAlpha",
+        "kind": "property-write",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 220
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 485
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 642
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 801
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 135
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 359
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "imageSmoothingEnabled",
+        "kind": "property-write",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 65,
+            "column": 3
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "lineCap",
+        "kind": "property-write",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 156
+          },
+          {
+            "file": "main.ts",
+            "line": 252,
+            "column": 195
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "lineWidth",
+        "kind": "property-write",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 151,
+            "column": 224
+          },
+          {
+            "file": "main.ts",
+            "line": 155,
+            "column": 47
+          },
+          {
+            "file": "main.ts",
+            "line": 156,
+            "column": 80
+          },
+          {
+            "file": "main.ts",
+            "line": 160,
+            "column": 124
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 109
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 572
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 438
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 552
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 395
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 258
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 238
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 140
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 543
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 702
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 476
+          },
+          {
+            "file": "main.ts",
+            "line": 252,
+            "column": 179
+          },
+          {
+            "file": "main.ts",
+            "line": 253,
+            "column": 43
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "strokeStyle",
+        "kind": "property-write",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 151,
+            "column": 161
+          },
+          {
+            "file": "main.ts",
+            "line": 155,
+            "column": 9
+          },
+          {
+            "file": "main.ts",
+            "line": 156,
+            "column": 45
+          },
+          {
+            "file": "main.ts",
+            "line": 160,
+            "column": 86
+          },
+          {
+            "file": "main.ts",
+            "line": 162,
+            "column": 208
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 69
+          },
+          {
+            "file": "main.ts",
+            "line": 239,
+            "column": 532
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 398
+          },
+          {
+            "file": "main.ts",
+            "line": 240,
+            "column": 526
+          },
+          {
+            "file": "main.ts",
+            "line": 242,
+            "column": 355
+          },
+          {
+            "file": "main.ts",
+            "line": 243,
+            "column": 232
+          },
+          {
+            "file": "main.ts",
+            "line": 245,
+            "column": 199
+          },
+          {
+            "file": "main.ts",
+            "line": 246,
+            "column": 200
+          },
+          {
+            "file": "main.ts",
+            "line": 247,
+            "column": 118
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 503
+          },
+          {
+            "file": "main.ts",
+            "line": 250,
+            "column": 676
+          },
+          {
+            "file": "main.ts",
+            "line": 251,
+            "column": 416
+          },
+          {
+            "file": "main.ts",
+            "line": 252,
+            "column": 139
+          },
+          {
+            "file": "main.ts",
+            "line": 253,
+            "column": 3
+          },
+          {
+            "file": "main.ts",
+            "line": 254,
+            "column": 195
+          },
+          {
+            "file": "main.ts",
+            "line": 256,
+            "column": 33
+          }
+        ],
+        "unknownContextAlias": false
+      },
+      {
+        "operation": "textAlign",
+        "kind": "property-write",
+        "staticLocations": [
+          {
+            "file": "main.ts",
+            "line": 244,
+            "column": 137
+          },
+          {
+            "file": "main.ts",
+            "line": 255,
+            "column": 799
+          }
+        ],
+        "unknownContextAlias": false
+      }
+    ],
+    "unknownContextAliases": []
+  },
+  "artifact": {
+    "bytes": 545533,
+    "buildId": "homeostasis-6e1ce97ec76d",
+    "sourceSha256": "6e1ce97ec76dea50eab58466ef71b18fb57ce627ae7da5f732bc8563b1381b65"
+  },
+  "diagnosticOnlyOperations": [
+    {
+      "operation": "getImageData",
+      "source": "src/renderer.ts:readCenterPixel",
+      "reason": "Existing test façade/render proof diagnostic; excluded from production-presentation capability verdict but retained in the raw trace."
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:55958/index.html"
+  ]
+}

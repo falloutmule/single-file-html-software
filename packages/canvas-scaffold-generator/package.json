@@ -1,0 +1,9 @@
+{
+  "name": "@sfhs/canvas-scaffold-generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@sfhs/canvas-capability-analyzer": "workspace:*" },
+  "devDependencies": { "@sfhs/builder": "workspace:*" }
+}

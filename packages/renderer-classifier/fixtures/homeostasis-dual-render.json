@@ -1,0 +1,24 @@
+{
+  "source": "const visible = document.createElement('canvas'); visible.getContext('2d'); const app = new PIXI.Application();",
+  "surfaces": [
+    {
+      "id": "pixi-underlay", "tag": "CANVAS", "contextType": "webgl", "pixiOwned": true, "creationOrder": 0,
+      "cssWidth": 412, "cssHeight": 915, "backingWidth": 412, "backingHeight": 915, "x": 0, "y": 0,
+      "visible": true, "opacity": 1, "display": "block", "zIndex": "auto", "pointerEvents": "auto", "domOrder": 0,
+      "changedPixels": 0, "drawCount": 0, "clearCount": 180, "eventCount": 0, "hitTest": false, "resized": false, "frameCallbacks": 1
+    },
+    {
+      "id": "homeostasis-canvas", "tag": "CANVAS", "contextType": "2d", "creationOrder": 1,
+      "cssWidth": 412, "cssHeight": 915, "backingWidth": 960, "backingHeight": 540, "x": 0, "y": 0,
+      "visible": true, "opacity": 1, "display": "block", "zIndex": "auto", "pointerEvents": "auto", "domOrder": 1,
+      "changedPixels": 25000, "drawCount": 14000, "clearCount": 180, "eventCount": 4, "hitTest": true, "resized": true, "frameCallbacks": 1
+    }
+  ],
+  "expected": {
+    "classification": "MIXED_REDUNDANT",
+    "primaryKind": "CANVAS_2D",
+    "secondaryKind": "PIXI",
+    "secondaryMeaningful": false,
+    "verdict": "BLOCKED_ON_ADAPTER_MISMATCH"
+  }
+}

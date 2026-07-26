@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "sfhs.hermes-task@1",
+  "taskId": "${TASK_ID}",
+  "role": "checker",
+  "repository": {
+    "root": "${ABSOLUTE_REPOSITORY_ROOT}",
+    "base": "${BASE_BRANCH}",
+    "baseCommit": "${BASE_COMMIT}",
+    "cleanRequired": false
+  },
+  "scope": {
+    "allowedFiles": [],
+    "forbiddenFiles": [
+      "**"
+    ]
+  },
+  "commands": [
+    {
+      "id": "repository-status",
+      "cwd": "${ABSOLUTE_REPOSITORY_ROOT}",
+      "argv": ["git", "status", "--short"],
+      "mutation": "read-only",
+      "allowedExitCodes": [0]
+    },
+    {
+      "id": "adapter-contract",
+      "cwd": "${ABSOLUTE_REPOSITORY_ROOT}",
+      "argv": ["${NODE_EXECUTABLE}", "${PNPM_ENTRY}", "hermes-adapter-validate"],
+      "mutation": "read-only",
+      "allowedExitCodes": [0]
+    },
+    {
+      "id": "artifact-verification",
+      "cwd": "${ABSOLUTE_REPOSITORY_ROOT}",
+      "argv": ["${NODE_EXECUTABLE}", "${PNPM_ENTRY}", "sfhs", "verify", "--json", "--project", "examples/pixi-minimal"],
+      "mutation": "read-only",
+      "allowedExitCodes": [0]
+    }
+  ],
+  "evidence": {
+    "directory": ".sfhs-evidence/${RUN_ID}",
+    "requiredFiles": [
+      ".sfhs-evidence/${RUN_ID}/evidence.json",
+      "examples/pixi-minimal/dist/index.html"
+    ]
+  },
+  "acceptanceCriteria": [
+    "Repository truth matches the packet and all non-generated paths are clean.",
+    "The adapter contract validator passes.",
+    "Exact artifact verification passes and matches builder evidence.",
+    "The checker reports profile, session/run ID, commit, artifact SHA-256, build ID, evidence paths, and one bounded verdict."
+  ],
+  "stopConditions": [
+    "Return FAIL - REPAIRABLE on contract, repository, evidence, or artifact mismatch.",
+    "Return BLOCKED - external evidence required only for unavailable external device or authorized environment proof.",
+    "Never modify, repair, release, push, publish, deploy, or change a Hermes profile."
+  ],
+  "nextAction": "Run the declared read-only checks and return exactly one bounded checker verdict."
+}

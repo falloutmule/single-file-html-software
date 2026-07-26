@@ -1,0 +1,70 @@
+{
+  "schema": "sfhs.canvas-scene-coverage@1",
+  "scenes": [
+    {
+      "scene": "bacterial-cluster",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "biofilm-nidus",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "damaged-tissue",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "failure-result",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "normal-engage",
+      "coverage": "EXECUTED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "pause",
+      "coverage": "EXECUTED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "repairing-tissue",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "resolve-activation",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "resolve-stabilization",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "storm-engage",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "title",
+      "coverage": "EXECUTED",
+      "note": "Boot and generated-texture drawing executed before the start action."
+    },
+    {
+      "scene": "upgrade-selection",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    },
+    {
+      "scene": "victory-result",
+      "coverage": "SIMULATED",
+      "note": "Runtime instrumented in controlled Chromium execution."
+    }
+  ]
+}

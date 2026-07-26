@@ -1,0 +1,17 @@
+{
+  "name": "@sfhs/example-hermes-minimal-import",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "browser-proof": "node tools/run-browser-proof.mjs"
+  },
+  "dependencies": {
+    "@sfhs/adapter-pixi-v8": "workspace:*"
+  },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1"
+  }
+}

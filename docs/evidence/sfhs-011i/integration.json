@@ -1,0 +1,43 @@
+{
+  "schema": "sfhs.phase1-integration@1",
+  "task": "SFHS-011I",
+  "baseCommit": "2d604d4138403cf094134d4a2a2f6b587f721bbc",
+  "branch": "codex/sfhs-phase2-integration",
+  "parents": {
+    "rendererClassification": "87672049133c60831b3241b1a181380ce6930741",
+    "pixiRuntime": "0b6712518569984a5960081e98cd6d66f619077c"
+  },
+  "mergeCommits": [
+    "ff520867ad3521a0ce2f05b4481dd0907becbfbd",
+    "843a16b05a8f17c70fe773dc15e36add46fb2f57"
+  ],
+  "lockfile": {
+    "sha256": "71876caca3c02584eb475e896910d6d55ffdc4ddc35bed980c130ee83bfa41da",
+    "resolution": "offline regeneration from combined workspace manifests"
+  },
+  "checks": {
+    "offlineFrozenInstall": "PASS",
+    "scopedLint": "PASS",
+    "typecheck": "PASS",
+    "classifierTests": { "passed": 14, "failed": 0 },
+    "runtimeTests": { "passed": 17, "failed": 0 },
+    "fullSuite": { "passed": 139, "skipped": 2, "failed": 0 },
+    "browserSmoke": {
+      "status": "PASS",
+      "artifactSha256": "9802b0da147789e3c76436ad4335f496de99bd215ff0d4548c533e47c02b0b9e",
+      "externalRequests": 0
+    }
+  },
+  "homeostasisBlockingFixture": {
+    "classification": "MIXED_REDUNDANT",
+    "primary": "CANVAS_2D",
+    "secondary": "PIXI",
+    "secondaryMeaningful": false,
+    "verdict": "BLOCKED_ON_ADAPTER_MISMATCH"
+  },
+  "historicalRootLintIssue": {
+    "status": "UNRESOLVED_OUT_OF_SCOPE",
+    "note": "The ignored HOMEOSTASIS evidence that triggers it is deliberately absent from this generic integration branch."
+  },
+  "verdict": "AUTOMATED_PASS"
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "sfhs.project@1",
+  "project": {
+    "id": "pixi-minimal",
+    "title": "Pixi Minimal",
+    "version": "0.1.0"
+  },
+  "adapter": {
+    "id": "canvas-2d",
+    "versionRange": "^1.0.0",
+    "renderer": {
+      "required": "webgl",
+      "webgpu": "disabled",
+      "unsupportedBehavior": "show-capability-page"
+    }
+  },
+  "source": {
+    "html": "src/index.html",
+    "entry": "src/main.ts",
+    "styles": ["src/styles.css"],
+    "publicDir": "public"
+  },
+  "viewport": {
+    "mode": "fixed-contain",
+    "logicalWidth": 960,
+    "logicalHeight": 540,
+    "maxDevicePixelRatio": 2,
+    "orientation": "adaptive"
+  },
+  "assets": {
+    "manifest": "src/assets/manifest.json",
+    "runtimeExternalUrls": [],
+    "inline": "all",
+    "maximumSingleAssetBytes": 4194304
+  },
+  "runtime": {
+    "simulationHz": 60,
+    "maximumFrameDeltaMs": 250,
+    "pauseWhenHidden": true,
+    "domOverlay": true
+  },
+  "storage": {
+    "localStorage": "optional",
+    "exportImportFallback": true
+  },
+  "build": {
+    "output": "dist/index.html",
+    "minify": true,
+    "sourceMaps": "external-evidence-only",
+    "canonicalLineEnding": "lf",
+    "failOnExternalReference": true,
+    "failOnDynamicChunk": true
+  },
+  "test": {
+    "baseURL": "http://127.0.0.1:4173",
+    "browsers": ["chromium"],
+    "viewports": ["desktop"],
+    "screenshots": ["boot"],
+    "fileProtocolSmoke": true
+  }
+}

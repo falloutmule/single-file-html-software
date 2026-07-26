@@ -1,0 +1,9 @@
+{
+  "schema": "sfhs.pixi-canvas-diagnostics@1",
+  "base": "57c654ab5341f92bd84b81422350f28546126b65",
+  "sustainedFixture": { "frames": 20, "graphicsAllocated": 1, "spritesAllocated": 2, "textAllocated": 1, "activeCompatibilityLayers": 1, "unboundedGrowth": false },
+  "diagnostics": ["commandsLastFrame", "commandsByFamily", "graphicsAllocated", "graphicsReused", "spritesAllocated", "spritesReused", "textAllocated", "textReused", "texturesCreated", "texturesDestroyed", "gradientCacheHits", "gradientCacheMisses", "maskCount", "renderTextureCount", "unsupportedOperationCount", "maximumSaveDepth", "presentationMilliseconds", "longFrameCount", "activeCompatibilityLayers"],
+  "unsupportedFixture": { "operation": "clip", "source": "legacy.ts:10", "scene": "title", "verdict": "BLOCKED_ON_UNSUPPORTED_CANVAS_FEATURES" },
+  "browserFixture": { "visiblePixiCanvases": 1, "visibleCanvas2dContexts": 0, "commandCount": 19 },
+  "verdict": "AUTOMATED_PASS"
+}

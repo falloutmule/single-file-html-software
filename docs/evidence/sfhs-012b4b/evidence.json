@@ -1,0 +1,14 @@
+{
+  "schema": "sfhs.canvas-source-texture-bridge@1",
+  "card": "SFHS-012B4B",
+  "baseCommit": "7554eebd61f45c408417988abce04fa06720a7a1",
+  "sourceTypes": {"disconnectedHtmlCanvas": "supported", "registeredPixiTexture": "supported", "offscreenCanvas": "not-required", "imageBitmap": "not-required"},
+  "attribution": ["owner", "purpose", "origin", "updatePolicy", "expectedWidth", "expectedHeight"],
+  "policies": {"static": "lazy upload then cache hit; markDirty blocks", "explicitDirty": "one source.update per dirty mark", "approvedDynamic": "not implemented"},
+  "drawImage": {"forms": [2, 4, 8], "sharedState": ["transform", "globalAlpha", "globalCompositeOperation", "imageSmoothingEnabled", "saveRestore"], "crop": "verified", "destination": "verified"},
+  "lifecycle": {"ownedTextureDestroyedOnFinalRelease": true, "borrowedTextureNeverDestroyed": true, "ownerScopedCleanup": true, "registryDestroy": true},
+  "browserProof": {"visiblePresentationCanvases": 1, "visibleCanvas2d": 0, "webgl": true, "externalRequests": 0, "documentRequests": 1, "generatedCanvasConnected": false, "textureUploads": 1},
+  "tests": {"filesPassed": 6, "testsPassed": 18, "typecheck": "passed", "scopedLint": "passed", "diffCheck": "passed"},
+  "protected": {"homeostasisB1Commits": ["265ffca", "9e4326f"], "homeostasisSourceChanged": false, "pagesChanged": false, "sncChanged": false, "remoteChanged": false},
+  "verdict": "AUTOMATED_PASS"
+}

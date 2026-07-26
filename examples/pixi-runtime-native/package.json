@@ -1,0 +1,11 @@
+{
+  "name": "@sfhs/example-pixi-runtime-native",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sfhs/adapter-pixi-v8": "workspace:*",
+    "@sfhs/pixi-runtime": "workspace:*",
+    "pixi.js": "8.19.0"
+  }
+}

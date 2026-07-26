@@ -1,0 +1,5981 @@
+{
+  "schema": "sfhs.canvas-runtime-trace@1",
+  "scenes": [
+    "bacterial-cluster",
+    "biofilm-nidus",
+    "damaged-tissue",
+    "failure-result",
+    "normal-engage",
+    "pause",
+    "repairing-tissue",
+    "resolve-activation",
+    "resolve-stabilization",
+    "storm-engage",
+    "title",
+    "upgrade-selection",
+    "victory-result"
+  ],
+  "contexts": [
+    {
+      "id": "canvas2d-1",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": true,
+      "width": 768,
+      "height": 1708,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 971,
+          "maximumCallsPerFrame": 11,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:17",
+            "string:19",
+            "string:21",
+            "string:27",
+            "string:28",
+            "string:29",
+            "string:35",
+            "string:36",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 6012,
+          "maximumCallsPerFrame": 421,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7686,
+          "maximumCallsPerFrame": 437,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 101,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 349,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "drawImage",
+          "kind": "method",
+          "totalCalls": 12865,
+          "maximumCallsPerFrame": 137,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "HTMLCanvasElement",
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 101,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 3919,
+          "maximumCallsPerFrame": 422,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillRect",
+          "kind": "method",
+          "totalCalls": 213,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillText",
+          "kind": "method",
+          "totalCalls": 9,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:23"
+          ],
+          "values": [
+            "text:length=23:hash=d78531bc"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 3577,
+          "maximumCallsPerFrame": 34,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1573,
+          "maximumCallsPerFrame": 15,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 16,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "failure-result",
+            "normal-engage"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "restore",
+          "kind": "method",
+          "totalCalls": 13078,
+          "maximumCallsPerFrame": 139,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "rotate",
+          "kind": "method",
+          "totalCalls": 12865,
+          "maximumCallsPerFrame": 137,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "save",
+          "kind": "method",
+          "totalCalls": 13078,
+          "maximumCallsPerFrame": 139,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "scale",
+          "kind": "method",
+          "totalCalls": 101,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "setTransform",
+          "kind": "method",
+          "totalCalls": 114,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 3880,
+          "maximumCallsPerFrame": 79,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeRect",
+          "kind": "method",
+          "totalCalls": 112,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 12966,
+          "maximumCallsPerFrame": 138,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 4388,
+          "maximumCallsPerFrame": 424,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:#75efff",
+            "string:#a8686e",
+            "string:#d5ff8e",
+            "string:#d8ff8e",
+            "string:#d9fff4",
+            "string:rgba(110,255,216,0.04557673369234602)",
+            "string:rgba(20,65,70,.65)",
+            "string:rgba(25,63,105,0.01112447999999981)",
+            "string:rgba(25,63,105,0.011540479999999818)",
+            "string:rgba(25,63,105,0.012468479999999822)",
+            "string:rgba(25,63,105,0.013812479999999834)",
+            "string:rgba(25,63,105,0.013844479999999831)",
+            "string:rgba(25,63,105,0.02347818666666666)",
+            "string:rgba(25,63,105,0.023542186666666656)",
+            "string:rgba(25,63,105,0.02357418666666665)",
+            "string:rgba(25,63,105,0.023606186666666647)",
+            "string:rgba(25,63,105,0.02367018666666664)",
+            "string:rgba(25,63,105,0.023702186666666635)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "font",
+          "kind": "property-write",
+          "totalCalls": 9,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:700 16px system-ui"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "globalAlpha",
+          "kind": "property-write",
+          "totalCalls": 14502,
+          "maximumCallsPerFrame": 521,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "imageSmoothingEnabled",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "boolean"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineCap",
+          "kind": "property-write",
+          "totalCalls": 16,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "failure-result",
+            "normal-engage"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:round"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2389,
+          "maximumCallsPerFrame": 49,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2648,
+          "maximumCallsPerFrame": 68,
+          "scenes": [
+            "bacterial-cluster",
+            "biofilm-nidus",
+            "damaged-tissue",
+            "failure-result",
+            "normal-engage",
+            "pause",
+            "repairing-tissue",
+            "resolve-activation",
+            "resolve-stabilization",
+            "storm-engage",
+            "title",
+            "upgrade-selection",
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:#75efff",
+            "string:#c8fbff",
+            "string:#ffb8a7",
+            "string:rgba(117,239,255,.52)",
+            "string:rgba(118,232,198,.07)",
+            "string:rgba(144,255,218,.18)",
+            "string:rgba(218,255,189,.82)",
+            "string:rgba(228,255,241,.85)",
+            "string:rgba(255,224,180,.45)",
+            "string:rgba(255,255,220,.8)",
+            "string:rgba(255,255,255,.42)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "textAlign",
+          "kind": "property-write",
+          "totalCalls": 9,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "victory-result"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:center"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 1
+    },
+    {
+      "id": "canvas2d-10",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 23,
+          "maximumCallsPerFrame": 23,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)",
+            "string:rgba(52,25,31,.65)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-11",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 23,
+          "maximumCallsPerFrame": 23,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)",
+            "string:rgba(52,25,31,.65)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-12",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 23,
+          "maximumCallsPerFrame": 23,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)",
+            "string:rgba(52,25,31,.65)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-13",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 23,
+          "maximumCallsPerFrame": 23,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)",
+            "string:rgba(52,25,31,.65)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-14",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 23,
+          "maximumCallsPerFrame": 23,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(35,20,28,.8)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)",
+            "string:rgba(52,25,31,.65)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-15",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 23,
+          "maximumCallsPerFrame": 23,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(35,20,28,.8)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)",
+            "string:rgba(52,25,31,.65)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-16",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 23,
+          "maximumCallsPerFrame": 23,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(35,20,28,.8)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)",
+            "string:rgba(52,25,31,.65)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-17",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 23,
+          "maximumCallsPerFrame": 23,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(35,20,28,.8)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)",
+            "string:rgba(52,25,31,.65)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-18",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:#8ab2a8",
+            "string:rgba(180,225,210,.32)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-19",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:#8ab2a8",
+            "string:rgba(180,225,210,.32)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-2",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-20",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:#8ab2a8",
+            "string:rgba(180,225,210,.32)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-21",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 6,
+          "maximumCallsPerFrame": 6,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:#8ab2a8",
+            "string:rgba(180,225,210,.32)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-22",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 48,
+      "height": 48,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 15,
+          "maximumCallsPerFrame": 15,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createLinearGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "rotate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 11,
+          "maximumCallsPerFrame": 11,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(255,245,183,.38)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(255,232,132,.66)",
+            "string:rgba(255,245,196,.8)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-23",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 48,
+      "height": 48,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 15,
+          "maximumCallsPerFrame": 15,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createLinearGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "rotate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 11,
+          "maximumCallsPerFrame": 11,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(255,245,183,.38)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(255,232,132,.66)",
+            "string:rgba(255,245,196,.8)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-24",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 48,
+      "height": 48,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 15,
+          "maximumCallsPerFrame": 15,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createLinearGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "rotate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 11,
+          "maximumCallsPerFrame": 11,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(255,245,183,.38)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(255,232,132,.66)",
+            "string:rgba(255,245,196,.8)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-25",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 48,
+      "height": 48,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 15,
+          "maximumCallsPerFrame": 15,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createLinearGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "rotate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 11,
+          "maximumCallsPerFrame": 11,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(255,245,183,.38)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(255,232,132,.66)",
+            "string:rgba(255,245,196,.8)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-26",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 48,
+      "height": 48,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 4,
+          "maximumCallsPerFrame": 4,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 15,
+          "maximumCallsPerFrame": 15,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createLinearGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "quadraticCurveTo",
+          "kind": "method",
+          "totalCalls": 10,
+          "maximumCallsPerFrame": 10,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "rotate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 11,
+          "maximumCallsPerFrame": 11,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(255,245,183,.38)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(255,232,132,.66)",
+            "string:rgba(255,245,196,.8)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-27",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 6,
+      "height": 1,
+      "operations": [
+        {
+          "operation": "fillRect",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:#ff00ff"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-28",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 6,
+      "height": 1,
+      "operations": [
+        {
+          "operation": "fillRect",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:#ffff00"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-29",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 6,
+      "height": 1,
+      "operations": [
+        {
+          "operation": "drawImage",
+          "kind": "method",
+          "totalCalls": 2,
+          "maximumCallsPerFrame": 2,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "HTMLCanvasElement",
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "getImageData",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "globalCompositeOperation",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:multiply"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-3",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-4",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-5",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-6",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-7",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-8",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    },
+    {
+      "id": "canvas2d-9",
+      "sourceKind": "HTMLCanvasElement",
+      "visible": false,
+      "width": 96,
+      "height": 96,
+      "operations": [
+        {
+          "operation": "addColorStop",
+          "kind": "method",
+          "totalCalls": 3,
+          "maximumCallsPerFrame": 3,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number",
+            "string:7"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "arc",
+          "kind": "method",
+          "totalCalls": 5,
+          "maximumCallsPerFrame": 5,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "beginPath",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "closePath",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "createRadialGradient",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "ellipse",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fill",
+          "kind": "method",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "lineTo",
+          "kind": "method",
+          "totalCalls": 17,
+          "maximumCallsPerFrame": 17,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "moveTo",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "stroke",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "translate",
+          "kind": "method",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [
+            "number"
+          ],
+          "values": [],
+          "exceptions": []
+        },
+        {
+          "operation": "fillStyle",
+          "kind": "property-write",
+          "totalCalls": 7,
+          "maximumCallsPerFrame": 7,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "object",
+            "string:rgba(235,255,230,.28)",
+            "string:rgba(29,73,71,.58)"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "lineWidth",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "number"
+          ],
+          "exceptions": []
+        },
+        {
+          "operation": "strokeStyle",
+          "kind": "property-write",
+          "totalCalls": 1,
+          "maximumCallsPerFrame": 1,
+          "scenes": [
+            "title"
+          ],
+          "argumentCategories": [],
+          "values": [
+            "string:rgba(232,255,243,.54)"
+          ],
+          "exceptions": []
+        }
+      ],
+      "saveDepthAtEnd": 0,
+      "maximumSaveDepth": 0
+    }
+  ],
+  "highestFrequency": [
+    {
+      "operation": "globalAlpha",
+      "totalCalls": 14502,
+      "maximumCallsPerFrame": 521
+    },
+    {
+      "operation": "restore",
+      "totalCalls": 13078,
+      "maximumCallsPerFrame": 139
+    },
+    {
+      "operation": "save",
+      "totalCalls": 13078,
+      "maximumCallsPerFrame": 139
+    },
+    {
+      "operation": "translate",
+      "totalCalls": 12991,
+      "maximumCallsPerFrame": 138
+    },
+    {
+      "operation": "rotate",
+      "totalCalls": 12870,
+      "maximumCallsPerFrame": 137
+    },
+    {
+      "operation": "drawImage",
+      "totalCalls": 12867,
+      "maximumCallsPerFrame": 137
+    },
+    {
+      "operation": "beginPath",
+      "totalCalls": 7921,
+      "maximumCallsPerFrame": 437
+    },
+    {
+      "operation": "arc",
+      "totalCalls": 6112,
+      "maximumCallsPerFrame": 421
+    },
+    {
+      "operation": "fillStyle",
+      "totalCalls": 4516,
+      "maximumCallsPerFrame": 424
+    },
+    {
+      "operation": "fill",
+      "totalCalls": 4060,
+      "maximumCallsPerFrame": 422
+    },
+    {
+      "operation": "stroke",
+      "totalCalls": 3999,
+      "maximumCallsPerFrame": 79
+    },
+    {
+      "operation": "lineTo",
+      "totalCalls": 3965,
+      "maximumCallsPerFrame": 34
+    },
+    {
+      "operation": "strokeStyle",
+      "totalCalls": 2690,
+      "maximumCallsPerFrame": 68
+    },
+    {
+      "operation": "lineWidth",
+      "totalCalls": 2426,
+      "maximumCallsPerFrame": 49
+    },
+    {
+      "operation": "moveTo",
+      "totalCalls": 1687,
+      "maximumCallsPerFrame": 15
+    },
+    {
+      "operation": "addColorStop",
+      "totalCalls": 1046,
+      "maximumCallsPerFrame": 11
+    },
+    {
+      "operation": "createRadialGradient",
+      "totalCalls": 369,
+      "maximumCallsPerFrame": 4
+    },
+    {
+      "operation": "fillRect",
+      "totalCalls": 215,
+      "maximumCallsPerFrame": 2
+    },
+    {
+      "operation": "ellipse",
+      "totalCalls": 122,
+      "maximumCallsPerFrame": 1
+    },
+    {
+      "operation": "closePath",
+      "totalCalls": 121,
+      "maximumCallsPerFrame": 1
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:55958/index.html"
+  ]
+}

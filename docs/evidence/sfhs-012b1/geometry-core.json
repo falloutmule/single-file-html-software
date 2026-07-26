@@ -1,0 +1,26 @@
+{
+  "schema": "sfhs.pixi-canvas-geometry-core@1",
+  "base": "f93b151d953680c1b88cbdd9891ec0eaa1549c00",
+  "implementedOperations": [
+    "arc", "beginPath", "closePath", "ellipse", "fill", "fillRect", "fillStyle", "globalAlpha", "lineCap", "lineTo", "lineWidth", "moveTo", "quadraticCurveTo", "restore", "rotate", "save", "scale", "setTransform", "stroke", "strokeRect", "strokeStyle", "translate"
+  ],
+  "deferredOperations": [
+    "addColorStop", "createLinearGradient", "createRadialGradient", "drawImage", "fillText", "font", "globalCompositeOperation", "imageSmoothingEnabled", "textAlign"
+  ],
+  "replay": {
+    "commandBuffer": true,
+    "stateStack": true,
+    "transformOrder": "recorded-order",
+    "graphicsAllocated": 1,
+    "graphicsReuse": "one Graphics object is cleared and replayed per frame",
+    "unsupportedBehavior": "BLOCKED_ON_UNSUPPORTED_CANVAS_FEATURES"
+  },
+  "browserFixture": {
+    "renderer": "PIXI",
+    "visiblePresentationCanvases": 1,
+    "visibleCanvas2dContexts": 0,
+    "visibleWebglContexts": 1,
+    "documentRequests": 1
+  },
+  "verdict": "AUTOMATED_PASS"
+}

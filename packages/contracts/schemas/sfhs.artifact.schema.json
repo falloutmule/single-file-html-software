@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sfhs.dev/schemas/sfhs.artifact@1",
+  "title": "SFHS artifact descriptor v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "artifact", "source", "toolchain"],
+  "properties": {
+    "schema": { "const": "sfhs.artifact@1" },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bytes", "sha256", "buildId"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^dist/.+\\.html$" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "buildId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256"],
+      "properties": {
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "revision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "toolchain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "pnpm", "sfhs"],
+      "properties": {
+        "node": { "type": "string", "minLength": 1 },
+        "pnpm": { "type": "string", "minLength": 1 },
+        "sfhs": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
