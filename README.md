@@ -1,92 +1,107 @@
-# single-file-html-software
+# Single-File HTML Software (SFHS)
 
-A factory for building self-contained single-file HTML games and interactive software. One HTML file. Zero dependencies. Works offline.
+> **Work in progress.** SFHS is an experimental system for building self-contained HTML games and interactive software. Its architecture, plugin contracts, and project layout are still changing.
 
-## What Is This?
+The release idea is simple: produce one `index.html` that can be opened in a modern browser without a server, CDN, or external runtime assets.
 
-Every release is a single `index.html` — no build server, no CDN, no external assets. Open it in any modern browser and it just works. On desktop, on mobile, offline, on a thumb drive.
+## Current development focus
 
-The project provides:
+SFHS is currently developing around a **PixiJS-first game lane** because recent work has focused on mobile rendering, touch input, fullscreen behavior, single-file packaging, browser verification, and visual-effects experiments.
 
-- A **shell** — minimal HTML/CSS entry point that initializes the game surface.
-- A **core engine** — Canvas 2D rendering, input handling, save/load, and a clean simulation/render separation.
-- A **build pipeline** — inlines all source into one self-contained `dist/index.html`.
-- A **testing contract** — every build must pass smoke and integration tests before ship.
+PixiJS is the active lane, not the permanent definition of SFHS. The project also preserves or explores:
 
-## Milestone 0: Shell
+- **Canvas 2D** for lightweight games, prototypes, compatibility imports, and simple interactive software.
+- **Raycasting** for pseudo-3D and first-person experiments.
+- **DOM/CSS** for document, dashboard, editor, form, and text-heavy software.
+- Future lanes such as SVG, Three.js, Babylon.js, WebGPU, audio-focused software, and other browser-native approaches.
 
-**Status: 🚧 In Progress**
+See [`docs/RENDERER-LANES.md`](docs/RENDERER-LANES.md).
 
-Milestone 0 delivers the foundational shell — the boilerplate that all future games build on top of:
+## What exists today
 
-- [ ] HTML shell with Canvas 2D surface and DOM overlay container
-- [ ] Viewport setup: `100dvh`, safe-area insets, `visualViewport` resize
-- [ ] Frame loop via `requestAnimationFrame`
-- [ ] Input layer: pointer-ID tracking, `pointercancel` handling, action map
-- [ ] Self-containment: zero external requests after load
-- [ ] Save/load stub (serializes/restores durable state)
-- [ ] Build script: `src/` → inline → `dist/index.html`
-- [ ] Playwright smoke tests passing
+The repository currently contains the original Canvas 2D foundation:
 
-### What's Done
+- a mobile-aware HTML shell;
+- action-mapped pointer and keyboard input;
+- deterministic simulation/render separation;
+- save/load scaffolding;
+- a build step that emits `dist/index.html`;
+- self-containment verification;
+- Playwright smoke tests.
 
-- Git repo initialized with `src/shell/` and `src/core/` structure.
-- Documentation scaffold (this file, AGENTS.md, docs/).
+That foundation remains useful, but it is no longer the full project definition. Newer Pixi-oriented work and the plugin-system experiments are being tracked as separate development phases before they are generalized into stable repository code.
 
-## Quick Start
+See:
+
+- [`docs/CURRENT-STATE.md`](docs/CURRENT-STATE.md)
+- [`docs/PHASES.md`](docs/PHASES.md)
+- [`docs/DECISIONS.md`](docs/DECISIONS.md)
+- [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- [`docs/PLUGIN-SYSTEM-WIP.md`](docs/PLUGIN-SYSTEM-WIP.md)
+
+## Project status language
+
+SFHS documentation distinguishes between:
+
+- **Verified** — directly tested or inspected.
+- **In progress** — active implementation work.
+- **Experimental** — useful research without a stable contract.
+- **Proposed** — a direction that has not been implemented.
+- **Blocked** — work cannot honestly advance without a concrete dependency or decision.
+- **Superseded** — preserved history that is no longer the active direction.
+
+A passing automated test does not automatically mean a feature is usable on a physical device. Physical acceptance remains separate when touch, layout, performance, or visual clarity matter.
+
+## Preview repository
+
+Temporary browser candidates are hosted separately in [`falloutmule/sfhs-preview`](https://github.com/falloutmule/sfhs-preview).
+
+That repository is a replaceable review slot. It is not the authoritative source, a release archive, or proof that a candidate has been accepted.
+
+## Quick start for the original Canvas 2D foundation
 
 ```bash
-# Clone
-git clone <repo-url> single-file-html-software
+git clone https://github.com/falloutmule/single-file-html-software.git
 cd single-file-html-software
-
-# Build (once pipeline exists)
+npm install
 npm run build
-
-# Open the result
-open dist/index.html
-# or: python -m http.server dist -p 8000
+npm run verify
+npm test
 ```
 
-## Architecture
+The generated candidate is:
 
-```
-src/
-  shell/          HTML entry point, CSS, boot sequence
-  core/
-    engine.js     Frame loop, lifecycle management
-    input.js      Action map, pointer/keyboard/touch handling
-    render.js     Canvas 2D drawing (read-only on state)
-    simulation.js Pure state logic (no DOM/canvas access)
-    save.js       Serialize/deserialize durable state
-dist/
-  index.html     Single-file build output (generated)
-docs/             Design documents and specifications
+```text
+dist/index.html
 ```
 
-Full architecture details: [`docs/architecture/overview.md`](docs/architecture/overview.md).
+The current commands describe the original foundation only. They do not yet represent a finished multi-lane plugin system.
 
-## Rules
+## Core principles being carried forward
 
-This repo has strict rules for contributors — human and AI alike. See [`AGENTS.md`](AGENTS.md) for the complete rulebook.
+- One self-contained HTML release artifact.
+- No required runtime network access.
+- Human-readable source is authoritative; generated output is not edited directly.
+- Input is translated into named actions before simulation.
+- Simulation and rendering remain separated.
+- Rendering does not mutate gameplay state.
+- Durable state is serialized without DOM, renderer, cache, or particle objects.
+- Mobile layouts account for dynamic viewport changes, safe areas, pointer IDs, and `pointercancel`.
+- Build and browser evidence must be tied to the exact candidate being discussed.
+- Renderer-specific behavior belongs in a lane or plugin instead of silently becoming universal SFHS behavior.
 
-Key principles:
+## Repository purpose right now
 
-- **Self-contained** — no runtime network calls, CDNs, or external assets.
-- **Edit source, not output** — modify `src/`, never touch `dist/` directly.
-- **Render is read-only** — drawing code must never mutate game state.
-- **Mobile-first** — `100dvh`, safe areas, pointer-ID, `pointercancel`.
-- **Test everything** — every build candidate must pass the smoke test contract.
+This public repository is being used to:
 
-## Default Engine
+- keep the project visible and versioned;
+- maintain awareness of current and past directions;
+- record lessons from working games and software;
+- develop the plugin boundary gradually;
+- track multiple renderer lanes without prematurely supporting all of them;
+- preserve evidence and blockers honestly.
 
-**Canvas 2D + DOM/CSS overlay.**
-
-- Canvas 2D for game graphics (pixels, sprites, shapes).
-- Standard HTML/CSS for UI (menus, HUD, text, dialogs).
-- Works on every modern browser. No WebGL requirement.
-
-Engine details: [`docs/engines/canvas2d-baseline.md`](docs/engines/canvas2d-baseline.md).
+It is **not yet** a hardened SDK, stable public API, npm package, or contributor-ready framework.
 
 ## License
 
