@@ -43,3 +43,11 @@ PIXI LANE:                 ACTIVE DEVELOPMENT
 OTHER LANES:               PRESERVED / NOT EQUALLY MATURE
 PRODUCTION READINESS:      NOT CLAIMED
 ```
+
+
+## Source-awareness result
+
+- **VERIFIED:** active source is external to this public repository; canonical SFHS main and a clean Pixi QA candidate were directly inspected.
+- **VERIFIED:** generic and lane-specific candidates are recorded in [ACTIVE-PIXI-SOURCE-INVENTORY.md](inventory/ACTIVE-PIXI-SOURCE-INVENTORY.md).
+- **PROPOSED:** first small plugin experiment is renderer-neutral pointer-coordinate mapping, documented in [FIRST-PLUGIN-SEAM-RECOMMENDATION.md](inventory/FIRST-PLUGIN-SEAM-RECOMMENDATION.md).
+- **UNTESTED:** any stable plugin API or multi-lane implementation.

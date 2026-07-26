@@ -113,3 +113,18 @@ Examples:
 - a source review can complete a documentation phase;
 - an automated browser proof can complete an automated gate;
 - only physical use can complete a physical-device readability gate.
+
+
+## Phase 4 — Runtime reality inventory
+
+**Status:** Verified on 2026-07-26
+
+A direct source inspection identified the clean external SFHS main source and a clean active Pixi QA candidate. The resulting [inventory](inventory/ACTIVE-PIXI-SOURCE-INVENTORY.md) separates generic/shared candidates, Pixi-lane code, Canvas import code, verification/build tooling, and HOMEOSTASIS-specific implementation.
+
+## Phase 5 — First extracted plugin seam
+
+**Status:** Proposed and narrowed
+
+The initial broad renderer-lifecycle idea was compared against viewport, input mapping, packager, browser-verifier, and evidence seams. The smallest evidence-backed experiment is a renderer-neutral host-relative pointer-coordinate mapper plus immutable viewport snapshot. See the [recommendation](inventory/FIRST-PLUGIN-SEAM-RECOMMENDATION.md).
+
+No runtime extraction has occurred.

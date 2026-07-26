@@ -112,3 +112,13 @@ Plugin API:                  EXPERIMENTAL / UNSTABLE
 Multi-lane support:          DIRECTION, NOT COMPLETE
 Production framework:        NOT CLAIMED
 ```
+
+## Verified source-awareness checkpoint — 2026-07-26
+
+- **VERIFIED:** canonical source is external to this public repository at `C:\\Users\\fallo\\Documents\\SFHS`, clean `main` at `6df0194815d375c5525292a57729792716d05fd2`.
+- **VERIFIED:** a clean QA candidate at `95e9c418880e77c09fb774ccd01ff5631eed3334` contains the active Pixi/HOMEOSTASIS work.
+- **VERIFIED:** reusable candidates include project contracts, viewport/action runtime primitives, the Pixi v8 adapter, deterministic packaging, renderer classification, artifact verification, and browser/evidence tooling.
+- **VERIFIED:** HOMEOSTASIS simulation, HUD, upgrades, rules, and DOM shell remain project-specific.
+- **PROPOSED:** the first small cross-lane experiment is host-relative pointer-coordinate mapping from an immutable viewport snapshot. It is intentionally not a stable API.
+
+Read the [source inventory](inventory/ACTIVE-PIXI-SOURCE-INVENTORY.md) and [first-seam recommendation](inventory/FIRST-PLUGIN-SEAM-RECOMMENDATION.md).
