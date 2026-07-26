@@ -21,7 +21,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm --dir packages/browser-runner exec playwright install --with-deps chromium
       - run: pnpm check
       - run: pnpm plugin-validate
       - run: pnpm hermes-adapter-validate
