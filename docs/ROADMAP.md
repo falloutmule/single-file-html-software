@@ -150,3 +150,10 @@ When a real project exposes a missing capability:
 4. extract the smallest reusable contract;
 5. document what remains project-specific;
 6. only then broaden SFHS.
+
+
+## Completed awareness checkpoint — verified source inventory
+
+The inventory is now complete without moving code. See [ACTIVE-PIXI-SOURCE-INVENTORY.md](inventory/ACTIVE-PIXI-SOURCE-INVENTORY.md).
+
+The next bounded implementation, after review, is not a renderer framework. It is the proposed [host-relative pointer-coordinate mapping fixture](inventory/FIRST-PLUGIN-SEAM-RECOMMENDATION.md), tested across resize/fullscreen changes and kept renderer-neutral.
