@@ -1,155 +1,289 @@
-# Architecture Overview
+# SFHS Architecture Overview
 
-## Source Tree
+> **Work-in-progress architecture.** The code currently checked into this repository is the original Canvas 2D foundation. The wider SFHS direction is multi-lane, with PixiJS as the active development lane and the plugin boundary still being extracted from working projects.
 
+## Architecture at a glance
+
+SFHS is organized around one stable idea:
+
+```text
+human-readable source
+→ build and packaging
+→ one self-contained HTML artifact
+→ browser verification
+→ optional physical-device acceptance
 ```
+
+Renderer choice is not the project identity. A project may use Canvas 2D, PixiJS, DOM/CSS, raycasting, or another browser-native lane while still following the same artifact and evidence model.
+
+## Shared conceptual layers
+
+### 1. Project and shell
+
+Owns:
+
+- document structure;
+- viewport host;
+- safe-area handling;
+- startup and shutdown;
+- overlay roots;
+- project/build identity.
+
+The shell should not assume one renderer unless the project explicitly selects that lane.
+
+### 2. Input
+
+Translates browser events into named actions or software intents.
+
+```text
+pointer / keyboard / gamepad / text input
+→ action mapping
+→ simulation or application logic
+```
+
+Input is responsible for pointer IDs, cancellation, coordinate translation, and resize-aware hit behavior.
+
+### 3. Simulation or application state
+
+Owns durable rules and state transitions.
+
+It should not depend on DOM nodes, Pixi objects, canvas contexts, GPU resources, or other renderer internals.
+
+### 4. Presentation lane
+
+Consumes read-only state and presents it using one selected lane.
+
+Examples:
+
+- Canvas 2D;
+- PixiJS;
+- DOM/CSS;
+- raycasting;
+- future browser-native renderers.
+
+Renderer-specific objects remain inside the lane.
+
+### 5. Persistence
+
+Serializes durable state only.
+
+It excludes:
+
+- DOM nodes;
+- renderer objects;
+- textures and GPU resources;
+- particles;
+- caches;
+- listeners;
+- derived presentation data.
+
+### 6. Packaging
+
+Collects source, dependencies, and runtime assets into one HTML artifact.
+
+The packager may use build-time tooling but the resulting artifact should not require external runtime dependencies under the default SFHS contract.
+
+### 7. Verification and evidence
+
+Binds claims to an exact candidate.
+
+Evidence may include:
+
+- build commands and logs;
+- artifact bytes and SHA-256;
+- browser screenshots;
+- network-request audits;
+- renderer-surface counts;
+- input and resize proofs;
+- deterministic state snapshots;
+- physical-device observations.
+
+Automated proof and physical acceptance are separate when the claim concerns perception, ergonomics, browser chrome, or real-device performance.
+
+## Current checked-in implementation
+
+The repository currently contains the original Canvas 2D baseline:
+
+```text
 single-file-html-software/
-├── AGENTS.md                          # Agent rules (read-first for contributors)
-├── README.md                          # Project overview
-├── package.json                       # Dev dependencies and build scripts
-├── src/                               # Editable source (human-readable)
-│   ├── shell/                         # HTML entry point and CSS
-│   │   ├── index.html                 # HTML shell: canvas + overlay containers
-│   │   └── styles.css                 # Viewport, safe-area, layout styles
-│   └── core/                          # Engine source modules
-│       ├── engine.js                  # Frame loop, lifecycle (init, update, draw, destroy)
-│       ├── input.js                   # Action map, pointer-ID tracking, keyboard abstraction
-│       ├── render.js                  # Canvas 2D drawing layer (read-only on state)
-│       ├── simulation.js              # Pure state logic (no DOM/canvas access)
-│       └── save.js                    # Serialize/deserialize durable state
-├── dist/                              # Generated output (never edit)
-│   └── index.html                    # Single-file release artifact
-├── docs/                              # Design documents
-│   ├── architecture/
-│   │   └── overview.md                # This file
-│   ├── testing/
-│   │   └── testing-contract.md        # Build candidate test requirements
-│   ├── engines/
-│   │   └── canvas2d-baseline.md        # Canvas 2D engine specification
-│   └── controls/
-│       └── mobile-controls.md          # Mobile input patterns
-└── tests/                             # Test infrastructure
-    ├── smoke.spec.js                  # Playwright smoke tests
-    └── fixtures/                      # Test fixtures and helpers
+├── AGENTS.md
+├── README.md
+├── package.json
+├── src/
+│   ├── shell/
+│   │   ├── index.html
+│   │   └── styles.css
+│   └── core/
+│       ├── engine.js
+│       ├── input.js
+│       ├── render.js
+│       ├── simulation.js
+│       └── save.js
+├── docs/
+├── tests/
+└── dist/
+    └── index.html
 ```
 
-## Layer Descriptions
+### Shell layer
 
-### 1. Shell Layer (`src/shell/`)
+The checked-in shell:
 
-The entry point. A minimal HTML file that:
+- declares a Canvas 2D surface;
+- declares a DOM overlay;
+- handles viewport and safe-area layout;
+- boots the original foundation runtime.
 
-- Declares the `<canvas>` element for 2D rendering.
-- Declares a DOM overlay container for UI (menus, HUD, text).
-- Loads CSS for viewport management (`100dvh`, safe-area insets).
-- Bootstraps the engine via a single `<script>` entry that imports and initializes core modules.
+### Engine layer
 
-**This layer owns:** viewport sizing, DOM structure, CSS layout.
+The checked-in engine:
 
-### 2. Engine Layer (`src/core/engine.js`)
+- initializes the runtime;
+- advances a requestAnimationFrame loop;
+- updates simulation;
+- invokes rendering;
+- handles basic lifecycle cleanup.
 
-The frame loop and lifecycle manager:
+### Input layer
 
-- Calls `init()` once on load.
-- Runs `requestAnimationFrame` loop: each tick calls `simulation.update()` then `render.draw()`.
-- Handles cleanup on page unload (`beforeunload`, `visibilitychange`).
-- Provides timing (delta time, frame count) to all subsystems.
+The checked-in input layer:
 
-**This layer owns:** the game loop, timing, lifecycle hooks.
+- translates pointer and keyboard events into actions;
+- tracks active pointer IDs;
+- handles `pointercancel`;
+- keeps raw browser events outside simulation logic.
 
-### 3. Input Layer (`src/core/input.js`)
+### Simulation layer
 
-Translates raw browser events into abstract actions:
+The checked-in simulation is intended to remain deterministic and independent from presentation.
 
-- **Raw events:** `pointerdown`, `pointermove`, `pointerup`, `pointercancel`, `keydown`, `keyup`, device orientation, gamepad.
-- **Action map:** a configurable mapping from raw events to named actions (e.g., `"move-left"`, `"confirm"`, `"pause"`).
-- **Pointer-ID tracking:** maintains a map of active `pointerId` values for multi-touch.
-- **Consumers:** simulation reads the action state each tick; never raw event properties.
+### Canvas render layer
 
-**This layer owns:** event listeners, action mapping, pointer tracking.
+The checked-in renderer draws the baseline state through Canvas 2D and updates the DOM overlay by reading state.
 
-### 4. Simulation Layer (`src/core/simulation.js`)
+This renderer is now considered the **Canvas 2D lane baseline**, not the universal SFHS default.
 
-Pure state logic with no side effects:
+### Save layer
 
-- Receives the current action state each tick.
-- Updates game state deterministically.
-- Has zero knowledge of Canvas, DOM, or rendering.
-- Produces a state object that the render layer reads.
+The checked-in save layer demonstrates durable-state serialization and restoration without preserving renderer state.
 
-**This layer owns:** game rules, state transitions, physics, AI logic.
+## Current build pipeline
 
-### 5. Render Layer (`src/core/render.js`)
-
-Read-only drawing layer:
-
-- Reads (never writes) the simulation state.
-- Draws to the Canvas 2D context.
-- Updates DOM overlay elements (HUD text, menus) by reading state.
-- MUST NOT mutate any simulation state variable or call any state-changing function.
-
-**This layer owns:** all visual output — canvas drawing and DOM updates.
-
-### 6. Save Layer (`src/core/save.js`)
-
-Durable state persistence:
-
-- `save(state)` — serializes state to a plain object/JSON (no DOM, no canvas, no caches).
-- `load(json)` — reconstructs state from serialized form.
-- Storage backends: `localStorage` (default), IndexedDB, or downloadable JSON blob.
-- Round-trip invariant: `load(save(state))` ≡ `state`.
-
-**This layer owns:** serialization, deserialization, storage backend.
-
-## Build Pipeline
-
-```
-src/shell/index.html    ──┐
-src/shell/styles.css    ──┤
-src/core/*.js           ──┼──► Build Tool ──► dist/index.html
-                         │    (inline all)
-                         │    (minify CSS/JS)
-                         │    (embed assets)
-                         └─────► Single HTML file
+```text
+src/shell/index.html ──┐
+src/shell/styles.css ──┤
+src/core/*.js        ──┼─→ build tool ─→ dist/index.html
+inline assets        ──┘
 ```
 
-### Build Requirements
+Current baseline requirements:
 
-1. **Inline all JS** — concatenate and optionally minify all `src/core/*.js` modules into `<script>` tags.
-2. **Inline all CSS** — embed `styles.css` into a `<style>` tag.
-3. **Embed assets** — convert any images/audio to base64 data URIs.
-4. **Self-contained output** — the resulting `dist/index.html` makes zero network requests after load.
-5. **No source maps in output** — keep the file clean and self-contained.
+1. inline JavaScript;
+2. inline CSS;
+3. embed required runtime assets;
+4. emit one HTML file;
+5. make no unexpected runtime requests;
+6. keep generated output non-authoritative.
 
-### Build Tooling (Milestone 0)
+The current build script belongs to the original baseline. A later multi-lane packager may replace or wrap it after the plugin seam is proven.
 
-A simple Node.js script or Make target that:
-- Reads `src/shell/index.html` as the template.
-- Inlines all core modules in dependency order.
-- Inlines CSS.
-- Writes to `dist/index.html`.
+## Target multi-lane shape
 
-Future milestones may upgrade to a bundler (esbuild, rollup) for module handling.
+This is conceptual, not a final folder or package contract:
 
-## Data Flow
-
-```
-┌──────────┐    raw events    ┌────────────┐   actions    ┌────────────┐
-│  Browser  │ ──────────────► │ Input Layer │ ──────────► │ Simulation │
-│ (pointer, │                 │ (action map)│             │ (pure logic)│
-│  keyboard,│                 └────────────┘             └──────┬─────┘
-│  touch)   │                                                │ state
-└──────────┘                                                ▼
-                                                     ┌────────────┐
-                                                     │   Render    │
-                                                     │ (read-only) │
-                                                     └──────┬─────┘
-                                                            │
-                                                            ▼
-                                                     ┌────────────┐
-                                                     │ Canvas + DOM│
-                                                     │  (display)  │
-                                                     └────────────┘
+```text
+shared project contract
+├── viewport capability
+├── input capability
+├── persistence capability
+├── packager capability
+├── verifier/evidence capability
+└── selected presentation lane
+    ├── PixiJS
+    ├── Canvas 2D
+    ├── DOM/CSS
+    ├── raycasting
+    └── future lanes
 ```
 
-The simulation produces state; the render consumes it. This separation ensures rendering bugs cannot corrupt game state, and the simulation can be tested independently of any visual output.
+The project should extract these boundaries from working code instead of forcing current projects into a speculative package hierarchy.
+
+## PixiJS active lane
+
+The active Pixi work is currently teaching SFHS about:
+
+- one visible WebGL presentation surface;
+- viewport and fullscreen resize;
+- logical-to-presented coordinate mapping;
+- touch accuracy after resize;
+- deterministic simulation with presentation-only effects;
+- pooled/cached effects;
+- migration from Canvas 2D presentation;
+- browser proof tied to exact artifacts.
+
+These behaviors are not yet a stable plugin package in this repository.
+
+## Canvas 2D lane
+
+The checked-in baseline remains useful for:
+
+- lightweight games;
+- prototypes;
+- simple drawing and simulation software;
+- compatibility imports;
+- non-WebGL environments.
+
+Its existing engine-specific documents should be read as lane documentation.
+
+## DOM/CSS lane
+
+DOM/CSS may be the primary presentation for:
+
+- editors;
+- documents;
+- dashboards;
+- forms;
+- boards;
+- accessibility-heavy software.
+
+A DOM-first artifact can still satisfy the same one-file release contract.
+
+## Raycasting lane
+
+Raycasting introduces specialist concerns that should remain isolated until proven:
+
+- column or pixel depth;
+- short-object occlusion;
+- masked cutout props;
+- sprites and directional faces;
+- atlas metadata;
+- collision footprint versus visual silhouette;
+- fog and lighting compositing.
+
+## Plugin boundary under investigation
+
+The first likely renderer seam may eventually resemble:
+
+```text
+initialize(host, configuration)
+resize(viewportSnapshot)
+present(readOnlyState)
+diagnose()
+destroy()
+```
+
+This is illustrative only. The final interface, lifecycle, package names, and version rules remain undecided.
+
+See [`../PLUGIN-SYSTEM-WIP.md`](../PLUGIN-SYSTEM-WIP.md).
+
+## Architecture operating rule
+
+When a real project exposes a missing capability:
+
+1. verify the actual problem;
+2. solve and test it in the project;
+3. identify the generic portion;
+4. extract the smallest reusable seam;
+5. prove it with a minimal fixture;
+6. document what remains lane-specific;
+7. only then broaden SFHS.
