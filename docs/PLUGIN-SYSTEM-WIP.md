@@ -139,3 +139,12 @@ Primary extraction source:    ACTIVE PIXI PROJECT WORK
 Other lanes preserved:        YES
 Package publication:          OUT OF SCOPE
 ```
+
+
+## Source-aware update — 2026-07-26
+
+**VERIFIED:** source inspection found an existing generic viewport/action runtime and a reusable Pixi v8 adapter. The adapter remains **PIXI-LANE** because its implementation owns Pixi Application, Containers, textures, and renderer diagnostics.
+
+**PROPOSED:** the first cross-lane experiment is therefore smaller: host-relative pointer-coordinate mapping based on an immutable viewport snapshot. It carries no Pixi types and does not establish a stable interface. The detailed comparison is in [FIRST-PLUGIN-SEAM-RECOMMENDATION.md](inventory/FIRST-PLUGIN-SEAM-RECOMMENDATION.md).
+
+**UNTESTED:** whether this seam works unchanged for a second active renderer/application lane. It must be proven before any public contract claim.
