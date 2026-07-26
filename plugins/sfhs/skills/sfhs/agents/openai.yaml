@@ -1,0 +1,4 @@
+interface:
+  display_name: "SFHS Router"
+  short_description: "Route SFHS authoring and verification work"
+  default_prompt: "Use $sfhs to inspect this project and choose the smallest safe SFHS workflow."

@@ -1,0 +1,10 @@
+{
+  "schema": "sfhs.canvas-scaffold-generator@1",
+  "base": "179f276572569b8d2caa6260ca10a5caf3be6861",
+  "input": "sfhs.canvas-capability-report@1",
+  "outputVerdict": "MIGRATION_REQUIRED",
+  "blocks": ["incomplete analysis", "unknown production operation", "unsupported production operation", "unsafe generated path"],
+  "generatedAreas": ["manifest", "Pixi presentation entry placeholder", "simulation boundary", "compatibility presentation", "visual parity placeholders", "migration evidence", "single-file build source"],
+  "visibleCanvas2dCreated": false,
+  "releaseVerdict": "BLOCKED"
+}

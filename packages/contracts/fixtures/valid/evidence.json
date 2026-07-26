@@ -1,0 +1,20 @@
+{
+  "schema": "sfhs.evidence@1",
+  "run": {
+    "id": "pixi-minimal-001",
+    "startedAt": "2026-07-20T12:00:00Z"
+  },
+  "artifact": {
+    "path": "dist/index.html",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "buildId": "sfhs-example-001"
+  },
+  "commands": [
+    {
+      "command": "sfhs validate --json",
+      "exitCode": 0,
+      "status": "passed"
+    }
+  ],
+  "verdict": "pass"
+}

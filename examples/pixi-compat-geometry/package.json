@@ -1,0 +1,10 @@
+{
+  "name": "@sfhs/example-pixi-compat-geometry",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sfhs/pixi-canvas-compat": "workspace:*",
+    "pixi.js": "8.19.0"
+  }
+}

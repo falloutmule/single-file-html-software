@@ -1,0 +1,12 @@
+{
+  "schema": "sfhs.negative-artifacts@1",
+  "cases": [
+    { "file": "external-image.html", "expectedCode": "SFHS_SCAN_EXTERNAL_REFERENCE" },
+    { "file": "runtime-fetch.html", "expectedCode": "SFHS_SCAN_RUNTIME_FETCH" },
+    { "file": "dynamic-import.html", "expectedCode": "SFHS_SCAN_RUNTIME_IMPORT" },
+    { "file": "service-worker.html", "expectedCode": "SFHS_SCAN_SERVICE_WORKER" },
+    { "file": "source-map.html", "expectedCode": "SFHS_SCAN_SOURCE_MAP" },
+    { "file": "missing-inline-entry.html", "expectedCode": "SFHS_VERIFY_INLINE_ENTRY_INVALID" },
+    { "file": "missing-inline-styles.html", "expectedCode": "SFHS_VERIFY_INLINE_STYLES_INVALID" }
+  ]
+}

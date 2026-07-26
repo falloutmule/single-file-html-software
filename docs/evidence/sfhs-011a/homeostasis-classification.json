@@ -1,0 +1,30 @@
+{
+  "schema": "sfhs.renderer-classification@1",
+  "classification": "MIXED_REDUNDANT",
+  "primary": {
+    "id": "homeostasis-canvas",
+    "kind": "CANVAS_2D",
+    "meaningful": true,
+    "visible": true,
+    "hitTest": true
+  },
+  "secondary": [
+    {
+      "id": "pixi-underlay",
+      "kind": "PIXI",
+      "meaningful": false,
+      "visible": true,
+      "hitTest": false
+    }
+  ],
+  "confidence": 0.99,
+  "evidence": [
+    "verified: preserved HOMEOSTASIS reality evidence identifies the top visible Canvas2D game surface",
+    "verified: Pixi WebGL underlay clears but makes no meaningful geometry contribution",
+    "verified: classifier fixture reproduces the preserved surface ordering, draw activity, and verdict"
+  ],
+  "blockingFindings": [
+    "Visible Canvas2D presentation overlays an empty or non-meaningful Pixi surface."
+  ],
+  "verdict": "BLOCKED_ON_ADAPTER_MISMATCH"
+}

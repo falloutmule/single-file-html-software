@@ -1,0 +1,4 @@
+interface:
+  display_name: "SFHS Pixi"
+  short_description: "Build and verify PixiJS SFHS projects"
+  default_prompt: "Use $sfhs-pixi to make this PixiJS project pass the SFHS build and browser gates."

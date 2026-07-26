@@ -1,0 +1,863 @@
+{
+  "schema": "sfhs.pixi-canvas-compat@1",
+  "sourceCapabilityMatrix": "docs/evidence/sfhs-012a/homeostasis-capabilities.json",
+  "operationCount": 31,
+  "operations": [
+    {
+      "operation": "addColorStop",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas appends a color stop to the active gradient in call order.",
+      "proposedPixiBehavior": "Retain ordered stops in the gradient descriptor before cached texture/shader creation.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "arc",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas adds a circular arc to the current path using the active transform.",
+      "proposedPixiBehavior": "Emit a Pixi Graphics arc command in the same command order and transform.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "beginPath",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas clears the current path without changing paint state.",
+      "proposedPixiBehavior": "Begin a new compatibility path buffer without resetting saved state.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "closePath",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas closes the current subpath before fill or stroke.",
+      "proposedPixiBehavior": "Close the matching Pixi Graphics subpath.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "createLinearGradient",
+      "disposition": "APPROXIMATION",
+      "exactCanvasBehavior": "Canvas creates a gradient in the current user space; addColorStop positions colors on its start-to-end axis before the gradient is used as a paint style.",
+      "proposedPixiBehavior": "Create or reuse a declared, content-addressed Pixi gradient texture (or an approved shader) with the same axis, stops, transform, and alpha; do not create it per frame.",
+      "affectedScenes": [
+        "title"
+      ],
+      "requiredChecks": [
+        "title-gradient-region",
+        "gradient-stop-positions",
+        "alpha-mask",
+        "control-hit-test"
+      ]
+    },
+    {
+      "operation": "createRadialGradient",
+      "disposition": "APPROXIMATION",
+      "exactCanvasBehavior": "Canvas creates a radial gradient from two circles in the current user space; addColorStop positions colors along the radial interpolation before it is used as a paint style.",
+      "proposedPixiBehavior": "Create or reuse a declared Pixi radial-gradient texture (or approved shader) with matching circles, stops, transform, clipping, and alpha; cache by normalized gradient inputs.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "all-scene-radial-regions",
+        "gradient-center-and-radius",
+        "alpha-mask",
+        "semantic-effect-presence"
+      ]
+    },
+    {
+      "operation": "drawImage",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas draws the observed generated HTMLCanvasElement texture with the active transform and alpha.",
+      "proposedPixiBehavior": "Resolve a declared texture-registry ID and draw a Pixi Sprite with equivalent source/destination geometry; cache generated textures.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "ellipse",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas adds an ellipse to the current path using the active transform.",
+      "proposedPixiBehavior": "Emit an equivalent Pixi Graphics ellipse command.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "fill",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas fills the current path using the current fill style and alpha.",
+      "proposedPixiBehavior": "Commit the compatibility path to Pixi Graphics with the captured fill state.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "fillRect",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas fills an axis-aligned rectangle in current user space.",
+      "proposedPixiBehavior": "Emit an equivalent Pixi Graphics rectangle and fill command.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "fillStyle",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas changes the fill paint for later fill operations.",
+      "proposedPixiBehavior": "Capture a normalized color or approved gradient descriptor in compatibility state.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "fillText",
+      "disposition": "APPROXIMATION",
+      "exactCanvasBehavior": "Canvas paints the supplied text at the current transformed origin using the active font, fill style, alpha, and text alignment. HOMEOSTASIS observed one 23-character victory-result string.",
+      "proposedPixiBehavior": "Use Pixi Text with the declared packaged/system font policy, matching content, fill, alpha, transform, and baseline placement; text must remain presentation-only.",
+      "affectedScenes": [
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "victory-text-content-hash",
+        "victory-glyph-bounds",
+        "victory-baseline",
+        "victory-contrast"
+      ]
+    },
+    {
+      "operation": "font",
+      "disposition": "APPROXIMATION",
+      "exactCanvasBehavior": "Canvas applies the CSS font shorthand `700 16px system-ui` to subsequent text. The observed use is limited to the victory-result text path.",
+      "proposedPixiBehavior": "Map the shorthand to Pixi Text style: 700 weight, 16 logical-pixel size, and the SFHS-approved system/packaged fallback chain; no remote font loading is allowed.",
+      "affectedScenes": [
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "font-policy",
+        "victory-glyph-bounds",
+        "victory-baseline",
+        "victory-contrast"
+      ]
+    },
+    {
+      "operation": "globalAlpha",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas multiplies later paint alpha by the current alpha value.",
+      "proposedPixiBehavior": "Carry normalized alpha through command state and apply it once to the Pixi object or command.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "globalCompositeOperation",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "HOMEOSTASIS observed `multiply`; Canvas composites later drawing with that blend mode.",
+      "proposedPixiBehavior": "Accept only the observed `multiply` mapping through the approved Pixi blend table; reject any unlisted mode.",
+      "affectedScenes": [
+        "title"
+      ],
+      "requiredChecks": [
+        "observed-blend-mode",
+        "blend-screenshot"
+      ]
+    },
+    {
+      "operation": "imageSmoothingEnabled",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "HOMEOSTASIS sets the Canvas image-smoothing flag for generated texture draws.",
+      "proposedPixiBehavior": "Set the declared Pixi texture sampling mode before sprite presentation.",
+      "affectedScenes": [
+        "title"
+      ],
+      "requiredChecks": [
+        "sampling-mode",
+        "texture-screenshot"
+      ]
+    },
+    {
+      "operation": "lineCap",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas sets the stroke cap style; HOMEOSTASIS observed `round`.",
+      "proposedPixiBehavior": "Map only the observed round cap to the Pixi stroke command.",
+      "affectedScenes": [
+        "failure-result",
+        "normal-engage"
+      ],
+      "requiredChecks": [
+        "observed-line-cap",
+        "stroke-screenshot"
+      ]
+    },
+    {
+      "operation": "lineTo",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas appends a line segment to the current path.",
+      "proposedPixiBehavior": "Append the equivalent segment to the compatibility path buffer.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "lineWidth",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas sets stroke width in current user-space units.",
+      "proposedPixiBehavior": "Capture width in compatibility state and apply it to the Pixi stroke.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "moveTo",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas begins a subpath at the transformed coordinate.",
+      "proposedPixiBehavior": "Move the compatibility path cursor to the equivalent coordinate.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "quadraticCurveTo",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas appends a quadratic Bezier segment to the current path.",
+      "proposedPixiBehavior": "Append the equivalent Pixi Graphics quadratic curve.",
+      "affectedScenes": [
+        "failure-result",
+        "normal-engage",
+        "title"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "restore",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas restores the most recently saved complete drawing state; unmatched restore is a no-op in Canvas and is forbidden by SFHS command validation.",
+      "proposedPixiBehavior": "Pop the compatibility state stack and fail conformance on stack underflow.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "rotate",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas post-multiplies the current transform by a rotation.",
+      "proposedPixiBehavior": "Post-multiply the compatibility transform with the same radians.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "save",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas pushes the complete drawing state, including transform and paint attributes.",
+      "proposedPixiBehavior": "Push an immutable compatibility state snapshot.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "scale",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas post-multiplies the current transform by scale factors.",
+      "proposedPixiBehavior": "Post-multiply the compatibility transform with the same factors.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "setTransform",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas replaces the current transform with the supplied matrix.",
+      "proposedPixiBehavior": "Replace the compatibility transform matrix exactly.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "stroke",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas strokes the current path using current stroke state and alpha.",
+      "proposedPixiBehavior": "Commit the compatibility path to Pixi Graphics with captured stroke state.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "strokeRect",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas strokes an axis-aligned rectangle with current stroke state.",
+      "proposedPixiBehavior": "Emit an equivalent Pixi Graphics rectangle stroke.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "strokeStyle",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas changes the stroke paint for later stroke operations.",
+      "proposedPixiBehavior": "Capture a normalized solid color in compatibility state.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    },
+    {
+      "operation": "textAlign",
+      "disposition": "APPROXIMATION",
+      "exactCanvasBehavior": "Canvas sets `textAlign` to `center`, placing the horizontal midpoint of the victory-result text at its transformed x coordinate.",
+      "proposedPixiBehavior": "Set the Pixi Text horizontal anchor to 0.5 and place that anchor at the same logical transformed x coordinate; do not move a DOM or Pixi control target.",
+      "affectedScenes": [
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "victory-center-anchor",
+        "victory-control-hit-test",
+        "victory-no-overlap"
+      ]
+    },
+    {
+      "operation": "translate",
+      "disposition": "EXACT",
+      "exactCanvasBehavior": "Canvas post-multiplies the current transform by translation.",
+      "proposedPixiBehavior": "Post-multiply the compatibility transform with the same offsets.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredChecks": [
+        "semantic-command-order",
+        "state-stack",
+        "scene-screenshot"
+      ]
+    }
+  ],
+  "approximations": [
+    {
+      "operation": "createLinearGradient",
+      "exactCanvasBehavior": "Canvas creates a gradient in the current user space; addColorStop positions colors on its start-to-end axis before the gradient is used as a paint style.",
+      "proposedPixiBehavior": "Create or reuse a declared, content-addressed Pixi gradient texture (or an approved shader) with the same axis, stops, transform, and alpha; do not create it per frame.",
+      "expectedVisualDifference": "Color interpolation and anti-aliased stop edges can differ by renderer and color pipeline; geometry, stop order, alpha, and gradient axis may not change.",
+      "affectedScenes": [
+        "title"
+      ],
+      "requiredParityTolerance": {
+        "kind": "RASTER_GRADIENT",
+        "maximumMeanRgbaDelta": 2,
+        "maximumPerChannelDelta": 12,
+        "maximumOutlierPixelRatio": 0.005,
+        "maximumStopPositionDeltaLogicalPixels": 0.5,
+        "alphaMustMatch": true
+      },
+      "requiredChecks": [
+        "title-gradient-region",
+        "gradient-stop-positions",
+        "alpha-mask",
+        "control-hit-test"
+      ],
+      "blocksOnFailure": "BLOCKED_ON_APPROXIMATION_PARITY"
+    },
+    {
+      "operation": "createRadialGradient",
+      "exactCanvasBehavior": "Canvas creates a radial gradient from two circles in the current user space; addColorStop positions colors along the radial interpolation before it is used as a paint style.",
+      "proposedPixiBehavior": "Create or reuse a declared Pixi radial-gradient texture (or approved shader) with matching circles, stops, transform, clipping, and alpha; cache by normalized gradient inputs.",
+      "expectedVisualDifference": "Subpixel circle coverage, interpolation, and anti-aliased radial edges can differ; the center, radii, opacity, and visual extent may not drift.",
+      "affectedScenes": [
+        "bacterial-cluster",
+        "biofilm-nidus",
+        "damaged-tissue",
+        "failure-result",
+        "normal-engage",
+        "pause",
+        "repairing-tissue",
+        "resolve-activation",
+        "resolve-stabilization",
+        "storm-engage",
+        "title",
+        "upgrade-selection",
+        "victory-result"
+      ],
+      "requiredParityTolerance": {
+        "kind": "RASTER_GRADIENT",
+        "maximumMeanRgbaDelta": 3,
+        "maximumPerChannelDelta": 16,
+        "maximumOutlierPixelRatio": 0.01,
+        "maximumStopPositionDeltaLogicalPixels": 0.5,
+        "alphaMustMatch": true
+      },
+      "requiredChecks": [
+        "all-scene-radial-regions",
+        "gradient-center-and-radius",
+        "alpha-mask",
+        "semantic-effect-presence"
+      ],
+      "blocksOnFailure": "BLOCKED_ON_APPROXIMATION_PARITY"
+    },
+    {
+      "operation": "fillText",
+      "exactCanvasBehavior": "Canvas paints the supplied text at the current transformed origin using the active font, fill style, alpha, and text alignment. HOMEOSTASIS observed one 23-character victory-result string.",
+      "proposedPixiBehavior": "Use Pixi Text with the declared packaged/system font policy, matching content, fill, alpha, transform, and baseline placement; text must remain presentation-only.",
+      "expectedVisualDifference": "Glyph hinting, kerning, and anti-aliasing may differ between Canvas text and Pixi text, but the content, result meaning, bounds, baseline, and contrast must remain readable.",
+      "affectedScenes": [
+        "victory-result"
+      ],
+      "requiredParityTolerance": {
+        "kind": "TEXT_RASTER",
+        "maximumGlyphBoundsDeltaLogicalPixels": 1,
+        "maximumBaselineDeltaLogicalPixels": 1,
+        "minimumContrastRatio": 4.5,
+        "textContentHashMustMatch": true
+      },
+      "requiredChecks": [
+        "victory-text-content-hash",
+        "victory-glyph-bounds",
+        "victory-baseline",
+        "victory-contrast"
+      ],
+      "blocksOnFailure": "BLOCKED_ON_APPROXIMATION_PARITY"
+    },
+    {
+      "operation": "font",
+      "exactCanvasBehavior": "Canvas applies the CSS font shorthand `700 16px system-ui` to subsequent text. The observed use is limited to the victory-result text path.",
+      "proposedPixiBehavior": "Map the shorthand to Pixi Text style: 700 weight, 16 logical-pixel size, and the SFHS-approved system/packaged fallback chain; no remote font loading is allowed.",
+      "expectedVisualDifference": "The browser may rasterize the same system font differently through Pixi; glyph shape can vary slightly but weight, size, content bounds, baseline, and contrast must stay within tolerance.",
+      "affectedScenes": [
+        "victory-result"
+      ],
+      "requiredParityTolerance": {
+        "kind": "TEXT_RASTER",
+        "maximumGlyphBoundsDeltaLogicalPixels": 1,
+        "maximumBaselineDeltaLogicalPixels": 1,
+        "minimumContrastRatio": 4.5,
+        "textContentHashMustMatch": true
+      },
+      "requiredChecks": [
+        "font-policy",
+        "victory-glyph-bounds",
+        "victory-baseline",
+        "victory-contrast"
+      ],
+      "blocksOnFailure": "BLOCKED_ON_APPROXIMATION_PARITY"
+    },
+    {
+      "operation": "textAlign",
+      "exactCanvasBehavior": "Canvas sets `textAlign` to `center`, placing the horizontal midpoint of the victory-result text at its transformed x coordinate.",
+      "proposedPixiBehavior": "Set the Pixi Text horizontal anchor to 0.5 and place that anchor at the same logical transformed x coordinate; do not move a DOM or Pixi control target.",
+      "expectedVisualDifference": "No meaningful alignment difference is allowed. Fractional glyph bounds can differ, but the center anchor and uncovered controls must remain stable.",
+      "affectedScenes": [
+        "victory-result"
+      ],
+      "requiredParityTolerance": {
+        "kind": "TEXT_ANCHOR",
+        "maximumAnchorDeltaLogicalPixels": 0.5,
+        "alignmentMustMatch": "center",
+        "controlsMustRemainUncovered": true
+      },
+      "requiredChecks": [
+        "victory-center-anchor",
+        "victory-control-hit-test",
+        "victory-no-overlap"
+      ],
+      "blocksOnFailure": "BLOCKED_ON_APPROXIMATION_PARITY"
+    }
+  ],
+  "unsupportedByContract": [
+    "clip",
+    "createPattern",
+    "createConicGradient",
+    "getImageData",
+    "putImageData",
+    "createImageData",
+    "filter",
+    "shadowBlur",
+    "shadowColor",
+    "shadowOffsetX",
+    "shadowOffsetY"
+  ],
+  "implementationStatus": "CONTRACT_ONLY"
+}

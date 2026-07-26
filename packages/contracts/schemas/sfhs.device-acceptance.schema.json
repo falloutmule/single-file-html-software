@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sfhs.dev/schemas/sfhs.device-acceptance@1",
+  "title": "SFHS physical-device acceptance v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "target", "run", "artifact", "device", "webgl", "orientations", "verdict"],
+  "properties": {
+    "schema": { "const": "sfhs.device-acceptance@1" },
+    "target": { "const": "samsung-galaxy-s21-ultra" },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "recordedAt"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "recordedAt": { "type": "string", "minLength": 1 }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "buildId"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^dist/.+\\.html$" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "buildId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["physical", "modelIdentifier", "androidVersion", "chromeVersion"],
+      "properties": {
+        "physical": { "type": "boolean" },
+        "modelIdentifier": { "type": "string", "minLength": 1 },
+        "androidVersion": { "type": "string", "minLength": 1 },
+        "chromeVersion": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+){3}$" }
+      }
+    },
+    "webgl": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result"],
+      "properties": {
+        "result": { "enum": ["supported", "unsupported"] },
+        "renderer": { "type": "string", "minLength": 1 }
+      }
+    },
+    "orientations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["portrait", "landscape"],
+      "properties": {
+        "portrait": { "$ref": "#/$defs/portraitResult" },
+        "landscape": { "$ref": "#/$defs/landscapeResult" }
+      }
+    },
+    "verdict": { "enum": ["pass", "fail"] }
+  },
+  "$defs": {
+    "viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height", "devicePixelRatio"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "devicePixelRatio": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "portraitResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["orientation", "viewport", "screenshot", "status"],
+      "properties": {
+        "orientation": { "const": "portrait" },
+        "viewport": { "$ref": "#/$defs/viewport" },
+        "screenshot": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["passed", "failed"] }
+      }
+    },
+    "landscapeResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["orientation", "viewport", "screenshot", "status"],
+      "properties": {
+        "orientation": { "const": "landscape" },
+        "viewport": { "$ref": "#/$defs/viewport" },
+        "screenshot": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["passed", "failed"] }
+      }
+    }
+  }
+}

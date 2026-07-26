@@ -1,0 +1,3682 @@
+{
+  "schema": "sfhs.canvas-capability-report@1",
+  "operations": [
+    {
+      "operation": "addColorStop",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 1046,
+        "maximumCallsPerFrame": 11,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number",
+          "string:17",
+          "string:19",
+          "string:21",
+          "string:27",
+          "string:28",
+          "string:29",
+          "string:35",
+          "string:36",
+          "string:7"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "arc",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 154,
+          "column": 60
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 327
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 336
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 584
+        },
+        {
+          "file": "main.ts",
+          "line": 241,
+          "column": 424
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 43
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 270
+        },
+        {
+          "file": "main.ts",
+          "line": 246,
+          "column": 158
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 186
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 464
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 575
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 734
+        },
+        {
+          "file": "main.ts",
+          "line": 253,
+          "column": 75
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 235
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 311
+        },
+        {
+          "file": "main.ts",
+          "line": 256,
+          "column": 188
+        }
+      ],
+      "runtime": {
+        "totalCalls": 6112,
+        "maximumCallsPerFrame": 421,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "beginPath",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 150,
+          "column": 27
+        },
+        {
+          "file": "main.ts",
+          "line": 153,
+          "column": 5
+        },
+        {
+          "file": "main.ts",
+          "line": 154,
+          "column": 46
+        },
+        {
+          "file": "main.ts",
+          "line": 155,
+          "column": 84
+        },
+        {
+          "file": "main.ts",
+          "line": 156,
+          "column": 115
+        },
+        {
+          "file": "main.ts",
+          "line": 161,
+          "column": 48
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 151
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 313
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 252
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 457
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 320
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 568
+        },
+        {
+          "file": "main.ts",
+          "line": 241,
+          "column": 408
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 50
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 8
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 27
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 254
+        },
+        {
+          "file": "main.ts",
+          "line": 246,
+          "column": 142
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 176
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 170
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 270
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 448
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 559
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 718
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 3
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 542
+        },
+        {
+          "file": "main.ts",
+          "line": 252,
+          "column": 215
+        },
+        {
+          "file": "main.ts",
+          "line": 253,
+          "column": 59
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 219
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 295
+        },
+        {
+          "file": "main.ts",
+          "line": 256,
+          "column": 73
+        }
+      ],
+      "runtime": {
+        "totalCalls": 7921,
+        "maximumCallsPerFrame": 437,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "bezierCurveTo",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "clearRect",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "clip",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "closePath",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 150,
+          "column": 219
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 238
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 181
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 179
+        }
+      ],
+      "runtime": {
+        "totalCalls": 121,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "createConicGradient",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "createImageData",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "createLinearGradient",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 12
+        }
+      ],
+      "runtime": {
+        "totalCalls": 5,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "title"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_APPROXIMATION",
+      "pixiStrategy": "Cached Pixi texture or approved shader",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "declared-visual-tolerance"
+      ],
+      "notes": [
+        "Visual or measurement tolerance must be approved in the later compatibility contract."
+      ]
+    },
+    {
+      "operation": "createPattern",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "createRadialGradient",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 151,
+          "column": 14
+        },
+        {
+          "file": "main.ts",
+          "line": 235,
+          "column": 56
+        },
+        {
+          "file": "main.ts",
+          "line": 241,
+          "column": 218
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 266
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 204
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 150
+        }
+      ],
+      "runtime": {
+        "totalCalls": 369,
+        "maximumCallsPerFrame": 4,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_APPROXIMATION",
+      "pixiStrategy": "Cached Pixi texture or approved shader",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "declared-visual-tolerance"
+      ],
+      "notes": [
+        "Visual or measurement tolerance must be approved in the later compatibility contract."
+      ]
+    },
+    {
+      "operation": "direction",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "drawFocusIfNeeded",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "drawImage",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 254
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 339
+        }
+      ],
+      "runtime": {
+        "totalCalls": 12867,
+        "maximumCallsPerFrame": 137,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "HTMLCanvasElement",
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Texture registry Sprite; offscreen canvas becomes attributed texture",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "source-destination-rectangles",
+        "texture-cache"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "ellipse",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 153,
+          "column": 19
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 165
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 286
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 558
+        }
+      ],
+      "runtime": {
+        "totalCalls": 122,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "fill",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 151,
+          "column": 152
+        },
+        {
+          "file": "main.ts",
+          "line": 153,
+          "column": 159
+        },
+        {
+          "file": "main.ts",
+          "line": 154,
+          "column": 155
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 199
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 371
+        },
+        {
+          "file": "main.ts",
+          "line": 241,
+          "column": 453
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 344
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 221
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 71
+        },
+        {
+          "file": "main.ts",
+          "line": 246,
+          "column": 189
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 214
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 341
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 492
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 405
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 596
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 346
+        }
+      ],
+      "runtime": {
+        "totalCalls": 4060,
+        "maximumCallsPerFrame": 422,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "fillRect",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 235,
+          "column": 286
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 321
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 395
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 428
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 545
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 704
+        }
+      ],
+      "runtime": {
+        "totalCalls": 215,
+        "maximumCallsPerFrame": 2,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "fillStyle",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 151,
+          "column": 135
+        },
+        {
+          "file": "main.ts",
+          "line": 153,
+          "column": 87
+        },
+        {
+          "file": "main.ts",
+          "line": 154,
+          "column": 119
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 136
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 256
+        },
+        {
+          "file": "main.ts",
+          "line": 235,
+          "column": 269
+        },
+        {
+          "file": "main.ts",
+          "line": 241,
+          "column": 389
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 254
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 197
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 3
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 82
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 289
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 348
+        },
+        {
+          "file": "main.ts",
+          "line": 246,
+          "column": 118
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 126
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 225
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 432
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 388
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 507
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 153
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 412
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 487
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 637
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 745
+        }
+      ],
+      "runtime": {
+        "totalCalls": 4516,
+        "maximumCallsPerFrame": 424,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "object",
+          "string:#75efff",
+          "string:#a8686e",
+          "string:#d5ff8e",
+          "string:#d8ff8e",
+          "string:#d9fff4",
+          "string:#ff00ff",
+          "string:#ffff00",
+          "string:rgba(110,255,216,0.04557673369234602)",
+          "string:rgba(20,65,70,.65)",
+          "string:rgba(235,255,230,.28)",
+          "string:rgba(25,63,105,0.01112447999999981)",
+          "string:rgba(25,63,105,0.011540479999999818)",
+          "string:rgba(25,63,105,0.012468479999999822)",
+          "string:rgba(25,63,105,0.013812479999999834)",
+          "string:rgba(25,63,105,0.013844479999999831)",
+          "string:rgba(25,63,105,0.02347818666666666)",
+          "string:rgba(25,63,105,0.023542186666666656)",
+          "string:rgba(25,63,105,0.02357418666666665)",
+          "string:rgba(25,63,105,0.023606186666666647)",
+          "string:rgba(25,63,105,0.02367018666666664)",
+          "string:rgba(25,63,105,0.023702186666666635)",
+          "string:rgba(255,245,183,.38)",
+          "string:rgba(29,73,71,.58)",
+          "string:rgba(35,20,28,.8)"
+        ]
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "fillText",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 160
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 822
+        }
+      ],
+      "runtime": {
+        "totalCalls": 9,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number",
+          "string:23"
+        ],
+        "values": [
+          "text:length=23:hash=d78531bc"
+        ]
+      },
+      "classification": "SUPPORTED_APPROXIMATION",
+      "pixiStrategy": "Pixi Text with packaged font/fallback",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "declared-visual-tolerance"
+      ],
+      "notes": [
+        "Visual or measurement tolerance must be approved in the later compatibility contract."
+      ]
+    },
+    {
+      "operation": "filter",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "font",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 106
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 769
+        }
+      ],
+      "runtime": {
+        "totalCalls": 9,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "string:700 16px system-ui"
+        ]
+      },
+      "classification": "SUPPORTED_APPROXIMATION",
+      "pixiStrategy": "Pixi Text with packaged font/fallback",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "declared-visual-tolerance"
+      ],
+      "notes": [
+        "Visual or measurement tolerance must be approved in the later compatibility contract."
+      ]
+    },
+    {
+      "operation": "fontKerning",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "fontStretch",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "fontVariantCaps",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "getImageData",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": false,
+      "staticLocations": [
+        {
+          "file": "renderer.ts",
+          "line": 55,
+          "column": 21
+        }
+      ],
+      "runtime": {
+        "totalCalls": 1,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "title"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "BLOCKING_UNSUPPORTED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "getLineDash",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "globalAlpha",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 220
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 485
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 642
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 801
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 135
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 359
+        }
+      ],
+      "runtime": {
+        "totalCalls": 14502,
+        "maximumCallsPerFrame": 521,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "number"
+        ]
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "globalCompositeOperation",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 1,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "title"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "string:multiply"
+        ]
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Validate observed blend mode against Pixi blend table",
+      "stateDependencies": [
+        "globalCompositeOperation"
+      ],
+      "testsRequired": [
+        "blend-mode"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "imageSmoothingEnabled",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 65,
+          "column": 3
+        }
+      ],
+      "runtime": {
+        "totalCalls": 2,
+        "maximumCallsPerFrame": 2,
+        "scenes": [
+          "title"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "boolean"
+        ]
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "imageSmoothingQuality",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "isPointInPath",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "isPointInStroke",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "letterSpacing",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "lineCap",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 156
+        },
+        {
+          "file": "main.ts",
+          "line": 252,
+          "column": 195
+        }
+      ],
+      "runtime": {
+        "totalCalls": 16,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "failure-result",
+          "normal-engage"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "string:round"
+        ]
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "lineDashOffset",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "lineJoin",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "lineTo",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 150,
+          "column": 190
+        },
+        {
+          "file": "main.ts",
+          "line": 156,
+          "column": 154
+        },
+        {
+          "file": "main.ts",
+          "line": 156,
+          "column": 175
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 286
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 491
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 205
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 148
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 208
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 224
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 258
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 146
+        }
+      ],
+      "runtime": {
+        "totalCalls": 3965,
+        "maximumCallsPerFrame": 34,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "lineWidth",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 151,
+          "column": 224
+        },
+        {
+          "file": "main.ts",
+          "line": 155,
+          "column": 47
+        },
+        {
+          "file": "main.ts",
+          "line": 156,
+          "column": 80
+        },
+        {
+          "file": "main.ts",
+          "line": 160,
+          "column": 124
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 109
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 572
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 438
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 552
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 395
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 258
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 238
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 140
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 543
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 702
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 476
+        },
+        {
+          "file": "main.ts",
+          "line": 252,
+          "column": 179
+        },
+        {
+          "file": "main.ts",
+          "line": 253,
+          "column": 43
+        }
+      ],
+      "runtime": {
+        "totalCalls": 2426,
+        "maximumCallsPerFrame": 49,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "number"
+        ]
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "measureText",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Text with packaged font/fallback",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "declared-visual-tolerance"
+      ],
+      "notes": [
+        "Visual or measurement tolerance must be approved in the later compatibility contract."
+      ]
+    },
+    {
+      "operation": "miterLimit",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "moveTo",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 150,
+          "column": 204
+        },
+        {
+          "file": "main.ts",
+          "line": 155,
+          "column": 98
+        },
+        {
+          "file": "main.ts",
+          "line": 156,
+          "column": 129
+        },
+        {
+          "file": "main.ts",
+          "line": 161,
+          "column": 62
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 268
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 473
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 221
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 164
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 192
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 242
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 162
+        },
+        {
+          "file": "main.ts",
+          "line": 252,
+          "column": 231
+        }
+      ],
+      "runtime": {
+        "totalCalls": 1687,
+        "maximumCallsPerFrame": 15,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "putImageData",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "quadraticCurveTo",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 155,
+          "column": 130
+        },
+        {
+          "file": "main.ts",
+          "line": 161,
+          "column": 101
+        },
+        {
+          "file": "main.ts",
+          "line": 252,
+          "column": 257
+        }
+      ],
+      "runtime": {
+        "totalCalls": 86,
+        "maximumCallsPerFrame": 10,
+        "scenes": [
+          "failure-result",
+          "normal-engage",
+          "title"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "rect",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "resetTransform",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "restore",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 638
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 653
+        },
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 427
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 407
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 288
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 353
+        },
+        {
+          "file": "main.ts",
+          "line": 253,
+          "column": 154
+        },
+        {
+          "file": "main.ts",
+          "line": 256,
+          "column": 236
+        }
+      ],
+      "runtime": {
+        "totalCalls": 13078,
+        "maximumCallsPerFrame": 139,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "rotate",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 160,
+          "column": 65
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 202
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 166
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 79
+        }
+      ],
+      "runtime": {
+        "totalCalls": 12870,
+        "maximumCallsPerFrame": 137,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "roundRect",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "save",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 58
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 168
+        },
+        {
+          "file": "main.ts",
+          "line": 241,
+          "column": 150
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 132
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 49
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 92
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 152
+        },
+        {
+          "file": "main.ts",
+          "line": 256,
+          "column": 22
+        }
+      ],
+      "runtime": {
+        "totalCalls": 13078,
+        "maximumCallsPerFrame": 139,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "scale",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 241,
+          "column": 184
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 95
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 186
+        }
+      ],
+      "runtime": {
+        "totalCalls": 101,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "scrollPathIntoView",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "No approved compatibility strategy",
+      "stateDependencies": [],
+      "testsRequired": [
+        "explicit-block"
+      ],
+      "notes": [
+        "Requires a separately approved implementation before migration."
+      ]
+    },
+    {
+      "operation": "setLineDash",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "setTransform",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 64,
+          "column": 3
+        },
+        {
+          "file": "main.ts",
+          "line": 235,
+          "column": 3
+        }
+      ],
+      "runtime": {
+        "totalCalls": 114,
+        "maximumCallsPerFrame": 3,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "shadowBlur",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "shadowColor",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "shadowOffsetX",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "shadowOffsetY",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "stroke",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 151,
+          "column": 238
+        },
+        {
+          "file": "main.ts",
+          "line": 155,
+          "column": 167
+        },
+        {
+          "file": "main.ts",
+          "line": 156,
+          "column": 195
+        },
+        {
+          "file": "main.ts",
+          "line": 161,
+          "column": 187
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 245
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 314
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 518
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 454
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 639
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 411
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 274
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 325
+        },
+        {
+          "file": "main.ts",
+          "line": 246,
+          "column": 239
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 275
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 605
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 788
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 494
+        },
+        {
+          "file": "main.ts",
+          "line": 252,
+          "column": 332
+        },
+        {
+          "file": "main.ts",
+          "line": 253,
+          "column": 141
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 276
+        },
+        {
+          "file": "main.ts",
+          "line": 256,
+          "column": 223
+        }
+      ],
+      "runtime": {
+        "totalCalls": 3999,
+        "maximumCallsPerFrame": 79,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "strokeRect",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 588
+        }
+      ],
+      "runtime": {
+        "totalCalls": 112,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "strokeStyle",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 151,
+          "column": 161
+        },
+        {
+          "file": "main.ts",
+          "line": 155,
+          "column": 9
+        },
+        {
+          "file": "main.ts",
+          "line": 156,
+          "column": 45
+        },
+        {
+          "file": "main.ts",
+          "line": 160,
+          "column": 86
+        },
+        {
+          "file": "main.ts",
+          "line": 162,
+          "column": 208
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 69
+        },
+        {
+          "file": "main.ts",
+          "line": 239,
+          "column": 532
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 398
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 526
+        },
+        {
+          "file": "main.ts",
+          "line": 242,
+          "column": 355
+        },
+        {
+          "file": "main.ts",
+          "line": 243,
+          "column": 232
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 199
+        },
+        {
+          "file": "main.ts",
+          "line": 246,
+          "column": 200
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 118
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 503
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 676
+        },
+        {
+          "file": "main.ts",
+          "line": 251,
+          "column": 416
+        },
+        {
+          "file": "main.ts",
+          "line": 252,
+          "column": 139
+        },
+        {
+          "file": "main.ts",
+          "line": 253,
+          "column": 3
+        },
+        {
+          "file": "main.ts",
+          "line": 254,
+          "column": 195
+        },
+        {
+          "file": "main.ts",
+          "line": 256,
+          "column": 33
+        }
+      ],
+      "runtime": {
+        "totalCalls": 2690,
+        "maximumCallsPerFrame": 68,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "string:#75efff",
+          "string:#8ab2a8",
+          "string:#c8fbff",
+          "string:#ffb8a7",
+          "string:rgba(117,239,255,.52)",
+          "string:rgba(118,232,198,.07)",
+          "string:rgba(144,255,218,.18)",
+          "string:rgba(180,225,210,.32)",
+          "string:rgba(218,255,189,.82)",
+          "string:rgba(228,255,241,.85)",
+          "string:rgba(232,255,243,.54)",
+          "string:rgba(255,224,180,.45)",
+          "string:rgba(255,232,132,.66)",
+          "string:rgba(255,245,196,.8)",
+          "string:rgba(255,255,220,.8)",
+          "string:rgba(255,255,255,.42)",
+          "string:rgba(52,25,31,.65)"
+        ]
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "strokeText",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Text with packaged font/fallback",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "declared-visual-tolerance"
+      ],
+      "notes": [
+        "Visual or measurement tolerance must be approved in the later compatibility contract."
+      ]
+    },
+    {
+      "operation": "textAlign",
+      "kind": "property-write",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 244,
+          "column": 137
+        },
+        {
+          "file": "main.ts",
+          "line": 255,
+          "column": 799
+        }
+      ],
+      "runtime": {
+        "totalCalls": 9,
+        "maximumCallsPerFrame": 1,
+        "scenes": [
+          "victory-result"
+        ],
+        "argumentCategories": [],
+        "values": [
+          "string:center"
+        ]
+      },
+      "classification": "SUPPORTED_APPROXIMATION",
+      "pixiStrategy": "Pixi Text with packaged font/fallback",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "declared-visual-tolerance"
+      ],
+      "notes": [
+        "Visual or measurement tolerance must be approved in the later compatibility contract."
+      ]
+    },
+    {
+      "operation": "textBaseline",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Text with packaged font/fallback",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha"
+      ],
+      "testsRequired": [
+        "declared-visual-tolerance"
+      ],
+      "notes": [
+        "Visual or measurement tolerance must be approved in the later compatibility contract."
+      ]
+    },
+    {
+      "operation": "textRendering",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "toBlob",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "toDataURL",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "transform",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "translate",
+      "kind": "method",
+      "observed": true,
+      "productionObserved": true,
+      "staticLocations": [
+        {
+          "file": "main.ts",
+          "line": 148,
+          "column": 68
+        },
+        {
+          "file": "main.ts",
+          "line": 160,
+          "column": 46
+        },
+        {
+          "file": "main.ts",
+          "line": 240,
+          "column": 179
+        },
+        {
+          "file": "main.ts",
+          "line": 241,
+          "column": 161
+        },
+        {
+          "file": "main.ts",
+          "line": 245,
+          "column": 143
+        },
+        {
+          "file": "main.ts",
+          "line": 247,
+          "column": 60
+        },
+        {
+          "file": "main.ts",
+          "line": 249,
+          "column": 103
+        },
+        {
+          "file": "main.ts",
+          "line": 250,
+          "column": 163
+        }
+      ],
+      "runtime": {
+        "totalCalls": 12991,
+        "maximumCallsPerFrame": 138,
+        "scenes": [
+          "bacterial-cluster",
+          "biofilm-nidus",
+          "damaged-tissue",
+          "failure-result",
+          "normal-engage",
+          "pause",
+          "repairing-tissue",
+          "resolve-activation",
+          "resolve-stabilization",
+          "storm-engage",
+          "title",
+          "upgrade-selection",
+          "victory-result"
+        ],
+        "argumentCategories": [
+          "number"
+        ],
+        "values": []
+      },
+      "classification": "SUPPORTED_EXACT",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    },
+    {
+      "operation": "wordSpacing",
+      "kind": "property-read",
+      "observed": false,
+      "productionObserved": false,
+      "staticLocations": [],
+      "runtime": {
+        "totalCalls": 0,
+        "maximumCallsPerFrame": 0,
+        "scenes": [],
+        "argumentCategories": [],
+        "values": []
+      },
+      "classification": "NOT_OBSERVED",
+      "pixiStrategy": "Pixi Graphics/state command",
+      "stateDependencies": [
+        "transform",
+        "globalAlpha",
+        "style"
+      ],
+      "testsRequired": [
+        "state-order",
+        "command-conformance"
+      ],
+      "notes": []
+    }
+  ],
+  "unknownProductionPaths": [],
+  "verdict": "ANALYSIS_PASS",
+  "highestFrequency": [
+    {
+      "operation": "globalAlpha",
+      "totalCalls": 14502,
+      "maximumCallsPerFrame": 521
+    },
+    {
+      "operation": "restore",
+      "totalCalls": 13078,
+      "maximumCallsPerFrame": 139
+    },
+    {
+      "operation": "save",
+      "totalCalls": 13078,
+      "maximumCallsPerFrame": 139
+    },
+    {
+      "operation": "translate",
+      "totalCalls": 12991,
+      "maximumCallsPerFrame": 138
+    },
+    {
+      "operation": "rotate",
+      "totalCalls": 12870,
+      "maximumCallsPerFrame": 137
+    },
+    {
+      "operation": "drawImage",
+      "totalCalls": 12867,
+      "maximumCallsPerFrame": 137
+    },
+    {
+      "operation": "beginPath",
+      "totalCalls": 7921,
+      "maximumCallsPerFrame": 437
+    },
+    {
+      "operation": "arc",
+      "totalCalls": 6112,
+      "maximumCallsPerFrame": 421
+    },
+    {
+      "operation": "fillStyle",
+      "totalCalls": 4516,
+      "maximumCallsPerFrame": 424
+    },
+    {
+      "operation": "fill",
+      "totalCalls": 4060,
+      "maximumCallsPerFrame": 422
+    },
+    {
+      "operation": "stroke",
+      "totalCalls": 3999,
+      "maximumCallsPerFrame": 79
+    },
+    {
+      "operation": "lineTo",
+      "totalCalls": 3965,
+      "maximumCallsPerFrame": 34
+    },
+    {
+      "operation": "strokeStyle",
+      "totalCalls": 2690,
+      "maximumCallsPerFrame": 68
+    },
+    {
+      "operation": "lineWidth",
+      "totalCalls": 2426,
+      "maximumCallsPerFrame": 49
+    },
+    {
+      "operation": "moveTo",
+      "totalCalls": 1687,
+      "maximumCallsPerFrame": 15
+    },
+    {
+      "operation": "addColorStop",
+      "totalCalls": 1046,
+      "maximumCallsPerFrame": 11
+    },
+    {
+      "operation": "createRadialGradient",
+      "totalCalls": 369,
+      "maximumCallsPerFrame": 4
+    },
+    {
+      "operation": "fillRect",
+      "totalCalls": 215,
+      "maximumCallsPerFrame": 2
+    },
+    {
+      "operation": "ellipse",
+      "totalCalls": 122,
+      "maximumCallsPerFrame": 1
+    },
+    {
+      "operation": "closePath",
+      "totalCalls": 121,
+      "maximumCallsPerFrame": 1
+    }
+  ],
+  "areaRecommendations": [
+    {
+      "area": "background and grid",
+      "recommendation": "native Pixi preferred",
+      "reason": "Per-frame gradient, grid paths, and full-surface fill."
+    },
+    {
+      "area": "tissue",
+      "recommendation": "native Pixi preferred",
+      "reason": "Generated texture drawImage plus dynamic rings."
+    },
+    {
+      "area": "player",
+      "recommendation": "native Pixi preferred",
+      "reason": "Dynamic paths, gradients, Resolve field, and attack effects."
+    },
+    {
+      "area": "bacteria",
+      "recommendation": "native Pixi preferred",
+      "reason": "Generated texture drawImage with transform state."
+    },
+    {
+      "area": "boss",
+      "recommendation": "native Pixi preferred",
+      "reason": "High-complexity paths, gradients, text, and health indicators."
+    },
+    {
+      "area": "immune effectors",
+      "recommendation": "compatibility suitable",
+      "reason": "Arcs, ellipses, lines, fills, and strokes only."
+    },
+    {
+      "area": "projectiles",
+      "recommendation": "compatibility suitable",
+      "reason": "Line/path primitives and transformed marks."
+    },
+    {
+      "area": "particles",
+      "recommendation": "native Pixi preferred",
+      "reason": "High-frequency pooled circles and rings."
+    },
+    {
+      "area": "Resolve field",
+      "recommendation": "native Pixi preferred",
+      "reason": "Radial gradient with animated geometry."
+    },
+    {
+      "area": "storm overlay",
+      "recommendation": "compatibility suitable",
+      "reason": "Radial or solid overlay fill."
+    },
+    {
+      "area": "camera trauma/shake",
+      "recommendation": "native Pixi required",
+      "reason": "Presentation transform must be separate from simulation state."
+    },
+    {
+      "area": "world indicators",
+      "recommendation": "compatibility suitable",
+      "reason": "Stroke arcs and simple fills."
+    },
+    {
+      "area": "HUD",
+      "recommendation": "native Pixi preferred",
+      "reason": "DOM HUD is outside Canvas; Canvas text is limited to world labels."
+    },
+    {
+      "area": "upgrade screen",
+      "recommendation": "native Pixi preferred",
+      "reason": "DOM overlay; no Canvas conversion requirement observed."
+    },
+    {
+      "area": "pause screen",
+      "recommendation": "native Pixi preferred",
+      "reason": "DOM overlay; no Canvas conversion requirement observed."
+    },
+    {
+      "area": "result screen",
+      "recommendation": "native Pixi preferred",
+      "reason": "DOM overlay; no Canvas conversion requirement observed."
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "SFHS Verify"
+  short_description: "Verify exact SFHS artifacts read-only"
+  default_prompt: "Use $sfhs-verify to run read-only exact-artifact checks and report stable findings."

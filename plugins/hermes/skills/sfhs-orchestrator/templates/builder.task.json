@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "sfhs.hermes-task@1",
+  "taskId": "${TASK_ID}",
+  "role": "builder",
+  "repository": {
+    "root": "${ABSOLUTE_REPOSITORY_ROOT}",
+    "base": "${BASE_BRANCH}",
+    "baseCommit": "${BASE_COMMIT}",
+    "cleanRequired": true
+  },
+  "scope": {
+    "allowedFiles": [
+      "examples/pixi-minimal/dist/",
+      ".sfhs-evidence/${RUN_ID}/"
+    ],
+    "forbiddenFiles": [
+      ".git/",
+      ".agents/",
+      "plugins/",
+      "packages/",
+      "adapters/",
+      "examples/pixi-minimal/src/"
+    ]
+  },
+  "commands": [
+    {
+      "id": "release-prepare",
+      "cwd": "${ABSOLUTE_REPOSITORY_ROOT}",
+      "argv": [
+        "${NODE_EXECUTABLE}",
+        "${PNPM_ENTRY}",
+        "sfhs",
+        "release",
+        "prepare",
+        "--json",
+        "--project",
+        "examples/pixi-minimal",
+        "--evidence",
+        ".sfhs-evidence/${RUN_ID}"
+      ],
+      "mutation": "generated-output",
+      "allowedExitCodes": [0, 1]
+    }
+  ],
+  "evidence": {
+    "directory": ".sfhs-evidence/${RUN_ID}",
+    "requiredFiles": [
+      ".sfhs-evidence/${RUN_ID}/evidence.json",
+      "examples/pixi-minimal/dist/index.html"
+    ]
+  },
+  "acceptanceCriteria": [
+    "The artifact and evidence files exist and validate.",
+    "Every local release-preparation step passes.",
+    "A nonzero exit is accepted only for SFHS_RELEASE_PHYSICAL_DEVICE_REQUIRED.",
+    "The result reports profile, session/run ID, commit, artifact SHA-256, build ID, and evidence paths."
+  ],
+  "stopConditions": [
+    "Stop with SFHS_HERMES_REPOSITORY_MISMATCH if root, branch, base commit, or cleanliness differs.",
+    "Stop with SFHS_HERMES_SCOPE_VIOLATION before any write outside allowedFiles.",
+    "Stop with SFHS_HERMES_COMMAND_FAILED for an undeclared exit code or unexpected blocker.",
+    "Never release, push, publish, deploy, or change a Hermes profile."
+  ],
+  "nextAction": "Run the single declared command, then report the bounded builder result."
+}

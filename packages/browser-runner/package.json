@@ -1,0 +1,19 @@
+{
+  "name": "@sfhs/browser-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@sfhs/contracts": "workspace:*",
+    "@sfhs/core": "workspace:*",
+    "@sfhs/verifier": "workspace:*",
+    "playwright": "1.61.1"
+  },
+  "devDependencies": {
+    "@sfhs/builder": "workspace:*",
+    "@sfhs/packer": "workspace:*"
+  }
+}

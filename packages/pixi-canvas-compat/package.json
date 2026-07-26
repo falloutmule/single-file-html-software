@@ -1,0 +1,19 @@
+{
+  "name": "@sfhs/pixi-canvas-compat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@sfhs/pixi-canvas-compat-contract": "workspace:*",
+    "pixi.js": "8.19.0"
+  },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/builder": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1"
+  }
+}

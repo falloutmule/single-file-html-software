@@ -1,0 +1,32 @@
+{
+  "schema": "sfhs.runtime-contract-evidence@1",
+  "task": "SFHS-011B",
+  "baseCommit": "2d604d4138403cf094134d4a2a2f6b587f721bbc",
+  "branch": "codex/sfhs-011b-pixi-runtime",
+  "ownership": {
+    "application": "SFHS Pixi v8 presentation adapter",
+    "canvas": "SFHS Pixi v8 presentation adapter",
+    "frameLoop": "SFHS Pixi game runtime",
+    "resize": "SFHS Pixi game runtime",
+    "semanticInput": "SFHS semantic action source",
+    "stage": "SFHS Pixi v8 presentation adapter"
+  },
+  "stageHierarchy": [
+    "worldRoot/backgroundLayer",
+    "worldRoot/environmentLayer",
+    "worldRoot/actorLayer",
+    "worldRoot/projectileLayer",
+    "worldRoot/worldEffectsLayer",
+    "screenEffectsLayer",
+    "debugLayer",
+    "hudLayer"
+  ],
+  "viewportModes": ["fixed", "adaptive"],
+  "compatibilityApiIntroduced": false,
+  "labels": {
+    "implementation": "verified",
+    "physicalSamsung": "untested",
+    "release": "untested"
+  },
+  "verdict": "AUTOMATED_PASS"
+}

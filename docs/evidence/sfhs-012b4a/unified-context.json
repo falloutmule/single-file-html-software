@@ -1,0 +1,22 @@
+{
+  "schema": "sfhs.unified-pixi-canvas-context@1",
+  "card": "SFHS-012B4A",
+  "baseCommit": "40733fe1eb9a9344bb91b91433a908dbc51b1f23",
+  "baseClassification": "verified generic-only; no examples/homeostasis source is present at this commit",
+  "publicApi": "createSfhsPixiCanvasCompatContext",
+  "stateOwner": ["transform", "saveRestore", "globalAlpha", "globalCompositeOperation", "fillStyle", "strokeStyle", "lineWidth", "lineCap", "font", "textAlign", "textBaseline", "imageSmoothingEnabled", "clipRefs"],
+  "commandFamilies": ["geometry", "image", "text", "clear", "mask"],
+  "proofs": {
+    "sharedTransformSequence": "save -> translate -> rotate -> globalAlpha -> drawImage -> restore",
+    "sharedStateAcrossFamilies": true,
+    "immutableSnapshots": true,
+    "restoreUnderflowBlocks": "BLOCKED_ON_UNIFIED_COMPAT_STATE",
+    "visibleCanvas2d": false,
+    "secondFrameLoop": false,
+    "browserFixture": "packages/pixi-canvas-compat/src/browser.test.ts"
+  },
+  "tests": {"filesPassed": 5, "testsPassed": 13, "typecheck": "passed", "scopedLint": "passed", "diffCheck": "passed"},
+  "notImplementedByThisCard": ["CanvasImageSource texture bridge", "arbitrary-path gradients", "backend execution of unified commands", "HOMEOSTASIS presentation"],
+  "protectedWorktrees": {"homeostasisB1CommitsPreserved": ["265ffca", "9e4326f"], "pagesChanged": false, "sncChanged": false, "remoteChanged": false},
+  "verdict": "AUTOMATED_PASS"
+}

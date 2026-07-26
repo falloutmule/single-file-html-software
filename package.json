@@ -1,15 +1,33 @@
 {
-  "name": "single-file-html-software",
+  "name": "sfhs",
   "version": "0.1.0",
   "private": true,
+  "description": "Host-neutral tools for building and verifying single-file HTML software.",
   "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
-    "build": "node tools/build-single-file.mjs",
-    "verify": "node tools/verify-single-file.mjs",
-    "serve": "npx serve -l 8098",
-    "test": "npx playwright test"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
+    "determinism": "node tools/verify-determinism.mjs",
+    "browser-smoke": "node packages/browser-runner/tools/run-smoke.mjs",
+    "browser-scenarios": "node packages/browser-runner/tools/run-scenarios.mjs",
+    "hermes-adapter-validate": "node tools/validate-hermes-adapter.mjs",
+    "hermes-task": "node tools/create-hermes-task-packet.mjs",
+    "plugin-validate": "node tools/validate-sfhs-plugin.mjs",
+    "release-gate": "node tools/check-release-readiness.mjs",
+    "sfhs": "node packages/cli/src/main.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0"
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.13.3",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.64.0",
+    "vitest": "4.1.10"
   }
 }

@@ -1,0 +1,15 @@
+{
+  "name": "@sfhs/packer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@sfhs/builder": "workspace:*",
+    "@sfhs/contracts": "workspace:*",
+    "@sfhs/core": "workspace:*",
+    "parse5": "8.0.1"
+  }
+}

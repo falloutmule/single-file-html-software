@@ -1,0 +1,22 @@
+{
+  "name": "sfhs",
+  "version": "0.1.0",
+  "description": "Author, import, verify, and prepare releases for one-file SFHS software.",
+  "author": {
+    "name": "SFHS Contributors"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SFHS",
+    "shortDescription": "Build and verify one-file HTML software.",
+    "longDescription": "Route SFHS authoring, PixiJS v8, import, exact-artifact verification, and release-preparation work through the shared host-neutral CLI.",
+    "developerName": "SFHS Contributors",
+    "category": "Developer Tools",
+    "capabilities": ["Authoring", "Verification", "Release Preparation"],
+    "defaultPrompt": [
+      "Inspect this SFHS project and choose the smallest safe workflow.",
+      "Build and verify this PixiJS SFHS artifact.",
+      "Prepare an evidence-bound SFHS release without publishing."
+    ]
+  }
+}

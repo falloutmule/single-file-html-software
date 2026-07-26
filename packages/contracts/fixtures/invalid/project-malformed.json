@@ -1,0 +1,9 @@
+{
+  "schema": "sfhs.project@1",
+  "project": {
+    "id": "pixi-minimal",
+    "title": "Pixi Minimal",
+    "version": "0.1.0",
+    "unexpected": true
+  }
+}

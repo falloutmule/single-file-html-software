@@ -1,0 +1,4 @@
+interface:
+  display_name: "SFHS Release"
+  short_description: "Prepare evidence-bound SFHS releases"
+  default_prompt: "Use $sfhs-release to prepare this SFHS release without publishing it."

@@ -1,0 +1,38 @@
+{
+  "schema": "sfhs.device-acceptance@1",
+  "target": "samsung-galaxy-s21-ultra",
+  "run": {
+    "id": "contract-fixture-only",
+    "recordedAt": "2026-07-20T22:00:00Z"
+  },
+  "artifact": {
+    "path": "dist/index.html",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "buildId": "contract-fixture-only"
+  },
+  "device": {
+    "physical": true,
+    "modelIdentifier": "SM-G998U1",
+    "androidVersion": "15",
+    "chromeVersion": "149.0.7827.55"
+  },
+  "webgl": {
+    "result": "supported",
+    "renderer": "contract fixture only"
+  },
+  "orientations": {
+    "portrait": {
+      "orientation": "portrait",
+      "viewport": { "width": 384, "height": 854, "devicePixelRatio": 3.75 },
+      "screenshot": "evidence/contract-fixture-portrait.png",
+      "status": "passed"
+    },
+    "landscape": {
+      "orientation": "landscape",
+      "viewport": { "width": 854, "height": 384, "devicePixelRatio": 3.75 },
+      "screenshot": "evidence/contract-fixture-landscape.png",
+      "status": "passed"
+    }
+  },
+  "verdict": "pass"
+}

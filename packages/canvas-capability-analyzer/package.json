@@ -1,0 +1,13 @@
+{
+  "name": "@sfhs/canvas-capability-analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1",
+    "typescript": "5.9.3"
+  }
+}
