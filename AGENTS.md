@@ -1,132 +1,226 @@
-# AGENTS.md — Agent Rules
+# AGENTS.md — SFHS Work-in-Progress Rules
 
 > Rules for AI coding agents working on this repository.
-> **Violating any MUST rule is a build-blocking defect.**
+> The project is public and versioned, but its plugin contracts and package layout are still experimental.
 
-## 1. Release Target
+## 1. Overall goal
 
-- The single-file release artifact is **`dist/index.html`**.
-- Every build candidate MUST produce a self-contained `dist/index.html`.
-- No other files in `dist/` are permitted for Milestone 0.
+Build and document Single-File HTML Software as a multi-lane system that emits one self-contained browser artifact while preserving clear evidence about what is verified, experimental, proposed, blocked, or superseded.
 
-## 2. Self-Containment
+## 2. Current project state
 
-The release HTML file **MUST NOT** require:
+- The checked-in runtime is the original Canvas 2D foundation.
+- PixiJS is the active game-development lane, but its reusable pieces have not yet been fully extracted into this repository.
+- Canvas 2D, DOM/CSS, raycasting, and future browser-native approaches remain separate lanes.
+- No stable public plugin API exists yet.
+- Do not claim production readiness, stable compatibility, or support for a lane that has not been integrated and tested here.
+
+Read first:
+
+- `README.md`
+- `docs/CURRENT-STATE.md`
+- `docs/RENDERER-LANES.md`
+- `docs/PLUGIN-SYSTEM-WIP.md`
+- `docs/DECISIONS.md`
+- `docs/PHASES.md`
+
+## 3. Release target
+
+- The current foundation emits **`dist/index.html`**.
+- Every release candidate must produce one self-contained HTML artifact.
+- Build-time dependencies are allowed; required runtime dependencies are not part of the default SFHS contract.
+- Generated output must not become the authoritative editable source.
+
+## 4. Self-containment
+
+The release artifact must not require:
 
 | Prohibited dependency | Reason |
 |---|---|
-| Runtime network calls (fetch, XHR, WebSocket, beacon) | Offline-first guarantee |
-| CDN-hosted scripts or libraries | No external dependencies |
-| External fonts (@font-face to remote URL) | Offline guarantee |
-| External images (img/src to remote URL) | Offline guarantee |
-| External audio (audio/src to remote URL) | Offline guarantee |
-| External stylesheets (link to remote CSS) | Offline guarantee |
-| External scripts (script src to remote URL) | Offline guarantee |
+| Runtime fetch/XHR/WebSocket/beacon dependencies | Offline-first artifact contract |
+| CDN-hosted scripts or libraries | Candidate must carry its runtime |
+| Remote fonts | Offline behavior |
+| Remote images or audio | Offline behavior |
+| Remote stylesheets | Offline behavior |
+| Remote script sources | Offline behavior |
 
-**Allowed at build time only:** dev dependencies, bundlers, test frameworks.
-**Allowed inline in dist/index.html:** base64-encoded assets, embedded SVGs, data URIs.
+Allowed at build time: package managers, bundlers, test frameworks, compilers, and asset tools.
 
-## 3. Source Editing
+Allowed inside the artifact: inlined code, embedded SVG, data URIs, base64 assets, and bundled renderer/runtime code.
 
-- Edit readable source under **`src/`** only.
-- **NEVER** edit minified, bundled, or generated output files directly.
-- All changes flow through the build pipeline: `src/` → build → `dist/`.
+## 5. Source editing
 
-## 4. Input Architecture
+- Edit human-readable source and documentation, never generated bundles directly.
+- Preserve the original Canvas 2D baseline unless the task explicitly changes it.
+- Do not perform a large monorepo or package restructure merely to make the project look finished.
+- Do not invent packages, commands, or plugin APIs and then document them as existing.
+- When importing code from another project, first identify what is generic and what is project-specific.
 
-Input flows through a strict pipeline:
+## 6. Input architecture
 
+Input should flow through named actions rather than directly coupling simulation to raw browser events:
+
+```text
+Raw input
+→ action mapping
+→ simulation/software state
+→ presentation
 ```
-Raw Input (keyboard, pointer, touch, gamepad, sensors)
-  → Action Map (translates raw events into abstract actions)
-    → Simulation (updates game/software state, pure logic)
-      → Render (reads state, draws frame, MUST NOT mutate state)
+
+Rules:
+
+- Track pointers by `pointerId`.
+- Handle `pointercancel`.
+- Do not rely on hover-only controls.
+- Recalculate presentation-to-logical coordinate mapping after viewport, orientation, or fullscreen changes.
+- A visual control and its real hit target must remain aligned.
+
+## 7. Simulation and rendering
+
+- Rendering reads state; it does not become simulation authority.
+- Renderer-specific objects must not enter durable state.
+- Game/software rules must not depend on Pixi, Canvas, DOM, or raycasting object instances.
+- Presentation effects may use transient state only when they cannot change deterministic outcomes.
+- Renderer-specific behavior belongs in its lane or adapter.
+
+## 8. Save files
+
+Durable state may include:
+
+- game or software state;
+- progress;
+- settings;
+- content data;
+- schema/version information.
+
+Durable state must not include:
+
+- DOM nodes;
+- canvas contexts;
+- Pixi objects;
+- GPU resources;
+- particles;
+- caches;
+- event listeners;
+- computed presentation-only objects.
+
+The save/load invariant remains:
+
+```text
+load(save(state)) ≈ durable state
 ```
 
-### Key Rules
+## 9. Mobile requirements
 
-- **Action Map layer** decouples input hardware from game logic. No direct `keyCode` checks in simulation code.
-- **Render layer is read-only.** Drawing code MUST NOT call state-mutating functions, set game variables, or have side effects beyond the canvas/DOM.
-- **Simulation is deterministic.** Given the same input sequence and seed, it produces the same state.
+For mobile-facing artifacts:
 
-## 5. Save Files
+- account for dynamic viewport changes;
+- account for safe-area insets;
+- handle `visualViewport` where relevant;
+- use pointer events and `pointercancel` cleanup;
+- do not require landscape unless the project explicitly chooses it;
+- test portrait and landscape when both are supported;
+- verify touch targets again after resize and fullscreen changes.
 
-Save files (localStorage, IndexedDB, or downloadable blobs) MUST serialize **durable state only**:
+## 10. Renderer-lane policy
 
-- ✅ Game state, scores, progress, settings, inventory, level data
-- ❌ DOM nodes, canvas pixel data, audio buffers, particle systems, caches, computed/derived data
+### PixiJS
 
-### Save/Load Contract
+Active development lane. Pixi types and implementation details must remain inside the Pixi lane.
 
-- `save()` serializes a plain object or JSON string of durable state.
-- `load()` reconstructs game state from that serialized form — no DOM or canvas restoration.
-- Save format MUST be round-trippable: `load(save(state))` equals `state`.
+### Canvas 2D
 
-## 6. Mobile Requirements
+Verified checked-in baseline and compatibility lane. It is not the universal default.
 
-All game surfaces MUST implement the following mobile patterns:
+### DOM/CSS
 
-| Requirement | Details |
+Valid primary lane for text-heavy software, editors, dashboards, forms, and document tools.
+
+### Raycasting
+
+Experimental specialist lane. Depth, cutout masks, short-object occlusion, and atlas behavior must not be forced into generic renderer contracts prematurely.
+
+### Future lanes
+
+Proposed only until a real project, packaging path, and browser proof exist.
+
+## 11. Plugin-system policy
+
+The plugin system is experimental.
+
+Do:
+
+- extract the smallest seam from working code;
+- identify shared capability boundaries;
+- keep open questions visible;
+- prove lifecycle and cleanup behavior;
+- use a minimal fixture before importing a full game.
+
+Do not:
+
+- declare a stable manifest schema prematurely;
+- promise third-party compatibility;
+- publish packages solely to create an appearance of completion;
+- leak Pixi-specific concepts into universal SFHS contracts;
+- broaden scope from one renderer seam to every possible capability.
+
+## 12. Evidence and status
+
+Always distinguish:
+
+- **verified**;
+- **reported**;
+- **in progress**;
+- **experimental**;
+- **proposed**;
+- **blocked**;
+- **superseded**;
+- **untested**.
+
+Do not:
+
+- claim completion from process startup alone;
+- claim usability from a source review;
+- claim physical-device acceptance from emulation;
+- claim release approval from preview hosting;
+- hide a failed gate behind an overall optimistic status.
+
+When functionality can be tested, test it. When it cannot, state the exact missing proof.
+
+## 13. Verification contract
+
+A candidate should eventually prove, as applicable:
+
+- no console or page errors;
+- intended presentation surface exists;
+- frame or application lifecycle advances;
+- no unexpected runtime requests;
+- save/load round-trip;
+- viewport and safe-area behavior;
+- touch/input behavior after resize;
+- exact artifact identity and hash;
+- deterministic rebuild or state behavior when required;
+- renderer-specific invariants;
+- cleanup without duplicated listeners or surfaces.
+
+Physical acceptance remains separate when the claim concerns perception, ergonomics, real browser chrome, heat, performance, or device-specific behavior.
+
+## 14. Repository roles
+
+- `single-file-html-software`: authoritative public WIP history, shared code, architecture, and project awareness.
+- `sfhs-preview`: replaceable browser review slot only.
+
+Do not treat `sfhs-preview` as source authority, release approval, or long-term artifact storage.
+
+## 15. File conventions
+
+| Path | Current purpose |
 |---|---|
-| **Full viewport** | Use `100dvh` (dynamic viewport height) for game container |
-| **Safe-area padding** | Apply `env(safe-area-inset-*)` padding inside game area |
-| **Viewport resize** | Listen to `visualViewport.resize` event, NOT just `window.resize` |
-| **Touch handling** | Set `touch-action: none` on all game surface elements |
-| **Pointer-ID tracking** | Track multi-touch via `pointerId` — never assume single pointer |
-| **Pointercancel** | Always handle `pointercancel` events to clean up active pointers |
-| **No hover-only controls** | Every control MUST work with touch/pointer-down, not just hover |
+| `src/` | Original checked-in Canvas 2D foundation |
+| `dist/` | Generated candidate output |
+| `docs/` | Current state, decisions, phases, lanes, architecture, and tests |
+| `tests/` | Existing test infrastructure |
+| `AGENTS.md` | Agent rules |
+| `README.md` | Public project orientation |
 
-### Mobile CSS Minimum
-
-```css
-.game-container {
-  height: 100dvh;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-.game-surface {
-  touch-action: none;
-}
-```
-
-## 7. Testing Contract
-
-Every build candidate (`dist/index.html`) MUST pass:
-
-### Smoke Tests
-
-1. **No console errors** — `window.onerror` and uncaught promise rejections MUST be zero.
-2. **No uncaught page errors** — page loads without crash.
-3. **Canvas exists** — a `<canvas>` element is present in the DOM after init.
-4. **Frame loop advances** — `requestAnimationFrame` callback fires and increments a frame counter.
-5. **No unexpected external requests** — zero network calls to non-`data:` URLs after load.
-6. **Save/load round-trip** — if save functionality exists, `load(save(state))` produces equivalent state.
-7. **Screenshot captured** — canvas `toDataURL()` or `toBlob()` succeeds without error.
-8. **Mobile viewport smoke** — when loaded in a mobile-sized viewport, the game container fills `100dvh` with safe-area padding applied.
-
-### Integration Tests (Playwright)
-
-See [`docs/testing/testing-contract.md`](docs/testing/testing-contract.md) for full Playwright expectations.
-
-## 8. Default Engine
-
-The default rendering engine is **Canvas 2D + DOM/CSS overlay**:
-
-- **Canvas 2D** — primary rendering surface for game graphics via `CanvasRenderingContext2D`.
-- **DOM/CSS overlay** — UI elements (menus, HUD, dialogs) rendered as standard HTML/CSS positioned over the canvas.
-
-See [`docs/engines/canvas2d-baseline.md`](docs/engines/canvas2d-baseline.md) for full engine specification.
-
-## 9. File Conventions
-
-| Path | Purpose |
-|---|---|
-| `src/` | Human-readable source (edit here) |
-| `src/shell/` | HTML shell, CSS, entry point |
-| `src/core/` | Engine, simulation, rendering, input, save/load |
-| `dist/` | Build output (generated, never edit) |
-| `dist/index.html` | Single-file release artifact |
-| `docs/` | Design documents and specifications |
-| `tests/` | Playwright and test infrastructure |
-| `AGENTS.md` | This file — rules for AI agents |
-| `README.md` | Project overview and quick-start |
+Future folders should be added only when actual code ownership requires them.
