@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir packages/browser-runner exec playwright install --with-deps chromium
+      - run: pnpm check
+      - run: pnpm plugin-validate
+      - run: pnpm hermes-adapter-validate
+      - run: pnpm browser-smoke
+      - run: pnpm browser-scenarios
+        env:
+          SFHS_BROWSER_EVIDENCE: .sfhs-browser/ci
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sfhs-browser-evidence-Linux
+          path: .sfhs-browser/ci
+          if-no-files-found: error
+          retention-days: 7
+
+  determinism:
+    needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Prove isolated same-platform determinism
+        run: pnpm run determinism -- --artifact-file .sfhs-ci/${{ runner.os }}/index.html --report-file .sfhs-ci/${{ runner.os }}/report.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sfhs-determinism-${{ runner.os }}
+          path: .sfhs-ci/${{ runner.os }}
+          if-no-files-found: error
+          retention-days: 7
+
+  cross-platform-determinism:
+    needs: determinism
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: sfhs-determinism-*
+          path: .sfhs-ci-download
+      - name: Compare Windows and Ubuntu artifact bytes
+        run: node tools/compare-artifacts.mjs .sfhs-ci-download/sfhs-determinism-Windows/index.html .sfhs-ci-download/sfhs-determinism-Linux/index.html

@@ -1,6 +1,6 @@
 import type { CanvasCapabilityReport } from "@sfhs/canvas-capability-analyzer";
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 export const packageIdentity = "@sfhs/canvas-scaffold-generator" as const;
 export class SfhsScaffoldBlockedError extends Error { readonly code = "MIGRATION_BLOCKED" as const; constructor(message: string) { super(message); this.name = "SfhsScaffoldBlockedError"; } }
@@ -33,9 +33,11 @@ export function generateSfhsCanvasScaffold(input: { readonly projectId: string; 
 export async function writeSfhsCanvasScaffold(outputDirectory: string, scaffold: SfhsScaffold): Promise<readonly string[]> {
   const root = resolve(outputDirectory); const written: string[] = [];
   for (const [relativePath, content] of Object.entries(scaffold.files).sort(([left], [right]) => left.localeCompare(right))) {
-    if (relativePath.startsWith("/") || relativePath.includes("..")) throw new SfhsScaffoldBlockedError(`Unsafe generated path: ${relativePath}.`);
-    const target = resolve(root, relativePath); if (!target.startsWith(`${root}\\`) && target !== root) throw new SfhsScaffoldBlockedError(`Generated path escaped output root: ${relativePath}.`);
+    if (isAbsolute(relativePath) || relativePath.includes("..")) throw new SfhsScaffoldBlockedError(`Unsafe generated path: ${relativePath}.`);
+    const target = resolve(root, relativePath); const targetRelativeToRoot = relative(root, target);
+    if (targetRelativeToRoot === ".." || targetRelativeToRoot.startsWith(`..${sep}`) || isAbsolute(targetRelativeToRoot)) throw new SfhsScaffoldBlockedError(`Generated path escaped output root: ${relativePath}.`);
     await mkdir(dirname(target), { recursive: true }); await writeFile(target, content, "utf8"); written.push(relativePath);
   }
   return Object.freeze(written);
 }
+
