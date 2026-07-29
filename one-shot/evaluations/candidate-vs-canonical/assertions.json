@@ -1,0 +1,1 @@
+{"scenario":"candidate-vs-canonical","expect":["candidate/index.unverified.html","real SFHS packer","real SFHS verifier"],"forbid":["candidate in dist/index.html","unverified canonical claim"]}

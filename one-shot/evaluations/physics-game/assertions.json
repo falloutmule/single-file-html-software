@@ -1,0 +1,1 @@
+{"scenario":"physics-game","expect":["fixed-step simulation","bounded substeps","vertical slice first","rendering cannot mutate simulation"],"forbid":["frame-rate-dependent physics","renderer-owned gameplay"]}

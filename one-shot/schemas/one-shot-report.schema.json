@@ -1,0 +1,4 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://sfhs.dev/schemas/one-shot-report@1", "type": "object", "additionalProperties": false,
+  "required": ["schema", "status", "facts"], "properties": { "schema": { "const": "sfhs.one-shot-report@1" }, "status": { "enum": ["VERIFIED", "REPORTED", "INFERRED", "PROPOSED", "UNTESTED", "BLOCKED", "SUPERSEDED"] }, "facts": { "type": "object", "additionalProperties": true, "properties": { "artifact": { "type": "object", "required": ["classification"], "properties": { "classification": { "enum": ["canonical", "candidate", "none"] }, "path": { "type": "string" } }, "additionalProperties": true }, "physicalDevice": { "enum": ["VERIFIED", "REPORTED", "INFERRED", "PROPOSED", "UNTESTED", "BLOCKED", "SUPERSEDED"] } } } }
+}

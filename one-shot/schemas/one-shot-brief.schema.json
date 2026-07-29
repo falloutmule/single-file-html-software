@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sfhs.dev/schemas/one-shot-brief@1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "project", "lane", "target", "status"],
+  "properties": {
+    "schema": { "const": "sfhs.one-shot-brief@1" },
+    "project": { "type": "object", "additionalProperties": false, "required": ["id", "title"], "properties": { "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,63}$" }, "title": { "type": "string", "minLength": 1 } } },
+    "lane": { "type": "object", "additionalProperties": false, "required": ["id"], "properties": { "id": { "type": "string" } } },
+    "target": { "type": "object", "additionalProperties": false, "required": ["device", "orientation"], "properties": { "device": { "type": "string" }, "orientation": { "type": "string" } } },
+    "status": { "$ref": "#/$defs/status" }
+  },
+  "$defs": { "status": { "enum": ["VERIFIED", "REPORTED", "INFERRED", "PROPOSED", "UNTESTED", "BLOCKED", "SUPERSEDED"] } }
+}

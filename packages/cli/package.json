@@ -12,6 +12,7 @@
     "@sfhs/contracts": "workspace:*",
     "@sfhs/core": "workspace:*",
     "@sfhs/evidence": "workspace:*",
+    "@sfhs/one-shot": "workspace:*",
     "@sfhs/packer": "workspace:*",
     "@sfhs/verifier": "workspace:*"
   }

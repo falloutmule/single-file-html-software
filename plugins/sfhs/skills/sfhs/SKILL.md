@@ -10,14 +10,15 @@ Use the repository's SFHS CLI as the source of truth. Do not recreate build, pac
 ## Route the request
 
 1. Read `AGENTS.md` and discover `sfhs.project.json` from the requested path.
-2. Reconcile repository root, branch, status, HEAD, and remotes before mutation.
-3. Run `pnpm sfhs inspect --json --project <path>`.
-4. Route to the narrowest specialist:
+2. For a complete bounded game or interactive application, read `one-shot/START-HERE.md` first. It selects the lane and project packet; it does not replace the CLI.
+3. Reconcile repository root, branch, status, HEAD, and remotes before mutation.
+4. Run `pnpm sfhs inspect --json --project <path>`.
+5. Route to the narrowest specialist:
    - PixiJS v8 authoring, runtime, input, viewport, or visual work: `$sfhs-pixi`.
    - Existing-project migration: `$sfhs-import`.
    - Read-only artifact QA: `$sfhs-verify`.
    - Release preparation and evidence: `$sfhs-release`.
-5. Keep changes within the selected project and its declared evidence paths.
+6. Keep changes within the selected project and its declared evidence paths.
 
 ## Guardrails
 

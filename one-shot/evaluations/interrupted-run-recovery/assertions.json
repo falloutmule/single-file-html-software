@@ -1,0 +1,1 @@
+{"scenario":"interrupted-run-recovery","expect":["inspect packet and issues","resume exact state","preserve failed evidence"],"forbid":["restart unnecessarily","discard failed evidence"]}

@@ -1,0 +1,8 @@
+# One-Shot Factory Issues Encountered
+
+| ID | Phase | Status | Severity | Observed / expected | Evidence and resolution | Remaining risk |
+| --- | --- | --- | --- | --- | --- | --- |
+| OSF-001 | Reconnaissance | RESOLVED | medium | The supplied workspace contained SNC, not a local SFHS checkout; the requested repository was available at `falloutmule/single-file-html-software`. | Cloned current `main` locally and created `codex/sfhs-one-shot-factory` from `697a9d8922389e517184d6376c4e382985d4ed58`. | Remote may advance before review; final report records exact base and local commit. |
+| OSF-002 | Case study | WORKAROUND | low | The named Cat Paw source/evidence ZIPs and report were not present in the workspace or current SFHS repository. | Case study retains only handoff-supported, explicitly `REPORTED` facts and no invented binary evidence. | Add exact archive hashes/excerpts later if supplied. |
+| OSF-003 | Verification | RESOLVED | low | `pnpm` attempted a noninteractive workspace install after a temporary generated example was added. | Used `CI=true pnpm install --no-frozen-lockfile`, packed and exactly verified the generated project, then removed the temporary project and restored the lockfile's pre-existing importer entry. | New initialized examples require the normal documented workspace install before package resolution. |
+| OSF-004 | Verification | RESOLVED | low | Normal `pnpm` commands normalized an existing lockfile importer for an absent historical example. | Restored the unchanged baseline importer after each generated-tool run; the committed lockfile changes only add `@sfhs/one-shot`. | Future repository cleanup can remove the stale importer under a separate card. |

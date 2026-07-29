@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve } from "node:path";
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
+import { promisify } from "node:util";
 
 import {
   buildProject,
@@ -36,6 +37,14 @@ import {
   writeEvidenceRun
 } from "@sfhs/evidence";
 import {
+  auditOneShotProject,
+  buildOneShotKit,
+  initializeOneShotProject,
+  inspectOneShotProject,
+  type OneShotFindingCode,
+  type OneShotInspection
+} from "@sfhs/one-shot";
+import {
   packIntermediate,
   packProject,
   SfhsPackError,
@@ -62,6 +71,10 @@ export type CliCommand =
   | "check"
   | "doctor"
   | "inspect"
+  | "one-shot audit"
+  | "one-shot init"
+  | "one-shot inspect"
+  | "one-shot kit"
   | "pack"
   | "release prepare"
   | "test"
@@ -75,6 +88,7 @@ export type CliFindingCode =
   | PackErrorCode
   | ArtifactVerificationFindingCode
   | EvidenceErrorCode
+  | OneShotFindingCode
   | ValidationFindingCode
   | "SFHS_CLI_ARGUMENT_INVALID"
   | "SFHS_CLI_IO_FAILURE"
@@ -155,6 +169,10 @@ export interface CliEnvelope {
   readonly artifact?: CliArtifactSummary;
   readonly testPlan?: CliTestPlanSummary;
   readonly release?: CliReleaseSummary;
+  readonly oneShot?: {
+    readonly lane?: string;
+    readonly packet?: Readonly<Record<string, string>>;
+  };
   readonly runtime?: {
     readonly node: string;
   };
@@ -185,6 +203,9 @@ interface ParsedArguments {
   readonly changedPaths: readonly string[];
   readonly evidenceArgument?: string;
   readonly deviceEvidenceArgument?: string;
+  readonly briefArgument?: string;
+  readonly outputArgument?: string;
+  readonly laneArgument?: string;
 }
 
 export interface CliCommandExecution {
@@ -215,7 +236,8 @@ export type CliReleaseBrowserRunner = (
   evidenceDirectory: string
 ) => Promise<CliReleaseBrowserResult>;
 
-const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare> [--project <path>] [--changed <path>]... [--evidence <dir>] [--device-evidence <file>] [--json]";
+const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit> [--project <path>] [--brief <path>] [--output <path>] [--lane <id>] [--changed <path>]... [--evidence <dir>] [--device-evidence <file>] [--json]";
+const execFileAsync = promisify(execFile);
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   if (value === null || Array.isArray(value) || typeof value !== "object") {
@@ -259,13 +281,19 @@ function coreFinding(error: unknown, path: string): CliFinding {
 }
 
 function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
-  const commandCandidate = argv[0] === "release" && argv[1] === "prepare"
+  const commandCandidate: string = (argv[0] === "release" && argv[1] === "prepare"
     ? "release prepare"
-    : argv[0];
-  const optionStart = commandCandidate === "release prepare" ? 2 : 1;
+    : argv[0] === "one-shot" && ["init", "inspect", "audit", "kit"].includes(argv[1] ?? "")
+      ? `one-shot ${argv[1]!}`
+      : argv[0]) ?? "";
+  const optionStart = commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") ? 2 : 1;
   if (
     commandCandidate !== "doctor" &&
     commandCandidate !== "inspect" &&
+    commandCandidate !== "one-shot init" &&
+    commandCandidate !== "one-shot inspect" &&
+    commandCandidate !== "one-shot audit" &&
+    commandCandidate !== "one-shot kit" &&
     commandCandidate !== "validate" &&
     commandCandidate !== "build" &&
     commandCandidate !== "check" &&
@@ -286,6 +314,9 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   let projectArgument: string | undefined;
   let evidenceArgument: string | undefined;
   let deviceEvidenceArgument: string | undefined;
+  let briefArgument: string | undefined;
+  let outputArgument: string | undefined;
+  let laneArgument: string | undefined;
   const changedPaths: string[] = [];
 
   for (let index = optionStart; index < argv.length; index += 1) {
@@ -307,6 +338,19 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
       }
 
       projectArgument = value;
+      index += 1;
+      continue;
+    }
+
+    if (argument === "--brief" || argument === "--output" || argument === "--lane") {
+      const value = argv[index + 1];
+      const existing = argument === "--brief" ? briefArgument : argument === "--output" ? outputArgument : laneArgument;
+      if (value === undefined || value.startsWith("--") || value.length === 0 || existing !== undefined) {
+        return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
+      }
+      if (argument === "--brief") briefArgument = value;
+      if (argument === "--output") outputArgument = value;
+      if (argument === "--lane") laneArgument = value;
       index += 1;
       continue;
     }
@@ -384,6 +428,15 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
       message: usage
     };
   }
+  const oneShotInit = commandCandidate === "one-shot init";
+  const oneShotProject = commandCandidate === "one-shot inspect" || commandCandidate === "one-shot audit";
+  const oneShotKit = commandCandidate === "one-shot kit";
+  if (
+    (oneShotInit && (briefArgument === undefined || outputArgument === undefined || laneArgument === undefined || projectArgument !== undefined)) ||
+    (oneShotProject && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined)) ||
+    (oneShotKit && (outputArgument === undefined || projectArgument !== undefined || briefArgument !== undefined || laneArgument !== undefined)) ||
+    (!oneShotInit && !oneShotProject && !oneShotKit && (briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined))
+  ) return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
 
   return {
     command: commandCandidate,
@@ -391,7 +444,10 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     changedPaths: Object.freeze([...changedPaths]),
     ...(projectArgument === undefined ? {} : { projectArgument }),
     ...(evidenceArgument === undefined ? {} : { evidenceArgument }),
-    ...(deviceEvidenceArgument === undefined ? {} : { deviceEvidenceArgument })
+    ...(deviceEvidenceArgument === undefined ? {} : { deviceEvidenceArgument }),
+    ...(briefArgument === undefined ? {} : { briefArgument }),
+    ...(outputArgument === undefined ? {} : { outputArgument }),
+    ...(laneArgument === undefined ? {} : { laneArgument })
   };
 }
 
@@ -580,6 +636,57 @@ function argumentResult(finding: CliFinding, json: boolean): CliRunResult {
   };
 
   return resultFor(envelope, json);
+}
+
+function oneShotEnvelope(command: CliCommand, inspection: OneShotInspection | undefined, findings: readonly CliFinding[]): CliEnvelope {
+  return {
+    schema: "sfhs.cli@1",
+    command,
+    ok: !hasErrors(findings),
+    exitCode: hasErrors(findings) ? 1 : 0,
+    findings: sortFindings(findings),
+    ...(inspection === undefined ? {} : {
+      oneShot: {
+        ...(inspection.lane === undefined ? {} : { lane: inspection.lane }),
+        packet: inspection.packet
+      }
+    })
+  };
+}
+
+async function currentRevision(workingDirectory: string, configured: string | undefined): Promise<string> {
+  if (configured !== undefined) return configured;
+  if (process.env.GITHUB_SHA !== undefined) return process.env.GITHUB_SHA;
+  try {
+    const { stdout } = await execFileAsync("git", ["rev-parse", "HEAD"], { cwd: workingDirectory });
+    const revision = stdout.trim();
+    return /^[a-f0-9]{40}$/u.test(revision) ? revision : "local-unresolved";
+  } catch { return "local-unresolved"; }
+}
+
+async function runOneShotCommand(parsed: ParsedArguments, options: CliRunOptions, workingDirectory: string): Promise<CliRunResult> {
+  const revision = await currentRevision(options.workspaceRoot ?? workingDirectory, options.sourceRevision);
+  if (parsed.command === "one-shot init") {
+    const initialized = await initializeOneShotProject({
+      briefPath: resolve(workingDirectory, parsed.briefArgument!),
+      outputPath: resolve(workingDirectory, parsed.outputArgument!),
+      lane: parsed.laneArgument!,
+      revision
+    });
+    return resultFor(oneShotEnvelope(parsed.command, undefined, initialized.findings), parsed.json);
+  }
+  if (parsed.command === "one-shot kit") {
+    const built = await buildOneShotKit(resolve(workingDirectory, parsed.outputArgument!), { revision });
+    return resultFor(oneShotEnvelope(parsed.command, undefined, built.findings), parsed.json);
+  }
+  const project = resolve(workingDirectory, parsed.projectArgument!);
+  if (parsed.command === "one-shot inspect") {
+    const inspection = await inspectOneShotProject(project);
+    return resultFor(oneShotEnvelope(parsed.command, inspection, inspection.findings), parsed.json);
+  }
+  const verification = await runCli(["verify", "--json", "--project", project], options);
+  const audit = await auditOneShotProject(project, { canonicalVerified: verification.exitCode === 0 });
+  return resultFor(oneShotEnvelope(parsed.command, audit, audit.findings), parsed.json);
 }
 
 function buildSummary(intermediate: IntermediateBundle): CliBuildSummary {
@@ -1015,6 +1122,9 @@ export async function runCli(argv: readonly string[], options: CliRunOptions = {
   }
 
   const workingDirectory = options.cwd ?? process.cwd();
+  if (parsed.command.startsWith("one-shot ")) {
+    return runOneShotCommand(parsed, options, workingDirectory);
+  }
   const projectStartPath = parsed.projectArgument === undefined
     ? workingDirectory
     : resolve(workingDirectory, parsed.projectArgument);

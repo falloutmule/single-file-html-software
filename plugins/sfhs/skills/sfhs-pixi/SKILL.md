@@ -7,6 +7,8 @@ description: Author, change, test, and verify PixiJS v8 projects behind SFHS con
 
 Keep PixiJS behind `adapters/pixi-v8`; keep simulation, evidence, and artifact contracts adapter-neutral.
 
+For a newly authorized bounded game, follow `one-shot/START-HERE.md` and initialize from the current template before applying this specialist workflow.
+
 ## Workflow
 
 1. Run `pnpm sfhs validate --json --project <path>` and confirm `adapterId` is `pixi-v8`.

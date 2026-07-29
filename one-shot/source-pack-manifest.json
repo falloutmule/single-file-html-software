@@ -1,0 +1,41 @@
+{
+  "schema": "sfhs.one-shot-source-pack@1",
+  "version": "0.1.0",
+  "compatibility": { "sfhs": "0.1.0", "node": ">=24.0.0", "adapter": "pixi-v8" },
+  "authorityOrder": [
+    "Current explicit user authorization and task boundary",
+    "Current repository contracts, AGENTS instructions, and plugin skills",
+    "One-Shot normative authority",
+    "Selected lane guidance",
+    "Project-specific packet and assets",
+    "Templates and examples",
+    "Historical reports"
+  ],
+  "sources": [
+    { "path": "AGENTS.md", "authority": "normative", "priority": 1, "required": true },
+    { "path": "README.md", "authority": "explanatory", "priority": 2, "required": true },
+    { "path": "one-shot/START-HERE.md", "authority": "normative", "priority": 3, "required": true },
+    { "path": "one-shot/AGENTS.md", "authority": "normative", "priority": 4, "required": true },
+    { "path": "one-shot/instructions/authority-and-boundaries.md", "authority": "normative", "priority": 5, "required": true },
+    { "path": "one-shot/instructions/execution-workflow.md", "authority": "normative", "priority": 6, "required": true },
+    { "path": "one-shot/instructions/lane-routing.md", "authority": "normative", "priority": 7, "required": true },
+    { "path": "one-shot/instructions/pixi-game-authoring.md", "authority": "normative", "priority": 8, "required": true, "lanes": ["pixi-v8"] },
+    { "path": "one-shot/instructions/mobile-touch-first.md", "authority": "normative", "priority": 9, "required": true, "lanes": ["pixi-v8"] },
+    { "path": "one-shot/instructions/visual-acceptance.md", "authority": "normative", "priority": 10, "required": true },
+    { "path": "one-shot/instructions/issue-tracking.md", "authority": "normative", "priority": 11, "required": true },
+    { "path": "one-shot/instructions/verification-and-recovery.md", "authority": "normative", "priority": 12, "required": true },
+    { "path": "plugins/sfhs/skills/sfhs/SKILL.md", "authority": "normative", "priority": 13, "required": false },
+    { "path": "plugins/sfhs/skills/sfhs-pixi/SKILL.md", "authority": "normative", "priority": 14, "required": false, "lanes": ["pixi-v8"] },
+    { "path": "plugins/hermes/skills/sfhs-orchestrator/references/task-packet.md", "authority": "explanatory", "priority": 15, "required": false },
+    { "path": "one-shot/examples/cat-air-hockey-case-study/README.md", "authority": "historical", "priority": 16, "required": false },
+    { "path": "examples/pixi-minimal/sfhs.project.json", "authority": "normative", "priority": 17, "required": false, "lanes": ["pixi-v8"] },
+    { "path": "one-shot/prompts/create-one-shot.md", "authority": "explanatory", "priority": 18, "required": false },
+    { "path": "one-shot/prompts/discuss-game.md", "authority": "explanatory", "priority": 19, "required": false },
+    { "path": "one-shot/prompts/continue-interrupted-run.md", "authority": "explanatory", "priority": 20, "required": false },
+    { "path": "one-shot/prompts/repair-player-visible-problem.md", "authority": "explanatory", "priority": 21, "required": false },
+    { "path": "one-shot/prompts/intake-existing-project.md", "authority": "explanatory", "priority": 22, "required": false },
+    { "path": "one-shot/prompts/verify-project.md", "authority": "explanatory", "priority": 23, "required": false },
+    { "path": "one-shot/project-files/ONE-SHOT-BRIEF.template.md", "authority": "explanatory", "priority": 24, "required": false },
+    { "path": "one-shot/project-files/VERIFICATION-REPORT.template.md", "authority": "explanatory", "priority": 25, "required": false }
+  ]
+}
