@@ -1,5 +1,5 @@
-import { createHash } from "node:crypto";
-import { cp, mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { cp, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -38,6 +38,12 @@ export interface OneShotInspection extends OneShotResult {
   readonly lane?: string;
 }
 
+export interface OneShotCanonicalArtifact {
+  readonly path: string;
+  readonly sha256: string;
+  readonly buildId: string;
+}
+
 interface BriefRecord {
   readonly schema: "sfhs.one-shot-brief@1";
   readonly project: { readonly id: string; readonly title: string };
@@ -60,6 +66,7 @@ interface SourcePackManifest {
   readonly version: string;
   readonly compatibility: { readonly sfhs: string; readonly node: string; readonly adapter: string };
   readonly authorityOrder: readonly string[];
+  readonly superseded: readonly string[];
   readonly sources: readonly SourcePackEntry[];
 }
 
@@ -177,32 +184,50 @@ export async function initializeOneShotProject(options: {
     findings.push({ code: "SFHS_ONE_SHOT_OUTPUT_EXISTS", severity: "error", path: outputRoot, message: "One-Shot initialization never overwrites an existing directory." });
   }
   if (!result(findings).valid || brief === undefined) return result(findings);
+  const temporaryRoot = join(examplesRoot, `.${brief.project.id}-one-shot-${randomUUID()}`);
   try {
-    await cp(templateProjectRoot, outputRoot, {
+    await cp(templateProjectRoot, temporaryRoot, {
       recursive: true,
       filter: (source) => !["dist", "node_modules", "test-results"].includes(basename(source))
     });
-    const projectManifestPath = join(outputRoot, "sfhs.project.json");
+    const projectManifestPath = join(temporaryRoot, "sfhs.project.json");
     const manifest = JSON.parse(await readFile(projectManifestPath, "utf8")) as Record<string, unknown>;
     manifest.project = { id: brief.project.id, title: brief.project.title, version: "0.1.0" };
     await writeFile(projectManifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-    const packagePath = join(outputRoot, "package.json");
+    const packagePath = join(temporaryRoot, "package.json");
     const packageJson = JSON.parse(await readFile(packagePath, "utf8")) as Record<string, unknown>;
     packageJson.name = `@sfhs/example-${brief.project.id}`;
     await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
-    await renderPacket(outputRoot, brief, options.revision);
+    await renderPacket(temporaryRoot, brief, options.revision);
+    await rename(temporaryRoot, outputRoot);
   } catch {
+    await rm(temporaryRoot, { recursive: true, force: true }).catch(() => undefined);
     findings.push({ code: "SFHS_ONE_SHOT_IO_FAILURE", severity: "error", path: outputRoot, message: "One-Shot could not safely materialize the current Pixi template and packet." });
   }
   return result(findings);
 }
 
+function validPacketValue(name: string, value: Record<string, unknown>): boolean {
+  const facts = object(value.facts);
+  if (typeof value.status !== "string" || !statuses.has(value.status as OneShotStatus)) return false;
+  if (name === "ONE-SHOT-BRIEF.md") return briefFrom(value) !== undefined;
+  if (name === "AUTHORIZED-SCOPE.md") return value.schema === "sfhs.one-shot-scope@1" && typeof facts?.sfhsRevision === "string" && typeof facts?.lane === "string" && typeof facts?.remoteMutationAuthorized === "boolean";
+  if (name === "DECISIONS.md") return value.schema === "sfhs.one-shot-decision-log@1" && Array.isArray(facts?.decisions);
+  if (name === "ISSUES-ENCOUNTERED.md") return value.schema === "sfhs.one-shot-issue-log@1" && Array.isArray(facts?.issues);
+  if (name === "ACCEPTANCE-CRITERIA.md") return value.schema === "sfhs.one-shot-acceptance@1" && typeof facts?.physicalDevice === "string";
+  if (name === "INTAKE-STATUS.md") return value.schema === "sfhs.one-shot-intake@1" && object(facts?.adapterIntegration) !== undefined && typeof facts?.physicalDevice === "string";
+  if (name === "VERIFICATION-REPORT.md") {
+    const artifact = object(facts?.artifact);
+    return value.schema === "sfhs.one-shot-report@1" && artifact !== undefined && ["canonical", "candidate", "none"].includes(artifact.classification as string) && typeof facts?.physicalDevice === "string";
+  }
+  return false;
+}
+
 async function packetStatus(projectRoot: string, name: string): Promise<{ readonly status: OneShotStatus | "MISSING" | "INVALID"; readonly value?: Record<string, unknown> }> {
   try {
     const value = object(parseOneShotFrontMatter(await readFile(join(projectRoot, "one-shot", name), "utf8")));
-    const status = value?.status;
-    if (typeof status !== "string" || !statuses.has(status as OneShotStatus)) return { status: "INVALID" };
-    return value === undefined ? { status: "INVALID" } : { status: status as OneShotStatus, value };
+    if (value === undefined || !validPacketValue(name, value)) return { status: "INVALID" };
+    return { status: value.status as OneShotStatus, value };
   } catch { return { status: "MISSING" }; }
 }
 
@@ -222,7 +247,7 @@ export async function inspectOneShotProject(projectRoot: string): Promise<OneSho
   return Object.freeze({ ...basic, projectRoot: resolved, packet: Object.freeze(packet), ...(lane === undefined ? {} : { lane }) });
 }
 
-export async function auditOneShotProject(projectRoot: string, options: { readonly canonicalVerified: boolean }): Promise<OneShotInspection> {
+export async function auditOneShotProject(projectRoot: string, options: { readonly canonicalArtifact?: OneShotCanonicalArtifact }): Promise<OneShotInspection> {
   const inspection = await inspectOneShotProject(projectRoot);
   const findings = [...inspection.findings];
   const resolved = resolve(projectRoot);
@@ -235,7 +260,8 @@ export async function auditOneShotProject(projectRoot: string, options: { readon
   }
   const verificationFacts = object(verification.value?.facts);
   const artifact = object(verificationFacts?.artifact);
-  if (artifact?.classification === "canonical" && (!options.canonicalVerified || verification.status !== "VERIFIED")) {
+  const canonicalMatches = artifact?.path === options.canonicalArtifact?.path && artifact?.sha256 === options.canonicalArtifact?.sha256 && artifact?.buildId === options.canonicalArtifact?.buildId;
+  if (artifact?.classification === "canonical" && (options.canonicalArtifact === undefined || !canonicalMatches || verification.status !== "VERIFIED")) {
     findings.push({ code: "SFHS_ONE_SHOT_CANONICAL_EVIDENCE_REQUIRED", severity: "error", path: "one-shot/VERIFICATION-REPORT.md", message: "A canonical claim requires a successful real SFHS verifier result and VERIFIED report." });
   }
   if (artifact?.classification === "candidate" && verification.status === "VERIFIED") {
@@ -256,7 +282,7 @@ export async function readSourcePackManifest(): Promise<SourcePackManifest> {
   const manifest = object(value);
   if (
     manifest?.schema !== "sfhs.one-shot-source-pack@1" || typeof manifest.version !== "string" ||
-    !Array.isArray(manifest.authorityOrder) || !Array.isArray(manifest.sources)
+    !Array.isArray(manifest.authorityOrder) || !Array.isArray(manifest.superseded) || !Array.isArray(manifest.sources)
   ) throw new Error("SFHS_ONE_SHOT_SOURCE_PACK_INVALID");
   return manifest as unknown as SourcePackManifest;
 }
@@ -272,19 +298,19 @@ export async function buildOneShotKit(outputPath: string, options: { readonly re
     const manifest = await readSourcePackManifest();
     const entries = [...manifest.sources].sort((left, right) => left.priority - right.priority || left.path.localeCompare(right.path));
     if (entries.some((entry, index) => entry.priority !== index + 1) || new Set(entries.map((entry) => entry.path)).size !== entries.length) throw new Error("invalid entries");
-    const files: Array<{ readonly path: string; readonly sha256: string; readonly content: string; readonly authority: string; readonly required: boolean }> = [];
+    const files: Array<{ readonly path: string; readonly sha256: string; readonly content: string; readonly authority: string; readonly priority: number; readonly required: boolean; readonly lanes?: readonly string[]; readonly supersedes?: readonly string[] }> = [];
     for (const entry of entries) {
       const source = resolve(repositoryRoot, entry.path);
       if (!isInside(repositoryRoot, source)) throw new Error("path escape");
       const content = await readFile(source, "utf8");
-      files.push({ path: entry.path, sha256: sha256(content), content, authority: entry.authority, required: entry.required });
+      files.push({ path: entry.path, sha256: sha256(content), content, authority: entry.authority, priority: entry.priority, required: entry.required, ...(entry.lanes === undefined ? {} : { lanes: entry.lanes }), ...(entry.supersedes === undefined ? {} : { supersedes: entry.supersedes }) });
     }
     await mkdir(dirname(target), { recursive: true });
     const archive = {
       schema: "sfhs.one-shot-kit@1",
       version: manifest.version,
       repository: { revision: options.revision, compatibility: manifest.compatibility },
-      authorityOrder: manifest.authorityOrder,
+      sourcePack: { authorityOrder: manifest.authorityOrder, superseded: manifest.superseded, sources: entries },
       files
     };
     await writeFile(target, `${JSON.stringify(archive, null, 2)}\n`, "utf8");

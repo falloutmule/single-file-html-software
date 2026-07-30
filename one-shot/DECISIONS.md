@@ -7,3 +7,5 @@
 | OSF-003 | VERIFIED | Initialize only `pixi-v8` from `examples/pixi-minimal`. | It is the only current SFHS adapter registered by project validation and documented as the active development lane. |
 | OSF-004 | VERIFIED | Generate one self-contained JSON source kit from the manifest. | The kit records current commit and hashes without committing a duplicate documentation bundle. |
 | OSF-005 | VERIFIED | Use JSON front matter only for auditable packet facts; keep narrative in Markdown. | Supports automated audit while avoiding schema-encoding general prose. |
+| OSF-006 | VERIFIED | Make project initialization transactional and bind canonical report claims to verifier output. | A prepared project must be recoverable, and `VERIFIED` canonical language must name the same artifact the real SFHS verifier produced. |
+| OSF-007 | VERIFIED | Preserve the resolved manifest authority metadata inside every external source kit. | External contexts need the same reading priority, lane applicability, and supersession data as repository-native agents. |

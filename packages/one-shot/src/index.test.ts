@@ -9,6 +9,18 @@ const roots: string[] = [];
 async function temporaryRoot(): Promise<string> { const root = await mkdtemp(join(tmpdir(), "sfhs-one-shot-")); roots.push(root); return root; }
 async function packet(root: string, name: string, value: unknown): Promise<void> { await mkdir(join(root, "one-shot"), { recursive: true }); await writeFile(join(root, "one-shot", name), `---\n${JSON.stringify(value)}\n---\n`, "utf8"); }
 const brief = { schema: "sfhs.one-shot-brief@1", project: { id: "test-game", title: "Test Game" }, lane: { id: "pixi-v8" }, target: { device: "samsung-galaxy-s21-ultra", orientation: "adaptive" }, status: "PROPOSED" };
+const validPackets = {
+  "ONE-SHOT-BRIEF.md": brief,
+  "AUTHORIZED-SCOPE.md": { schema: "sfhs.one-shot-scope@1", status: "PROPOSED", facts: { sfhsRevision: "test", lane: "pixi-v8", remoteMutationAuthorized: false } },
+  "DECISIONS.md": { schema: "sfhs.one-shot-decision-log@1", status: "PROPOSED", facts: { decisions: [] } },
+  "ISSUES-ENCOUNTERED.md": { schema: "sfhs.one-shot-issue-log@1", status: "PROPOSED", facts: { issues: [] } },
+  "ACCEPTANCE-CRITERIA.md": { schema: "sfhs.one-shot-acceptance@1", status: "PROPOSED", facts: { physicalDevice: "UNTESTED" } },
+  "INTAKE-STATUS.md": { schema: "sfhs.one-shot-intake@1", status: "PROPOSED", facts: { adapterIntegration: { status: "REPORTED", evidence: [] }, physicalDevice: "UNTESTED" } },
+  "VERIFICATION-REPORT.md": { schema: "sfhs.one-shot-report@1", status: "UNTESTED", facts: { artifact: { classification: "none" }, physicalDevice: "UNTESTED" } },
+};
+async function validPacketSet(root: string, overrides: Record<string, unknown> = {}): Promise<void> {
+  for (const [name, value] of Object.entries({ ...validPackets, ...overrides })) await packet(root, name, value);
+}
 
 afterEach(async () => { await Promise.all(roots.splice(0).map(async (root) => rm(root, { recursive: true, force: true }))); });
 
@@ -27,28 +39,38 @@ describe("@sfhs/one-shot", () => {
 
   it("fails an overstated canonical claim without real verifier evidence", async () => {
     const root = await temporaryRoot();
-    for (const name of ["ONE-SHOT-BRIEF.md", "AUTHORIZED-SCOPE.md", "DECISIONS.md", "ISSUES-ENCOUNTERED.md", "ACCEPTANCE-CRITERIA.md"]) await packet(root, name, { status: "PROPOSED" });
-    await packet(root, "INTAKE-STATUS.md", { status: "PROPOSED", facts: { adapterIntegration: { status: "REPORTED", evidence: [] } } });
-    await packet(root, "VERIFICATION-REPORT.md", { status: "VERIFIED", facts: { artifact: { classification: "canonical" } } });
-    const audited = await auditOneShotProject(root, { canonicalVerified: false });
+    await validPacketSet(root, { "VERIFICATION-REPORT.md": { schema: "sfhs.one-shot-report@1", status: "VERIFIED", facts: { artifact: { classification: "canonical", path: "dist/index.html", sha256: "a".repeat(64), buildId: "test" }, physicalDevice: "UNTESTED" } } });
+    const audited = await auditOneShotProject(root, {});
     expect(audited.valid).toBe(false);
     expect(audited.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_ONE_SHOT_CANONICAL_EVIDENCE_REQUIRED" })]));
   });
 
   it("rejects a verified adapter-integration claim without retained evidence", async () => {
     const root = await temporaryRoot();
-    for (const name of ["ONE-SHOT-BRIEF.md", "AUTHORIZED-SCOPE.md", "DECISIONS.md", "ISSUES-ENCOUNTERED.md", "ACCEPTANCE-CRITERIA.md", "VERIFICATION-REPORT.md"]) await packet(root, name, { status: "PROPOSED", facts: { artifact: { classification: "candidate" } } });
-    await packet(root, "INTAKE-STATUS.md", { status: "VERIFIED", facts: { adapterIntegration: { status: "VERIFIED", evidence: [] } } });
-    const audited = await auditOneShotProject(root, { canonicalVerified: false });
+    await validPacketSet(root, { "INTAKE-STATUS.md": { schema: "sfhs.one-shot-intake@1", status: "VERIFIED", facts: { adapterIntegration: { status: "VERIFIED", evidence: [] }, physicalDevice: "UNTESTED" } } });
+    const audited = await auditOneShotProject(root, {});
     expect(audited.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_ONE_SHOT_ADAPTER_EVIDENCE_REQUIRED" })]));
   });
 
   it("rejects a physical-acceptance claim without exact device evidence", async () => {
     const root = await temporaryRoot();
-    for (const name of ["ONE-SHOT-BRIEF.md", "AUTHORIZED-SCOPE.md", "DECISIONS.md", "ISSUES-ENCOUNTERED.md", "ACCEPTANCE-CRITERIA.md", "VERIFICATION-REPORT.md"]) await packet(root, name, { status: "PROPOSED", facts: { artifact: { classification: "candidate" }, physicalDevice: "VERIFIED" } });
-    await packet(root, "INTAKE-STATUS.md", { status: "PROPOSED", facts: { adapterIntegration: { status: "REPORTED", evidence: [] } } });
-    const audited = await auditOneShotProject(root, { canonicalVerified: false });
+    await validPacketSet(root, { "ACCEPTANCE-CRITERIA.md": { schema: "sfhs.one-shot-acceptance@1", status: "PROPOSED", facts: { physicalDevice: "VERIFIED" } } });
+    const audited = await auditOneShotProject(root, {});
     expect(audited.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_ONE_SHOT_PHYSICAL_EVIDENCE_REQUIRED" })]));
+  });
+
+  it("rejects a canonical report whose verifier identity does not match", async () => {
+    const root = await temporaryRoot();
+    await validPacketSet(root, { "VERIFICATION-REPORT.md": { schema: "sfhs.one-shot-report@1", status: "VERIFIED", facts: { artifact: { classification: "canonical", path: "dist/index.html", sha256: "a".repeat(64), buildId: "reported-build" }, physicalDevice: "UNTESTED" } } });
+    const audited = await auditOneShotProject(root, { canonicalArtifact: { path: "dist/index.html", sha256: "b".repeat(64), buildId: "verified-build" } });
+    expect(audited.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_ONE_SHOT_CANONICAL_EVIDENCE_REQUIRED" })]));
+  });
+
+  it("rejects packet front matter that omits required machine facts", async () => {
+    const root = await temporaryRoot();
+    await validPacketSet(root, { "AUTHORIZED-SCOPE.md": { schema: "sfhs.one-shot-scope@1", status: "PROPOSED", facts: {} } });
+    const audited = await auditOneShotProject(root, {});
+    expect(audited.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_ONE_SHOT_PACKET_INVALID", path: "one-shot/AUTHORIZED-SCOPE.md" })]));
   });
 
   it("keeps packet files inspectable as normal Markdown", async () => {

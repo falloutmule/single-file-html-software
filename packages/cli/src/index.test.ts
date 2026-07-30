@@ -96,6 +96,7 @@ describe("@sfhs/cli", () => {
     expect(JSON.parse(await readFile(output, "utf8"))).toMatchObject({
       schema: "sfhs.one-shot-kit@1",
       repository: { revision: "0123456789abcdef0123456789abcdef01234567" },
+      sourcePack: { authorityOrder: expect.any(Array), sources: expect.any(Array) },
       files: expect.arrayContaining([expect.objectContaining({ path: "one-shot/START-HERE.md", sha256: expect.any(String) })])
     });
   });

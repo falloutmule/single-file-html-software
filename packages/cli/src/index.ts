@@ -685,7 +685,10 @@ async function runOneShotCommand(parsed: ParsedArguments, options: CliRunOptions
     return resultFor(oneShotEnvelope(parsed.command, inspection, inspection.findings), parsed.json);
   }
   const verification = await runCli(["verify", "--json", "--project", project], options);
-  const audit = await auditOneShotProject(project, { canonicalVerified: verification.exitCode === 0 });
+  const artifact = verification.exitCode === 0 ? verification.envelope.artifact : undefined;
+  const audit = await auditOneShotProject(project, {
+    ...(artifact === undefined ? {} : { canonicalArtifact: { path: artifact.path, sha256: artifact.sha256, buildId: artifact.buildId } })
+  });
   return resultFor(oneShotEnvelope(parsed.command, audit, audit.findings), parsed.json);
 }
 

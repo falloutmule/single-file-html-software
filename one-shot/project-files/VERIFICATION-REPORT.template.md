@@ -1,5 +1,5 @@
 ---
-{"schema":"sfhs.one-shot-report@1","status":"UNTESTED","facts":{"artifact":{"classification":"candidate","path":"candidate/index.unverified.html"},"physicalDevice":"UNTESTED"}}
+{"schema":"sfhs.one-shot-report@1","status":"UNTESTED","facts":{"artifact":{"classification":"none"},"physicalDevice":"UNTESTED"}}
 ---
 # Verification Report
 

@@ -2,6 +2,7 @@
   "schema": "sfhs.one-shot-source-pack@1",
   "version": "0.1.0",
   "compatibility": { "sfhs": "0.1.0", "node": ">=24.0.0", "adapter": "pixi-v8" },
+  "superseded": [],
   "authorityOrder": [
     "Current explicit user authorization and task boundary",
     "Current repository contracts, AGENTS instructions, and plugin skills",

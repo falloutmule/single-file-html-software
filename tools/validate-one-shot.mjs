@@ -22,6 +22,7 @@ for (const relative of required) await stat(join(oneShot, relative));
 const manifest = JSON.parse(await readFile(join(oneShot, "source-pack-manifest.json"), "utf8"));
 invariant(manifest.schema === "sfhs.one-shot-source-pack@1", "source-pack schema is invalid.");
 invariant(Array.isArray(manifest.authorityOrder) && manifest.authorityOrder.length === 7, "authority precedence must be explicit.");
+invariant(Array.isArray(manifest.superseded), "superseded sources must be explicit.");
 invariant(Array.isArray(manifest.sources) && manifest.sources.length > 0, "source pack must have sources.");
 const paths = new Set();
 for (const [index, entry] of manifest.sources.entries()) {
