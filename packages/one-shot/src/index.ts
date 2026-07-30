@@ -240,7 +240,7 @@ export async function inspectOneShotProject(projectRoot: string): Promise<OneSho
     const state = await packetStatus(resolved, name);
     packet[name] = state.status;
     if (state.status === "MISSING") findings.push({ code: "SFHS_ONE_SHOT_PACKET_MISSING", severity: "error", path: `one-shot/${name}`, message: "Required One-Shot packet file is missing." });
-    if (state.status === "INVALID") findings.push({ code: "SFHS_ONE_SHOT_PACKET_INVALID", severity: "error", path: `one-shot/${name}`, message: "Packet JSON front matter requires a known status." });
+    if (state.status === "INVALID") findings.push({ code: "SFHS_ONE_SHOT_PACKET_INVALID", severity: "error", path: `one-shot/${name}`, message: "Packet JSON front matter requires its schema-specific machine facts and a known status." });
     if (name === "ONE-SHOT-BRIEF.md" && state.value !== undefined) lane = object(state.value.lane)?.id as string | undefined;
   }
   const basic = result(findings);
