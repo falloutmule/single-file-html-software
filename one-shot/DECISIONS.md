@@ -9,3 +9,4 @@
 | OSF-005 | VERIFIED | Use JSON front matter only for auditable packet facts; keep narrative in Markdown. | Supports automated audit while avoiding schema-encoding general prose. |
 | OSF-006 | VERIFIED | Make project initialization transactional and bind canonical report claims to verifier output. | A prepared project must be recoverable, and `VERIFIED` canonical language must name the same artifact the real SFHS verifier produced. |
 | OSF-007 | VERIFIED | Preserve the resolved manifest authority metadata inside every external source kit. | External contexts need the same reading priority, lane applicability, and supersession data as repository-native agents. |
+| OSF-008 | VERIFIED | Include every maintained packet template and schema in the external source kit. | A kit must let a repository-less agent assemble and audit the complete project packet without inventing missing records. |

@@ -37,6 +37,15 @@
     { "path": "one-shot/prompts/intake-existing-project.md", "authority": "explanatory", "priority": 22, "required": false },
     { "path": "one-shot/prompts/verify-project.md", "authority": "explanatory", "priority": 23, "required": false },
     { "path": "one-shot/project-files/ONE-SHOT-BRIEF.template.md", "authority": "explanatory", "priority": 24, "required": false },
-    { "path": "one-shot/project-files/VERIFICATION-REPORT.template.md", "authority": "explanatory", "priority": 25, "required": false }
+    { "path": "one-shot/project-files/VERIFICATION-REPORT.template.md", "authority": "explanatory", "priority": 25, "required": false },
+    { "path": "one-shot/project-files/AUTHORIZED-SCOPE.template.md", "authority": "explanatory", "priority": 26, "required": false },
+    { "path": "one-shot/project-files/DECISIONS.template.md", "authority": "explanatory", "priority": 27, "required": false },
+    { "path": "one-shot/project-files/ISSUES-ENCOUNTERED.template.md", "authority": "explanatory", "priority": 28, "required": false },
+    { "path": "one-shot/project-files/ACCEPTANCE-CRITERIA.template.md", "authority": "explanatory", "priority": 29, "required": false },
+    { "path": "one-shot/project-files/INTAKE-STATUS.template.md", "authority": "explanatory", "priority": 30, "required": false },
+    { "path": "one-shot/schemas/one-shot-brief.schema.json", "authority": "normative", "priority": 31, "required": false },
+    { "path": "one-shot/schemas/issue-log.schema.json", "authority": "normative", "priority": 32, "required": false },
+    { "path": "one-shot/schemas/decision-log.schema.json", "authority": "normative", "priority": 33, "required": false },
+    { "path": "one-shot/schemas/one-shot-report.schema.json", "authority": "normative", "priority": 34, "required": false }
   ]
 }

@@ -66,6 +66,14 @@ describe("@sfhs/one-shot", () => {
     expect(audited.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_ONE_SHOT_CANONICAL_EVIDENCE_REQUIRED" })]));
   });
 
+  it("accepts a canonical report only when it matches the exact verifier identity", async () => {
+    const root = await temporaryRoot();
+    const artifact = { path: "dist/index.html", sha256: "a".repeat(64), buildId: "verified-build" };
+    await validPacketSet(root, { "VERIFICATION-REPORT.md": { schema: "sfhs.one-shot-report@1", status: "VERIFIED", facts: { artifact: { classification: "canonical", ...artifact }, physicalDevice: "UNTESTED" } } });
+    const audited = await auditOneShotProject(root, { canonicalArtifact: artifact });
+    expect(audited.findings).not.toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_ONE_SHOT_CANONICAL_EVIDENCE_REQUIRED" })]));
+  });
+
   it("rejects packet front matter that omits required machine facts", async () => {
     const root = await temporaryRoot();
     await validPacketSet(root, { "AUTHORIZED-SCOPE.md": { schema: "sfhs.one-shot-scope@1", status: "PROPOSED", facts: {} } });

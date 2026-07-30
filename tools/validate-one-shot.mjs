@@ -17,6 +17,8 @@ const required = [
   "project-files/VERIFICATION-REPORT.template.md", "examples/cat-air-hockey-case-study/README.md"
 ];
 const evaluations = ["discussion-boundary", "controls-first", "physics-game", "mobile-layout", "visual-repair", "candidate-vs-canonical", "interrupted-run-recovery", "existing-game-intake"];
+const packetTemplateSources = ["ONE-SHOT-BRIEF", "AUTHORIZED-SCOPE", "DECISIONS", "ISSUES-ENCOUNTERED", "ACCEPTANCE-CRITERIA", "INTAKE-STATUS", "VERIFICATION-REPORT"].map((name) => `one-shot/project-files/${name}.template.md`);
+const schemaSources = ["one-shot-brief", "issue-log", "decision-log", "one-shot-report"].map((name) => `one-shot/schemas/${name}.schema.json`);
 function invariant(value, message) { if (!value) throw new Error(`SFHS_ONE_SHOT_INVALID: ${message}`); }
 for (const relative of required) await stat(join(oneShot, relative));
 const manifest = JSON.parse(await readFile(join(oneShot, "source-pack-manifest.json"), "utf8"));
@@ -30,6 +32,7 @@ for (const [index, entry] of manifest.sources.entries()) {
   invariant(typeof entry.path === "string" && !entry.path.includes("..") && !paths.has(entry.path), "source paths must be unique and contained.");
   paths.add(entry.path); await stat(join(root, entry.path));
 }
+for (const source of [...packetTemplateSources, ...schemaSources]) invariant(paths.has(source), `source pack is missing ${source}.`);
 for (const name of evaluations) {
   const fixture = JSON.parse(await readFile(join(oneShot, "evaluations", name, "assertions.json"), "utf8"));
   invariant(fixture.scenario === name && Array.isArray(fixture.expect) && Array.isArray(fixture.forbid), `evaluation ${name} is incomplete.`);
