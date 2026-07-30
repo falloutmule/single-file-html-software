@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sfhs.dev/schemas/one-shot-issue-log@1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "facts"],
+  "properties": {
+    "schema": { "const": "sfhs.one-shot-issue-log@1" },
+    "status": { "enum": ["VERIFIED", "REPORTED", "INFERRED", "PROPOSED", "UNTESTED", "BLOCKED", "SUPERSEDED"] },
+    "facts": {
+      "type": "object", "additionalProperties": false, "required": ["issues"],
+      "properties": {
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object", "required": ["id", "phase", "status", "severity"],
+            "properties": {
+              "id": { "type": "string" }, "phase": { "type": "string" },
+              "status": { "enum": ["OPEN", "INVESTIGATING", "RESOLVED", "WORKAROUND", "DEFERRED", "UNVERIFIED", "BLOCKED", "SUPERSEDED"] },
+              "severity": { "enum": ["low", "medium", "high", "critical"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

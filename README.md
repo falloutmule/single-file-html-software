@@ -119,6 +119,29 @@ Readable game files -> SFHS checks them -> one self-contained index.html
 SFHS is the toolchain, not the game itself. The included `pixi-minimal` project
 is a small example showing how to use it.
 
+## Build a bounded game with an agent
+
+For a complete bounded game or interactive application, start at
+[`one-shot/START-HERE.md`](one-shot/START-HERE.md). The SFHS One-Shot Factory
+coordinates concept intake, the real current template, project instructions,
+verification, recovery, and honest evidence while SFHS core remains the
+authoritative builder, packer, verifier, and browser runner.
+
+```powershell
+pnpm sfhs one-shot kit --output .sfhs-one-shot/sfhs-one-shot-kit.json --json
+```
+
+The generated kit is for external agent contexts that cannot read the
+repository. It is not a replacement for current repository contracts.
+
+After completing a brief from `one-shot/project-files/`, initialize a new
+repository-contained Pixi project with:
+
+```powershell
+pnpm sfhs one-shot init --brief <brief.md> --output examples/<project-id> --lane pixi-v8 --json
+pnpm sfhs one-shot audit --project examples/<project-id> --json
+```
+
 SFHS is a standalone project. It is **not part of SNC**, and it does not copy or
 change SNC game code.
 

@@ -1,0 +1,1 @@
+{"scenario":"controls-first","expect":["independent pointer ownership","pointercancel or lost-capture cleanup","high-risk interaction before polish","physical acceptance separate"],"forbid":["polish before controls","single shared touch identifier"]}

@@ -12,3 +12,4 @@ examples/*/dist/
 .sfhs-determinism/
 .sfhs-browser/
 .sfhs-evidence/
+.sfhs-one-shot/

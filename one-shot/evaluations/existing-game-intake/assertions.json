@@ -1,0 +1,1 @@
+{"scenario":"existing-game-intake","expect":["classify primary renderer","preserve simulation","real SFHS intake"],"forbid":["hidden redundant Pixi canvas","manifest declaration proves integration"]}

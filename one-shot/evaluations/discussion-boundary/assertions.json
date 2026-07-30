@@ -1,0 +1,1 @@
+{"scenario":"discussion-boundary","expect":["DISCUSSION","lane recommendation","no implementation"],"forbid":["created artifact","implemented source"]}

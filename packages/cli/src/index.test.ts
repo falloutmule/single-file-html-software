@@ -85,6 +85,28 @@ describe("@sfhs/cli", () => {
     await expect(readdir(projectRoot)).resolves.toEqual(before);
   });
 
+  it("builds a versioned One-Shot external-agent kit without a project", async () => {
+    const root = await makeTemporaryRoot();
+    const output = join(root, "sfhs-one-shot-kit.json");
+    const result = await runCli(["one-shot", "kit", "--json", "--output", output], {
+      cwd: root,
+      sourceRevision: "0123456789abcdef0123456789abcdef01234567"
+    });
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(await readFile(output, "utf8"))).toMatchObject({
+      schema: "sfhs.one-shot-kit@1",
+      repository: { revision: "0123456789abcdef0123456789abcdef01234567" },
+      sourcePack: { authorityOrder: expect.any(Array), sources: expect.any(Array) },
+      files: expect.arrayContaining([
+        expect.objectContaining({ path: "one-shot/START-HERE.md", sha256: expect.any(String) }),
+        expect.objectContaining({ path: "one-shot/project-files/AUTHORIZED-SCOPE.template.md" }),
+        expect.objectContaining({ path: "one-shot/project-files/ACCEPTANCE-CRITERIA.template.md" }),
+        expect.objectContaining({ path: "one-shot/project-files/INTAKE-STATUS.template.md" }),
+        expect.objectContaining({ path: "one-shot/schemas/one-shot-report.schema.json" })
+      ])
+    });
+  });
+
   it("never reports success when the project contract has an error", async () => {
     const invalidProject = {
       ...validProject,

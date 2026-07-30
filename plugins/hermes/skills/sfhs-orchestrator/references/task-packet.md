@@ -23,6 +23,11 @@ Evidence contains only paths, hashes, stable result codes, environment facts,
 and run/session identifiers. Do not embed credentials, raw private prompts,
 full logs, or unrelated repository data.
 
+For a One-Shot game task, the bounded task packet must name the project-local
+`one-shot/` packet files and their current statuses. A builder updates those
+records while working; a checker reads them and treats a candidate artifact,
+unverified physical claim, or declared-only adapter as noncanonical.
+
 The checker receives the original contract and builder result paths. It must
 recompute HEAD, status, artifact identity, and verifier output. It has an empty
 write allowlist and returns exactly one bounded checker verdict. A checker

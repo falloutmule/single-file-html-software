@@ -8,6 +8,7 @@ This repository is for **SFHS — Single-File HTML Software**.
 - Use PixiJS v8 as the first production adapter, without making SFHS Pixi-only.
 - Keep readable source as the edit surface; generated artifacts are never hand-edited unless an explicit project contract says otherwise.
 - Keep Codex and Hermes as thin callers of the same SFHS CLI.
+- For complete bounded game or interactive-app requests, start with `one-shot/START-HERE.md`; it coordinates current SFHS rather than adding a parallel framework.
 
 ## Boundaries
 

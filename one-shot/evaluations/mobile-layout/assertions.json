@@ -1,0 +1,1 @@
+{"scenario":"mobile-layout","expect":["portrait","landscape","safe area","emulation is not physical acceptance"],"forbid":["desktop screenshot proves phone acceptance"]}

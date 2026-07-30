@@ -180,6 +180,9 @@ importers:
       '@sfhs/evidence':
         specifier: workspace:*
         version: link:../evidence
+      '@sfhs/one-shot':
+        specifier: workspace:*
+        version: link:../one-shot
       '@sfhs/packer':
         specifier: workspace:*
         version: link:../packer
@@ -200,6 +203,8 @@ importers:
       '@sfhs/contracts':
         specifier: workspace:*
         version: link:../contracts
+
+  packages/one-shot: {}
 
   packages/packer:
     dependencies:
