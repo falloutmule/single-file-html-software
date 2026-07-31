@@ -115,6 +115,14 @@ describe("@sfhs/packer", () => {
     );
   });
 
+  it("fails closed for a closing-script sequence in a tagged template literal", async () => {
+    const intermediate = await buildProject(fixtureRoot);
+    const javascript = 'const tag=(parts)=>parts.raw[0];globalThis.sfhsScriptTerminator=tag`</script>`;';
+    expect(() => packIntermediate(Object.freeze({ ...intermediate, javascript, emittedAssets: [] }))).toThrow(
+      expect.objectContaining({ code: "SFHS_PACK_SCRIPT_CONTROL_INVALID" })
+    );
+  });
+
   it("continues to escape an inline closing-script sequence without changing JavaScript semantics", async () => {
     const intermediate = await buildProject(fixtureRoot);
     const javascript = 'globalThis.sfhsScriptTerminator="</script>";';
