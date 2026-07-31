@@ -14,3 +14,4 @@
 | OSF-010 | PROPOSED | Treat portable candidate compilation as candidate-only reuse of the current SFHS build semantics. | It cannot emit `dist/`, canonical identities, or verifier claims; unsupported kit environments fall back honestly. |
 | OSF-011 | VERIFIED | Split the Chat kit into a model-readable JSON authority pack and a separately hashed runtime ZIP. | Runtime bytes do not belong in model context. The JSON records its exact ZIP path, bytes, hash, revision, and compiler state. |
 | OSF-012 | VERIFIED | Make Protocol v2 opt-in for initialization, but make it the explicit behavior of the `chat-build` kit stage. | Existing `one-shot init` packets remain unchanged; Chat-specific records are deliberate and testable. |
+| OSF-013 | VERIFIED | Require a matching runtime descriptor with an `AVAILABLE` compiler before candidate mode can be selected. | A ZIP's existence is provenance only; it is not proof of a usable candidate compiler. |

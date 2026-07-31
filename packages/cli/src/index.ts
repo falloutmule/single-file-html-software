@@ -717,6 +717,8 @@ async function runOneShotCommand(parsed: ParsedArguments, options: CliRunOptions
   const revision = await currentRevision(options.workspaceRoot ?? workingDirectory, options.sourceRevision);
   if (parsed.command === "one-shot preflight") {
     const project = resolve(workingDirectory, parsed.projectArgument!);
+    const state = await validateChatRunState(project);
+    if (!state.valid) return resultFor(oneShotEnvelope(parsed.command, undefined, state.findings as readonly CliFinding[]), parsed.json);
     const preflight = await collectChatPreflight(project, { depth: parsed.depthArgument ?? "fast", ...(options.now === undefined ? {} : { now: options.now }) });
     await writeChatJson(join(project, "one-shot", "PREFLIGHT.json"), preflight);
     return resultFor(oneShotEnvelope(parsed.command, undefined, []), parsed.json);

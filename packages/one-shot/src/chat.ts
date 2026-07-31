@@ -61,6 +61,8 @@ export interface ChatResult<T = undefined> { readonly valid: boolean; readonly f
 const execFileAsync = promisify(execFile);
 const gates: readonly ChatGate[] = ["CONTRACT", "PREFLIGHT", "RISK_SLICE", "PLAYABLE_LOOP", "SOURCE_TESTS", "SEMANTIC_SCENARIO", "VISUAL_AUDIO", "ARTIFACT_BROWSER", "PHYSICAL_SEED", "COMPLETION"];
 const modes: readonly ChatExecutionMode[] = ["SFHS_NATIVE_MODE", "CHAT_CANDIDATE_MODE", "SOURCE_ONLY_MODE"];
+const productStatuses: readonly ChatProductStatus[] = ["PRODUCT_INCOMPLETE", "PRODUCT_PLAYABLE", "PRODUCT_COMPLETE", "PRODUCT_USER_ACCEPTED", "PRODUCT_NEEDS_REPAIR"];
+const sfhsStatuses: readonly ChatSfhsStatus[] = ["SFHS_SOURCE_ONLY", "SFHS_CANDIDATE", "SFHS_CANONICAL", "SFHS_RELEASE_PREPARED", "SFHS_INTAKE_REQUIRED", "SFHS_BLOCKED"];
 
 function hash(bytes: Uint8Array | string): string { return createHash("sha256").update(bytes).digest("hex"); }
 function record(value: unknown): Record<string, unknown> | undefined { return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : undefined; }
@@ -79,12 +81,27 @@ export async function writeChatJson(path: string, value: unknown): Promise<void>
   await rename(temporary, path);
 }
 
-async function command(command: string, args: readonly string[], cwd: string): Promise<ChatCapability> {
-  try { const { stdout } = await execFileAsync(command, [...args], { cwd, windowsHide: true }); return { state: "AVAILABLE", detail: `${command} ${args.join(" ")}`.trim(), value: stdout.trim() }; }
-  catch { return { state: "UNAVAILABLE", detail: `${command} ${args.join(" ")}`.trim() }; }
+async function command(executable: string, args: readonly string[], cwd: string): Promise<ChatCapability> {
+  const detail = `${executable} ${args.join(" ")}`.trim();
+  try {
+    const { stdout } = await execFileAsync(executable, [...args], { cwd, windowsHide: true, timeout: 5_000, maxBuffer: 64 * 1024 });
+    return { state: "AVAILABLE", detail, ...(stdout.trim().length === 0 ? {} : { value: stdout.trim() }) };
+  } catch (error) {
+    const timedOut = record(error)?.killed === true;
+    return { state: "UNAVAILABLE", detail: timedOut ? `${detail} (timed out after 5000ms)` : detail };
+  }
 }
 
 async function exists(path: string, detail: string): Promise<ChatCapability> { try { await stat(path); return { state: "AVAILABLE", detail, value: path }; } catch { return { state: "UNAVAILABLE", detail }; } }
+
+async function locateSfhsCheckout(projectRoot: string): Promise<string | undefined> {
+  let candidate = resolve(projectRoot);
+  for (let level = 0; level < 8; level += 1) {
+    try { await stat(join(candidate, "packages", "cli", "src", "main.ts")); return candidate; } catch { /* Continue upward through a bounded ancestor chain. */ }
+    const parent = dirname(candidate); if (parent === candidate) break; candidate = parent;
+  }
+  return undefined;
+}
 
 export function selectChatMode(capabilities: Readonly<Record<string, ChatCapability>>): { readonly mode: ChatExecutionMode; readonly reasons: readonly string[] } {
   const native = ["sfhsCheckout", "pnpm", "template", "adapter", "runtime", "canonicalCli", "browserRunner"].every((name) => capabilities[name]?.state === "AVAILABLE") && capabilities.runtimeCompatible?.state !== "UNAVAILABLE";
@@ -95,21 +112,21 @@ export function selectChatMode(capabilities: Readonly<Record<string, ChatCapabil
 }
 
 export async function collectChatPreflight(projectRoot: string, options: { readonly depth: "fast" | "deep"; readonly now?: () => Date } = { depth: "fast" }): Promise<ChatPreflight> {
-  const cwd = resolve(projectRoot); const repository = resolve(cwd, "..");
+  const cwd = resolve(projectRoot); const repository = await locateSfhsCheckout(cwd);
   const where = process.platform === "win32" ? await command("where.exe", ["node"], cwd) : await command("sh", ["-lc", "command -v node; command -v -a node 2>/dev/null || true"], cwd);
-  const paths = [...new Set([process.execPath, ...(where.value?.split(/\r?\n/u).filter(Boolean) ?? []), ...(process.env.SFHS_NODE_PATHS?.split(process.platform === "win32" ? ";" : ":").filter(Boolean) ?? [])])];
+  const paths = [...new Set([process.execPath, ...(where.value?.split(/\r?\n/u).filter(Boolean) ?? []), ...(process.env.SFHS_NODE_PATHS?.split(process.platform === "win32" ? ";" : ":").filter(Boolean) ?? [])].map((path) => resolve(path)))];
   const runtimes = await Promise.all(paths.map(async (path) => command(path, ["--version"], cwd)));
   const selected = runtimes.find((entry) => entry.state === "AVAILABLE" && /^v(?:2[4-9]|[3-9]\d)\./u.test(entry.value ?? "")) ?? { state: "UNAVAILABLE" as const, detail: "No supported Node >=24 runtime discovered." };
   const capabilities: Record<string, ChatCapability> = {
     pnpm: await command("pnpm", ["--version"], cwd), corepack: await command("corepack", ["--version"], cwd),
-    sfhsCheckout: await exists(join(repository, "package.json"), "Adjacent SFHS repository package.json"),
-    template: await exists(join(repository, "examples", "pixi-minimal", "sfhs.project.json"), "Current Pixi template"),
-    adapter: await exists(join(repository, "adapters", "pixi-v8", "src", "index.ts"), "Pixi adapter source"),
-    runtime: await exists(join(repository, "packages", "pixi-runtime", "src", "index.ts"), "Pixi runtime source"),
-    canonicalCli: await exists(join(repository, "packages", "cli", "src", "main.ts"), "SFHS CLI source"),
-    browserRunner: await exists(join(repository, "packages", "browser-runner", "src", "index.ts"), "SFHS browser runner source"),
+    sfhsCheckout: repository === undefined ? { state: "UNAVAILABLE", detail: "No bounded ancestor SFHS checkout found." } : await exists(join(repository, "package.json"), "SFHS repository package.json"),
+    template: repository === undefined ? { state: "UNAVAILABLE", detail: "No bounded ancestor SFHS checkout found." } : await exists(join(repository, "examples", "pixi-minimal", "sfhs.project.json"), "Current Pixi template"),
+    adapter: repository === undefined ? { state: "UNAVAILABLE", detail: "No bounded ancestor SFHS checkout found." } : await exists(join(repository, "adapters", "pixi-v8", "src", "index.ts"), "Pixi adapter source"),
+    runtime: repository === undefined ? { state: "UNAVAILABLE", detail: "No bounded ancestor SFHS checkout found." } : await exists(join(repository, "packages", "pixi-runtime", "src", "index.ts"), "Pixi runtime source"),
+    canonicalCli: repository === undefined ? { state: "UNAVAILABLE", detail: "No bounded ancestor SFHS checkout found." } : await exists(join(repository, "packages", "cli", "src", "main.ts"), "SFHS CLI source"),
+    browserRunner: repository === undefined ? { state: "UNAVAILABLE", detail: "No bounded ancestor SFHS checkout found." } : await exists(join(repository, "packages", "browser-runner", "src", "index.ts"), "SFHS browser runner source"),
     candidateRuntime: await exists(join(cwd, ".sfhs-one-shot", "sfhs-chat-candidate-runtime.zip"), "Chat candidate runtime ZIP"),
-    chromium: await command(process.platform === "win32" ? "where.exe" : "sh", process.platform === "win32" ? ["chrome"] : ["-lc", "command -v chromium || command -v google-chrome"], cwd),
+    chromium: await command(process.platform === "win32" ? "where.exe" : "sh", process.platform === "win32" ? ["chrome.exe"] : ["-lc", "command -v chromium || command -v google-chrome"], cwd),
     playwright: { state: "UNTESTED", detail: "Deep probe not run." }, headlessWebgl: { state: "UNTESTED", detail: "Deep probe not run." }, headfulWebgl: { state: "UNTESTED", detail: "Deep probe not run." }, urlNavigation: { state: "UNTESTED", detail: "Deep probe not run." }, fileProtocol: { state: "UNTESTED", detail: "Deep probe not run." }
   };
   capabilities.runtimeCompatible = selected.state === "AVAILABLE" ? { state: "AVAILABLE", detail: "A Node.js 24+ runtime was discovered.", ...(selected.value === undefined ? {} : { value: selected.value }) } : selected;
@@ -117,8 +134,12 @@ export async function collectChatPreflight(projectRoot: string, options: { reado
   try {
     const descriptor = record(JSON.parse(await readFile(descriptorPath, "utf8")));
     const compiler = record(descriptor?.candidateCompiler);
-    if (compiler?.state !== "AVAILABLE") capabilities.candidateRuntime = { state: "UNAVAILABLE", detail: typeof compiler?.reason === "string" ? compiler.reason : "Candidate runtime does not provide a portable compiler." };
-  } catch { /* A legacy externally supplied runtime ZIP has no descriptor; retain its probe result. */ }
+    const runtime = await readFile(join(cwd, ".sfhs-one-shot", "sfhs-chat-candidate-runtime.zip"));
+    if (compiler?.state !== "AVAILABLE" || descriptor?.sha256 !== hash(runtime)) capabilities.candidateRuntime = { state: "UNAVAILABLE", detail: typeof compiler?.reason === "string" ? compiler.reason : "Candidate runtime is missing a matching AVAILABLE compiler descriptor." };
+  } catch { capabilities.candidateRuntime = { state: "UNAVAILABLE", detail: "Candidate runtime requires a readable matching compiler descriptor." }; }
+  if (repository !== undefined && capabilities.pnpm?.state === "AVAILABLE" && capabilities.sfhsCheckout?.state === "AVAILABLE" && capabilities.canonicalCli?.state === "AVAILABLE") {
+    capabilities.canonicalCli = await command("pnpm", ["sfhs", "doctor", "--json"], repository);
+  }
   if (options.depth === "deep") for (const name of ["playwright", "headlessWebgl", "headfulWebgl", "urlNavigation", "fileProtocol"] as const) capabilities[name] = { state: "UNTESTED", detail: "Deep browser helper is not available to this portable collector." };
   const selection = selectChatMode(capabilities);
   return { schema: "sfhs.one-shot-preflight@1", version: 1, timestamp: (options.now ?? (() => new Date()))().toISOString(), depth: options.depth, platform: process.platform, architecture: process.arch, workingDirectory: cwd, writableOutputRoot: { state: "AVAILABLE", detail: "Project one-shot directory is writable after command validation.", value: join(cwd, "one-shot") }, runtimes, selectedRuntime: selected, capabilities, selectedExecutionMode: selection.mode, reasons: selection.reasons };
@@ -127,11 +148,14 @@ export async function collectChatPreflight(projectRoot: string, options: { reado
 export async function validateChatRunState(projectRoot: string): Promise<ChatResult<ChatRunState>> {
   const path = join(resolve(projectRoot), "one-shot", "RUN-STATE.json"); const findings: ChatFinding[] = [];
   let value: unknown; try { value = JSON.parse(await readFile(path, "utf8")); } catch { return result([{ code: "SFHS_ONE_SHOT_RUN_STATE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run state is missing or invalid JSON." }]); }
-  const state = record(value); if (state?.schema !== "sfhs.one-shot-run-state@1" || state.version !== 1 || !modes.includes(state.executionMode as ChatExecutionMode) || !gates.includes(state.currentGate as ChatGate)) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run state has an unsupported schema, mode, or gate." });
+  const state = record(value); const policy = record(state?.completionPolicy); const completed = Array.isArray(state?.completedGates) ? state.completedGates : []; const failed = Array.isArray(state?.failedGates) ? state.failedGates : [];
+  const validGates = [...completed, ...failed].every((gate) => typeof gate === "string" && gates.includes(gate as ChatGate)) && new Set([...completed, ...failed]).size === completed.length + failed.length;
+  const validPolicy = ["requiredBeforeCompletion", "deferredHardening", "graduationBacklog", "releaseBacklog"].every((name) => Array.isArray(policy?.[name]) && (policy?.[name] as readonly unknown[]).every((entry) => typeof entry === "string"));
+  if (state?.schema !== "sfhs.one-shot-run-state@1" || state.version !== 1 || !modes.includes(state.executionMode as ChatExecutionMode) || !gates.includes(state.currentGate as ChatGate) || !productStatuses.includes(state.productStatus as ChatProductStatus) || !sfhsStatuses.includes(state.sfhsStatus as ChatSfhsStatus) || record(state.records) === undefined || !validGates || !validPolicy) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run state has an unsupported schema, status, gate, duplicate gate, records, or completion policy." });
   const source = record(record(state?.project)?.source);
   if (typeof source?.path !== "string" || typeof source.sha256 !== "string" || !inside(resolve(projectRoot), resolve(projectRoot, source.path))) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run-state source identity must be a project-contained hashed path." });
   else try { if (hash(await readFile(resolve(projectRoot, source.path))) !== source.sha256) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH", severity: "error", path: source.path, message: "Run-state source identity is stale; completion must be reopened." }); } catch { findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: source.path, message: "Run-state source identity is unreadable." }); }
-  const records = record(state?.records); for (const entry of Object.values(records ?? {})) { const reference = record(entry); if (typeof reference?.path !== "string" || typeof reference.sha256 !== "string" || !inside(resolve(projectRoot), resolve(projectRoot, reference.path))) { findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run-state record references must be project-contained hashed paths." }); continue; } try { if (hash(await readFile(resolve(projectRoot, reference.path))) !== reference.sha256) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH", severity: "error", path: reference.path, message: "Run-state reference hash is stale." }); } catch { findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: reference.path, message: "Run-state reference is unreadable." }); } }
+  const records = record(state?.records); const recordPaths = new Set<string>(); for (const entry of Object.values(records ?? {})) { const reference = record(entry); if (typeof reference?.path !== "string" || typeof reference.sha256 !== "string" || !inside(resolve(projectRoot), resolve(projectRoot, reference.path)) || recordPaths.has(reference.path)) { findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run-state record references must be unique project-contained hashed paths." }); continue; } recordPaths.add(reference.path); try { if (hash(await readFile(resolve(projectRoot, reference.path))) !== reference.sha256) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH", severity: "error", path: reference.path, message: "Run-state reference hash is stale." }); } catch { findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: reference.path, message: "Run-state reference is unreadable." }); } }
   if (state?.productStatus === "PRODUCT_USER_ACCEPTED" && !["REPORTED", "VERIFIED"].includes(state.physicalEvidence as string)) findings.push({ code: "SFHS_ONE_SHOT_PRODUCT_ACCEPTANCE_UNBOUND", severity: "error", path: "one-shot/RUN-STATE.json", message: "PRODUCT_USER_ACCEPTED requires retained REPORTED or VERIFIED human evidence." });
   return result(findings, state as unknown as ChatRunState);
 }

@@ -52,6 +52,7 @@ interface BriefRecord {
   readonly lane: { readonly id: string };
   readonly target: { readonly device: string; readonly orientation: string };
   readonly status: OneShotStatus;
+  readonly protocol?: { readonly version: 2 };
 }
 
 interface SourcePackEntry {
@@ -212,6 +213,7 @@ export async function initializeOneShotProject(options: {
     findings.push({ code: "SFHS_ONE_SHOT_OUTPUT_EXISTS", severity: "error", path: outputRoot, message: "One-Shot initialization never overwrites an existing directory." });
   }
   if (!result(findings).valid || brief === undefined) return result(findings);
+  const protocol = options.protocol ?? (brief.protocol?.version === 2 ? "chat-v2" : undefined);
   const temporaryRoot = join(examplesRoot, `.${brief.project.id}-one-shot-${randomUUID()}`);
   try {
     await cp(templateProjectRoot, temporaryRoot, {
@@ -226,10 +228,14 @@ export async function initializeOneShotProject(options: {
     const packageJson = JSON.parse(await readFile(packagePath, "utf8")) as Record<string, unknown>;
     packageJson.name = `@sfhs/example-${brief.project.id}`;
     await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
-    await renderPacket(temporaryRoot, brief, options.revision, options.protocol);
-    if (options.protocol === "chat-v2") {
+    await renderPacket(temporaryRoot, brief, options.revision, protocol);
+    if (protocol === "chat-v2") {
       const source = await readFile(projectManifestPath);
-      await writeChatJson(join(temporaryRoot, "one-shot", "RUN-STATE.json"), { schema: "sfhs.one-shot-run-state@1", version: 1, project: { id: brief.project.id, source: { path: "sfhs.project.json", sha256: sha256(source) } }, classification: "IMPLEMENT", executionMode: "SOURCE_ONLY_MODE", currentGate: "CONTRACT", completedGates: [], failedGates: [], records: {}, productStatus: "PRODUCT_INCOMPLETE", sfhsStatus: "SFHS_SOURCE_ONLY", physicalEvidence: "UNTESTED", completionPolicy: { requiredBeforeCompletion: ["CONTRACT", "PREFLIGHT", "RISK_SLICE", "PLAYABLE_LOOP", "SOURCE_TESTS", "SEMANTIC_SCENARIO", "VISUAL_AUDIO", "ARTIFACT_BROWSER", "PHYSICAL_SEED"], deferredHardening: [], graduationBacklog: [], releaseBacklog: [] }, nextRequiredAction: "Run fast Protocol v2 preflight.", updatedAt: new Date(0).toISOString() });
+      const records = Object.fromEntries(await Promise.all(packetFiles.map(async (name) => {
+        const content = await readFile(join(temporaryRoot, "one-shot", name));
+        return [name.replace(/\.md$/u, "").toLowerCase(), { path: `one-shot/${name}`, sha256: sha256(content) }];
+      })));
+      await writeChatJson(join(temporaryRoot, "one-shot", "RUN-STATE.json"), { schema: "sfhs.one-shot-run-state@1", version: 1, project: { id: brief.project.id, source: { path: "sfhs.project.json", sha256: sha256(source) } }, classification: "IMPLEMENT", executionMode: "SOURCE_ONLY_MODE", currentGate: "CONTRACT", completedGates: [], failedGates: [], records, productStatus: "PRODUCT_INCOMPLETE", sfhsStatus: "SFHS_SOURCE_ONLY", physicalEvidence: "UNTESTED", completionPolicy: { requiredBeforeCompletion: ["CONTRACT", "PREFLIGHT", "RISK_SLICE", "PLAYABLE_LOOP", "SOURCE_TESTS", "SEMANTIC_SCENARIO", "VISUAL_AUDIO", "ARTIFACT_BROWSER", "PHYSICAL_SEED"], deferredHardening: [], graduationBacklog: [], releaseBacklog: [] }, nextRequiredAction: "Run fast Protocol v2 preflight.", updatedAt: new Date(0).toISOString() });
     }
     await rename(temporaryRoot, outputRoot);
   } catch {
