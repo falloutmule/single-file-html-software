@@ -7,7 +7,10 @@ export default tseslint.config(
       "**/node_modules/**",
       "coverage/**",
       "playwright-report/**",
-      "test-results/**"
+      "test-results/**",
+      "examples/*/test-results/**",
+      "examples/*/.candidate/**",
+      "examples/*/candidate/**"
     ]
   },
   js.configs.recommended,
@@ -16,6 +19,16 @@ export default tseslint.config(
     files: ["**/*.ts"],
     rules: {
       "@typescript-eslint/consistent-type-imports": "error"
+    }
+  },
+  {
+    files: ["**/*.mjs"],
+    languageOptions: {
+      globals: {
+        URL: "readonly",
+        console: "readonly",
+        process: "readonly"
+      }
     }
   }
 );

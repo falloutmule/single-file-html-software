@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "none",
-    "outFile": ".candidate/game.js",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
     "strict": true,
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
@@ -12,7 +13,7 @@
     "removeComments": false
   },
   "files": [
-    "src/pixi-globals.d.ts",
+    "src/assets.d.ts",
     "src/types.ts",
     "src/pieces.ts",
     "src/levels.ts",
@@ -20,7 +21,6 @@
     "src/simulation.ts",
     "src/input.ts",
     "src/audio.ts",
-    "src/viewport.ts",
     "src/diagnostics.ts",
     "src/presentation.ts",
     "src/main.ts"

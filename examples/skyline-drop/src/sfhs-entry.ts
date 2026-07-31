@@ -1,20 +1,7 @@
 import { supportsRequiredWebGl } from "@sfhs/adapter-pixi-v8";
+import { boot } from "./main.ts";
 
-import "./pixi-global.ts";
-import "./asset-urls.ts";
-import "./types.ts";
-import "./pieces.ts";
-import "./levels.ts";
-import "./state.ts";
-import "./simulation.ts";
-import "./input.ts";
-import "./audio.ts";
-import "./viewport.ts";
-import "./diagnostics.ts";
-import "./presentation.ts";
-import "./main.ts";
-
-void SkylineDrop.boot().catch((error: unknown) => {
+void boot().catch((error: unknown) => {
   console.error("Skyline Drop failed to boot", error);
   const toast = document.getElementById("status-toast");
   if (toast) {

@@ -1,4 +1,5 @@
-namespace SkylineDrop {
+import type { GameState } from "./types.ts";
+
   export interface SkylineDiagnostics {
     readonly renderer: "pixi-webgl";
     readonly build: "source" | "candidate";
@@ -24,4 +25,3 @@ namespace SkylineDrop {
     });
     (window as Window & { __SKYLINE_DROP__?: SkylineDiagnostics }).__SKYLINE_DROP__ = diagnostics;
   }
-}

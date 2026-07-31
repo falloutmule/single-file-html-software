@@ -14,9 +14,4 @@ import smoke from "../public/assets/13_smoke_cloud.png";
 import indicator from "../public/assets/39_indicator.png";
 import coin from "../public/assets/15_coin_a.png";
 
-Object.defineProperty(globalThis, "__SKYLINE_ASSET_URLS__", {
-  configurable: true,
-  enumerable: false,
-  writable: false,
-  value: Object.freeze({ apartment, home, shop, tower, powerPlant, utility, treeA, treeB, hedge, boulders, rock, gate, smoke, indicator, coin })
-});
+export const SKYLINE_ASSET_URLS = Object.freeze({ apartment, home, shop, tower, powerPlant, utility, treeA, treeB, hedge, boulders, rock, gate, smoke, indicator, coin });

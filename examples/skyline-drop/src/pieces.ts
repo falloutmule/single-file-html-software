@@ -1,4 +1,5 @@
-namespace SkylineDrop {
+import { Direction, type PieceCell, type PieceDefinition, type RotatedPiece, type SurfaceKind, type UpgradeDefinition, type VisualKind } from "./types.ts";
+
   const N = Direction.North;
   const E = Direction.East;
   const S = Direction.South;
@@ -249,4 +250,3 @@ namespace SkylineDrop {
     if (!result) throw new Error(`Unknown piece: ${id}`);
     return result;
   }
-}

@@ -1,4 +1,15 @@
-namespace SkylineDrop {
+import { createSfhsPixiGameRuntime, type SfhsGameScene, type SfhsPixiGameRuntime } from "@sfhs/pixi-runtime";
+import { supportsRequiredWebGl } from "@sfhs/adapter-pixi-v8";
+import { BOARD_SIZE, CARDINALS, Direction, indexOf, inBounds, keyOf, LOGICAL_HEIGHT, LOGICAL_WIDTH, MAX_FRAME_DELTA_MS, SIMULATION_HZ, type ActionSnapshot, type GameState, type PresentationSnapshot, type UpgradeId, type ViewLayer } from "./types.ts";
+import { LEVELS, levelAt } from "./levels.ts";
+import { pieceById, pieceContentsSummary, roadRemixPlanName, roadRemixVariantCount, UPGRADE_DEFINITIONS } from "./pieces.ts";
+import { createInitialState } from "./state.ts";
+import { createPresentationSnapshot, stepGame } from "./simulation.ts";
+import { createSemanticInput, type SemanticInput } from "./input.ts";
+import { createAudioController } from "./audio.ts";
+import { installDiagnostics } from "./diagnostics.ts";
+import { createGamePresenter } from "./presentation.ts";
+
   interface DomRefs {
     readonly titleScreen: HTMLElement;
     readonly upgradeScreen: HTMLElement;
@@ -111,15 +122,6 @@ namespace SkylineDrop {
       dropButton: document.querySelector<HTMLButtonElement>('[data-action="drop"]') ?? (() => { throw new Error("Missing drop button"); })(),
       layerIndicator: requiredElement("layer-indicator")
     });
-  }
-
-  function supportsRequiredWebGl(): boolean {
-    try {
-      const canvas = document.createElement("canvas");
-      return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-    } catch {
-      return false;
-    }
   }
 
   function setModalActive(element: HTMLElement, active: boolean): void {
@@ -492,29 +494,25 @@ namespace SkylineDrop {
   export async function boot(): Promise<void> {
     const dom = collectDom();
     const host = requiredElement("pixi-host");
+    if (!supportsRequiredWebGl(document)) {
+      setModalActive(dom.capabilityScreen, true);
+      setModalActive(dom.titleScreen, false);
+      return;
+    }
     const input = createSemanticInput(document.body);
     const audio = createAudioController();
-    const viewport = createViewportController();
-    let state = createInitialState();
-    let presenter: GamePresenter | null = null;
-    let animationFrame = 0;
-    let lastFrame = performance.now();
-    let accumulator = 0;
+    const presenter = await createGamePresenter();
+    let runtime: SfhsPixiGameRuntime<GameState> | null = null;
+    let currentState = createInitialState();
     let disposed = false;
     let toastTimer = 0;
-    let lastStatusRevision = state.statusRevision;
-    let lastPieceSerial = state.pieceSerial;
-    let lastPhase = state.phase;
-    let pointerDisposer: (() => void) | null = null;
+    let lastStatusRevision = currentState.statusRevision;
+    let lastPieceSerial = currentState.pieceSerial;
+    let lastPhase = currentState.phase;
     let inspectionTarget: InspectionTarget | null = null;
     let informationMode: InformationMode = "piece";
-    let lastViewLayer = state.viewLayer;
-
-    installDiagnostics(() => state, () => host.querySelectorAll("canvas").length);
-    initializeUpgradeCards(dom, input);
-    const initialSnapshot = createPresentationSnapshot(state);
-    updateDom(dom, initialSnapshot);
-    informationMode = updateInformationDom(dom, initialSnapshot, informationMode, inspectionTarget);
+    let lastViewLayer = currentState.viewLayer;
+    const cleanup: Array<() => void> = [];
 
     const showStatus = (message: string, kind: GameState["statusKind"]): void => {
       if (!message) return;
@@ -524,68 +522,9 @@ namespace SkylineDrop {
       toastTimer = window.setTimeout(() => { dom.statusToast.className = ""; }, 1700);
     };
 
-    const installCanvasPointer = (canvas: HTMLCanvasElement, renderer: GamePresenter): (() => void) => {
-      const onPointerDown = (event: PointerEvent): void => {
-        if (state.phase !== "playing") return;
-        const logical = viewport.clientToLogical(event.clientX, event.clientY, canvas.getBoundingClientRect());
-        if (!logical) return;
-        const cell = renderer.screenToGrid(logical.x, logical.y);
-        if (!cell) return;
-        event.preventDefault();
-        const level = levelAt(state.levelIndex);
-        const placed = state.occupied[indexOf(cell.x, cell.y)];
-        const terrain = level.terrain[indexOf(cell.x, cell.y)] ?? "empty";
-        const inspectable = state.viewLayer === "underground"
-          ? (cell.x === level.hub.x && cell.y === level.hub.y)
-            || (placed?.conduit ?? 0) !== 0
-            || terrain !== "empty"
-          : (cell.x === level.entrance.x && cell.y === level.entrance.y)
-            || (cell.x === level.hub.x && cell.y === level.hub.y)
-            || terrain !== "empty"
-            || placed?.surface !== null && placed?.surface !== undefined;
-        if (inspectable) {
-          inspectionTarget = Object.freeze({ x: cell.x, y: cell.y, layer: state.viewLayer, levelIndex: state.levelIndex });
-          informationMode = "inspection";
-        } else {
-          inspectionTarget = null;
-          informationMode = "piece";
-          input.enqueue({ type: "select-cell", x: cell.x, y: cell.y });
-        }
-      };
-      canvas.addEventListener("pointerdown", onPointerDown, { passive: false });
-      return () => canvas.removeEventListener("pointerdown", onPointerDown);
-    };
-
-    const ensurePresenter = async (): Promise<GamePresenter | null> => {
-      if (presenter) return presenter;
-      if (!supportsRequiredWebGl()) {
-        setModalActive(dom.capabilityScreen, true);
-        setModalActive(dom.titleScreen, false);
-        return null;
-      }
-      presenter = await createGamePresenter(host);
-      presenter.resize(viewport.current);
-      pointerDisposer = installCanvasPointer(presenter.canvas, presenter);
-      return presenter;
-    };
-
-    const advance = (now: number): void => {
-      if (disposed) return;
-      const elapsed = Math.min(MAX_FRAME_DELTA_MS, Math.max(0, now - lastFrame));
-      lastFrame = now;
-      if (!document.hidden && state.phase !== "paused") accumulator += elapsed;
-      let actions = input.sample();
-      let consumedActions = false;
-      while (accumulator >= FIXED_STEP_MS) {
-        state = stepGame(state, consumedActions ? Object.freeze({ actions: Object.freeze([]) }) : actions);
-        consumedActions = true;
-        accumulator -= FIXED_STEP_MS;
-      }
-      if (!consumedActions && actions.actions.length > 0) {
-        state = stepGame(state, actions);
-      }
+    const renderDom = (state: GameState): PresentationSnapshot => {
+      currentState = state;
       const snapshot = createPresentationSnapshot(state);
-      presenter?.present(snapshot, now);
       updateDom(dom, snapshot);
       if (state.viewLayer !== lastViewLayer) {
         lastViewLayer = state.viewLayer;
@@ -594,7 +533,6 @@ namespace SkylineDrop {
       }
       informationMode = updateInformationDom(dom, snapshot, informationMode, inspectionTarget);
       if (informationMode !== "inspection") inspectionTarget = null;
-
       if (state.statusRevision !== lastStatusRevision) {
         lastStatusRevision = state.statusRevision;
         showStatus(state.statusMessage, state.statusKind);
@@ -611,14 +549,78 @@ namespace SkylineDrop {
         if (state.phase === "level-complete" || state.phase === "won") audio.play("win");
         lastPhase = state.phase;
       }
-      animationFrame = requestAnimationFrame(advance);
+      return snapshot;
     };
+
+    initializeUpgradeCards(dom, input);
+    renderDom(currentState);
+    const scene: SfhsGameScene<GameState, ActionSnapshot, PresentationSnapshot> = {
+      mount: () => currentState,
+      enter: (state) => state,
+      update: (state, actions) => {
+        const next = stepGame(state, actions);
+        if (state.phase !== "paused" && next.phase === "paused") queueMicrotask(() => runtime?.pause());
+        return next;
+      },
+      snapshot: renderDom,
+      pause: () => undefined,
+      resume: () => undefined,
+      exit: () => undefined,
+      resize: (_state, viewport) => presenter.resize(viewport),
+      destroy: () => undefined
+    };
+    runtime = await createSfhsPixiGameRuntime({
+      host,
+      presentation: presenter.presentation,
+      scene,
+      actions: input,
+      viewport: {
+        mode: "fixed",
+        logicalWidth: LOGICAL_WIDTH,
+        logicalHeight: LOGICAL_HEIGHT,
+        maximumDevicePixelRatio: 2,
+        scalePolicy: "contain"
+      },
+      simulationHz: SIMULATION_HZ,
+      maximumFrameDeltaMilliseconds: MAX_FRAME_DELTA_MS
+    });
+    installDiagnostics(() => currentState, () => host.querySelectorAll("canvas").length);
+
+    const canvas = runtime.getPrimarySurface();
+    const onCanvasPointerDown = (event: PointerEvent): void => {
+      const activeRuntime = runtime;
+      if (!activeRuntime || activeRuntime.getState().phase !== "playing") return;
+      const bounds = canvas.getBoundingClientRect();
+      if (bounds.width <= 0 || bounds.height <= 0) return;
+      const viewport = activeRuntime.getViewport();
+      const logicalX = (event.clientX - bounds.left) / bounds.width * viewport.logicalWidth;
+      const logicalY = (event.clientY - bounds.top) / bounds.height * viewport.logicalHeight;
+      const cell = presenter.screenToGrid(logicalX, logicalY);
+      if (!cell) return;
+      event.preventDefault();
+      const state = activeRuntime.getState();
+      const level = levelAt(state.levelIndex);
+      const placed = state.occupied[indexOf(cell.x, cell.y)];
+      const terrain = level.terrain[indexOf(cell.x, cell.y)] ?? "empty";
+      const inspectable = state.viewLayer === "underground"
+        ? (cell.x === level.hub.x && cell.y === level.hub.y) || (placed?.conduit ?? 0) !== 0 || terrain !== "empty"
+        : (cell.x === level.entrance.x && cell.y === level.entrance.y) || (cell.x === level.hub.x && cell.y === level.hub.y) || terrain !== "empty" || placed?.surface !== null && placed?.surface !== undefined;
+      if (inspectable) {
+        inspectionTarget = Object.freeze({ x: cell.x, y: cell.y, layer: state.viewLayer, levelIndex: state.levelIndex });
+        informationMode = "inspection";
+      } else {
+        inspectionTarget = null;
+        informationMode = "piece";
+        input.enqueue({ type: "select-cell", x: cell.x, y: cell.y });
+      }
+    };
+    canvas.addEventListener("pointerdown", onCanvasPointerDown, { passive: false });
+    cleanup.push(() => canvas.removeEventListener("pointerdown", onCanvasPointerDown));
 
     dom.startButton.addEventListener("pointerdown", async (event) => {
       event.preventDefault();
       await audio.unlock();
-      const renderer = await ensurePresenter();
-      if (!renderer) return;
+      runtime?.start();
       input.enqueue({ type: "start" });
       audio.play("click");
     }, { passive: false });
@@ -659,36 +661,32 @@ namespace SkylineDrop {
     document.addEventListener("fullscreenchange", updateFullscreenButton);
     updateFullscreenButton();
     dom.pauseButton.addEventListener("pointerdown", (event) => { event.preventDefault(); input.enqueue({ type: "toggle-pause" }); }, { passive: false });
-    dom.resumeButton.addEventListener("pointerdown", (event) => { event.preventDefault(); input.enqueue({ type: "toggle-pause" }); }, { passive: false });
+    dom.resumeButton.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      input.enqueue({ type: "toggle-pause" });
+      runtime?.resume();
+    }, { passive: false });
     dom.restartButton.addEventListener("pointerdown", (event) => { event.preventDefault(); input.enqueue({ type: "restart-level" }); }, { passive: false });
     dom.resultButton.addEventListener("pointerdown", (event) => { event.preventDefault(); input.enqueue({ type: "continue" }); }, { passive: false });
     dom.redrawButton.addEventListener("pointerdown", (event) => { event.preventDefault(); input.enqueue({ type: "redraw" }); }, { passive: false });
 
-    const unsubscribeViewport = viewport.subscribe((snapshot) => presenter?.resize(snapshot));
     const onVisibility = (): void => {
       input.clear();
-      lastFrame = performance.now();
-      accumulator = 0;
+      if (document.hidden) runtime?.pause();
+      else if (runtime?.getState().phase !== "paused") runtime?.resume();
     };
     document.addEventListener("visibilitychange", onVisibility);
+    cleanup.push(() => document.removeEventListener("visibilitychange", onVisibility));
 
     const dispose = (): void => {
       if (disposed) return;
       disposed = true;
-      cancelAnimationFrame(animationFrame);
       window.clearTimeout(toastTimer);
-      document.removeEventListener("visibilitychange", onVisibility);
       document.removeEventListener("fullscreenchange", updateFullscreenButton);
-      pointerDisposer?.();
-      unsubscribeViewport();
-      viewport.dispose();
-      input.dispose();
+      for (const remove of cleanup.splice(0)) remove();
       audio.dispose();
-      presenter?.destroy();
-      presenter = null;
+      runtime?.destroy();
+      runtime = null;
     };
     window.addEventListener("pagehide", dispose, { once: true });
-    animationFrame = requestAnimationFrame(advance);
   }
-
-}

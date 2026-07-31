@@ -1,6 +1,6 @@
 ---
-{"schema":"sfhs.one-shot-report@1","status":"BLOCKED","facts":{"artifact":{"classification":"candidate","path":"dist/index.html"},"physicalDevice":"UNTESTED"}}
+{"schema":"sfhs.one-shot-report@1","status":"VERIFIED","facts":{"artifact":{"classification":"canonical","path":"dist/index.html","sha256":"d7e95638ad9d31e924fbf9ba9d8f4d95070d06a57b4ade461a2c42ab1f726721","buildId":"skyline-drop-cfb081a04f41"},"physicalDevice":"UNTESTED"}}
 ---
 # Verification Report
 
-`inspect` and `validate` passed. SFHS packed `dist/index.html` as build `skyline-drop-92ecaac6b0b3` (2,958,947 bytes; SHA-256 `e52fff50428dd806986305559d15e3175f602e5d8b4b01b844708b81af802445`). Exact verification is BLOCKED by `SFHS_SCAN_HTML_PARSE_ERROR` at U+0080 in bundled Pixi output. No browser or physical result is claimed for this candidate.
+`pnpm sfhs pack` and the exact `pnpm sfhs verify` produced canonical `dist/index.html` as build `skyline-drop-cfb081a04f41` (2,091,772 bytes; SHA-256 `d7e95638ad9d31e924fbf9ba9d8f4d95070d06a57b4ade461a2c42ab1f726721`; source SHA-256 `cfb081a04f412d79d8a0cef71f7b2714d1d570097dc067b721d39bb2ec4c7645`). `tests/canonical-browser-smoke.mjs` navigated those exact bytes, started the game, confirmed one WebGL Pixi surface, completed a semantic rotation/drop, paused/resumed, resized, and observed no page errors or runtime external requests. Physical-device evidence remains UNTESTED.

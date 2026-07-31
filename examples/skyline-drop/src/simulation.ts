@@ -1,4 +1,8 @@
-namespace SkylineDrop {
+import { BOARD_SIZE, CARDINALS, indexOf, inBounds, keyOf, oppositeDirection, type ActionSnapshot, type GameAction, type GameState, type GridPoint, type LevelDefinition, type Metrics, type PlacementPreview, type PlacedCell, type PresentationSnapshot, type RotatedPiece, type UpgradeId, type ViewLayer } from "./types.ts";
+import { LEVELS, levelAt } from "./levels.ts";
+import { pieceById, roadRemixedPiece, roadRemixPlanName, roadRemixVariantCount, rotatePiece } from "./pieces.ts";
+import { createLevelState, initialAnchorForPiece } from "./state.ts";
+
   function withMessage(state: GameState, message: string, kind: GameState["statusKind"] = "normal"): GameState {
     return Object.freeze({
       ...state,
@@ -407,4 +411,3 @@ namespace SkylineDrop {
     }
     return Object.freeze({ state, level, currentPiece, preview, nextNames: Object.freeze(nextNames) });
   }
-}

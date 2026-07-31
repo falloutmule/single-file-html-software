@@ -1,4 +1,9 @@
-namespace SkylineDrop {
+import * as PIXI from "pixi.js";
+import { createSfhsPixiV8Presentation, type SfhsPixiPresenter, type SfhsPixiStageLayers } from "@sfhs/adapter-pixi-v8";
+import type { SfhsPresentationAdapter, SfhsViewportState } from "@sfhs/pixi-runtime";
+import { SKYLINE_ASSET_URLS } from "./asset-urls.ts";
+import { BOARD_SIZE, CARDINALS, indexOf, inBounds, keyOf, LOGICAL_HEIGHT, LOGICAL_WIDTH, type GridPoint, type PieceCell, type PresentationSnapshot, type TerrainKind } from "./types.ts";
+
   const TILE_WIDTH = 68;
   const TILE_HEIGHT = 34;
   const BOARD_ORIGIN_X = LOGICAL_WIDTH / 2;
@@ -9,11 +14,9 @@ namespace SkylineDrop {
   const PORTRAIT_WORLD_CENTER_Y = 450;
 
   export interface GamePresenter {
-    readonly canvas: HTMLCanvasElement;
-    present(snapshot: PresentationSnapshot, nowMs: number): void;
-    resize(viewport: ViewportSnapshot): void;
+    readonly presentation: SfhsPresentationAdapter<PresentationSnapshot>;
+    resize(viewport: SfhsViewportState): void;
     screenToGrid(logicalX: number, logicalY: number): GridPoint | null;
-    destroy(): void;
   }
 
   type TextureMap = Readonly<Record<string, PIXI.Texture>>;
@@ -251,21 +254,21 @@ namespace SkylineDrop {
 
   async function loadTextures(): Promise<TextureMap> {
     const files: Readonly<Record<string, string>> = Object.freeze({
-      home: __SKYLINE_ASSET_URLS__.home!,
-      shop: __SKYLINE_ASSET_URLS__.shop!,
-      apartment: __SKYLINE_ASSET_URLS__.apartment!,
-      tower: __SKYLINE_ASSET_URLS__.tower!,
-      powerPlant: __SKYLINE_ASSET_URLS__.powerPlant!,
-      utility: __SKYLINE_ASSET_URLS__.utility!,
-      treeA: __SKYLINE_ASSET_URLS__.treeA!,
-      treeB: __SKYLINE_ASSET_URLS__.treeB!,
-      hedge: __SKYLINE_ASSET_URLS__.hedge!,
-      boulders: __SKYLINE_ASSET_URLS__.boulders!,
-      rock: __SKYLINE_ASSET_URLS__.rock!,
-      gate: __SKYLINE_ASSET_URLS__.gate!,
-      smoke: __SKYLINE_ASSET_URLS__.smoke!,
-      indicator: __SKYLINE_ASSET_URLS__.indicator!,
-      coin: __SKYLINE_ASSET_URLS__.coin!
+      home: SKYLINE_ASSET_URLS.home,
+      shop: SKYLINE_ASSET_URLS.shop,
+      apartment: SKYLINE_ASSET_URLS.apartment,
+      tower: SKYLINE_ASSET_URLS.tower,
+      powerPlant: SKYLINE_ASSET_URLS.powerPlant,
+      utility: SKYLINE_ASSET_URLS.utility,
+      treeA: SKYLINE_ASSET_URLS.treeA,
+      treeB: SKYLINE_ASSET_URLS.treeB,
+      hedge: SKYLINE_ASSET_URLS.hedge,
+      boulders: SKYLINE_ASSET_URLS.boulders,
+      rock: SKYLINE_ASSET_URLS.rock,
+      gate: SKYLINE_ASSET_URLS.gate,
+      smoke: SKYLINE_ASSET_URLS.smoke,
+      indicator: SKYLINE_ASSET_URLS.indicator,
+      coin: SKYLINE_ASSET_URLS.coin
     });
     const entries = await Promise.all(Object.entries(files).map(async ([key, path]) => {
       return [key, await loadImageTexture(path)] as const;
@@ -273,59 +276,19 @@ namespace SkylineDrop {
     return Object.freeze(Object.fromEntries(entries) as Record<string, PIXI.Texture>);
   }
 
-  export async function createGamePresenter(host: HTMLElement): Promise<GamePresenter> {
+  export async function createGamePresenter(): Promise<GamePresenter> {
     const textures = await loadTextures();
-    const app = new PIXI.Application();
-    await app.init({
-      width: LOGICAL_WIDTH,
-      height: LOGICAL_HEIGHT,
-      backgroundColor: 0x17283c,
-      backgroundAlpha: 1,
-      antialias: false,
-      autoDensity: true,
-      autoStart: false,
-      sharedTicker: false,
-      preference: "webgl",
-      preferWebGLVersion: 2,
-      resolution: 1
-    });
-    host.replaceChildren(app.canvas);
-    app.canvas.setAttribute("aria-label", "Isometric city board");
-    app.canvas.tabIndex = 0;
-
-    const backgroundLayer = new PIXI.Container();
-    const worldRoot = new PIXI.Container();
-    const undergroundLayer = new PIXI.Container();
-    const surfaceBaseLayer = new PIXI.Container();
-    const environmentLayer = new PIXI.Container();
-    const actorLayer = new PIXI.Container();
-    const shadowLayer = new PIXI.Container();
-    const hoverLayer = new PIXI.Container();
-    const worldEffectsLayer = new PIXI.Container();
-    const hudLayer = new PIXI.Container();
-    for (const layer of [backgroundLayer, worldRoot, undergroundLayer, surfaceBaseLayer, environmentLayer, actorLayer, shadowLayer, hoverLayer, worldEffectsLayer, hudLayer]) {
-      layer.eventMode = "none";
-      layer.interactiveChildren = false;
-    }
-    worldRoot.addChild(undergroundLayer, surfaceBaseLayer, environmentLayer, actorLayer, shadowLayer, hoverLayer, worldEffectsLayer);
-    app.stage.addChild(backgroundLayer, worldRoot, hudLayer);
-
-    const background = new PIXI.Graphics();
-    background.rect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT).fill(0x17283c);
-    background.circle(110, 180, 170).fill({ color: 0x315972, alpha: 0.38 });
-    background.circle(610, 220, 210).fill({ color: 0x5a715c, alpha: 0.22 });
-    background.rect(0, 645, LOGICAL_WIDTH, 315).fill({ color: 0x101b2b, alpha: 0.72 });
-    backgroundLayer.addChild(background);
-
-    const skyline = new PIXI.Container();
-    skyline.alpha = 0.28;
-    const distantTower = makeSprite(textures.tower!, 100, 160);
-    distantTower.position.set(88, 220);
-    const distantPlant = makeSprite(textures.powerPlant!, 120, 145);
-    distantPlant.position.set(632, 245);
-    skyline.addChild(distantTower, distantPlant);
-    backgroundLayer.addChild(skyline);
-
+    let initialized = false;
+    let backgroundLayer!: PIXI.Container;
+    let worldRoot!: PIXI.Container;
+    let undergroundLayer!: PIXI.Container;
+    let surfaceBaseLayer!: PIXI.Container;
+    let environmentLayer!: PIXI.Container;
+    let actorLayer!: PIXI.Container;
+    let shadowLayer!: PIXI.Container;
+    let hoverLayer!: PIXI.Container;
+    let worldEffectsLayer!: PIXI.Container;
+    let latestViewport: SfhsViewportState | undefined;
     let worldScale = 1;
     let worldPositionX = BOARD_ORIGIN_X;
     let worldPositionY = BOARD_CENTER_Y;
@@ -335,8 +298,43 @@ namespace SkylineDrop {
     let lastPlacementEvent = -1;
     let spawnStartedAt = 0;
     let layerMix = 0;
-    let latestSnapshot: PresentationSnapshot | null = null;
     let dropEffect: { container: PIXI.Container; startedAt: number; cells: readonly GridPoint[] } | null = null;
+
+    function initialize(layers: SfhsPixiStageLayers): void {
+      if (initialized) return;
+      initialized = true;
+      backgroundLayer = layers.backgroundLayer;
+      worldRoot = new PIXI.Container({ label: "skyline-board-root" });
+      undergroundLayer = new PIXI.Container({ label: "skyline-underground" });
+      surfaceBaseLayer = new PIXI.Container({ label: "skyline-surface" });
+      environmentLayer = new PIXI.Container({ label: "skyline-environment" });
+      actorLayer = new PIXI.Container({ label: "skyline-districts" });
+      shadowLayer = new PIXI.Container({ label: "skyline-preview-shadows" });
+      hoverLayer = new PIXI.Container({ label: "skyline-preview" });
+      worldEffectsLayer = new PIXI.Container({ label: "skyline-effects" });
+      for (const layer of [backgroundLayer, worldRoot, undergroundLayer, surfaceBaseLayer, environmentLayer, actorLayer, shadowLayer, hoverLayer, worldEffectsLayer]) {
+        layer.eventMode = "none";
+        layer.interactiveChildren = false;
+      }
+      worldRoot.addChild(undergroundLayer, surfaceBaseLayer, environmentLayer, actorLayer, shadowLayer, hoverLayer, worldEffectsLayer);
+      layers.environmentLayer.addChild(worldRoot);
+
+      const background = new PIXI.Graphics();
+      background.rect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT).fill(0x17283c);
+      background.circle(110, 180, 170).fill({ color: 0x315972, alpha: 0.38 });
+      background.circle(610, 220, 210).fill({ color: 0x5a715c, alpha: 0.22 });
+      background.rect(0, 645, LOGICAL_WIDTH, 315).fill({ color: 0x101b2b, alpha: 0.72 });
+      backgroundLayer.addChild(background);
+      const skyline = new PIXI.Container();
+      skyline.alpha = 0.28;
+      const distantTower = makeSprite(textures.tower!, 100, 160);
+      distantTower.position.set(88, 220);
+      const distantPlant = makeSprite(textures.powerPlant!, 120, 145);
+      distantPlant.position.set(632, 245);
+      skyline.addChild(distantTower, distantPlant);
+      backgroundLayer.addChild(skyline);
+      if (latestViewport) applyViewport(latestViewport);
+    }
 
     function buildBoard(snapshot: PresentationSnapshot): void {
       destroyChildren(undergroundLayer);
@@ -491,8 +489,9 @@ namespace SkylineDrop {
       }
     }
 
-    function present(snapshot: PresentationSnapshot, nowMs: number): void {
-      latestSnapshot = snapshot;
+    function present(snapshot: PresentationSnapshot, alpha: number, layers: SfhsPixiStageLayers): void {
+      initialize(layers);
+      const nowMs = performance.now();
       if (snapshot.state.visualRevision !== lastBoardRevision) buildBoard(snapshot);
       const signature = `${snapshot.state.currentPieceId}:${snapshot.state.remixVariant}:${snapshot.state.rotation}:${snapshot.state.anchor.x}:${snapshot.state.anchor.y}:${snapshot.state.viewLayer}:${snapshot.preview.valid}`;
       if (signature !== lastPreviewSignature) buildPreview(snapshot);
@@ -502,25 +501,36 @@ namespace SkylineDrop {
       }
       startDropEffect(snapshot, nowMs);
       animate(snapshot, nowMs);
-      app.renderer.render(app.stage);
     }
 
-    return Object.freeze({
-      canvas: app.canvas,
-      present,
-      resize(viewport: ViewportSnapshot): void {
-        app.renderer.resize(LOGICAL_WIDTH, LOGICAL_HEIGHT);
-        app.canvas.style.width = `${Math.max(1, Math.round(LOGICAL_WIDTH * viewport.scale))}px`;
-        app.canvas.style.height = `${Math.max(1, Math.round(LOGICAL_HEIGHT * viewport.scale))}px`;
-
+    function applyViewport(viewport: SfhsViewportState): void {
+      latestViewport = viewport;
+      if (!initialized) return;
         worldScale = viewport.orientation === "portrait" ? PORTRAIT_WORLD_SCALE : 1;
         worldPositionX = BOARD_ORIGIN_X;
         worldPositionY = viewport.orientation === "portrait" ? PORTRAIT_WORLD_CENTER_Y : BOARD_CENTER_Y;
         worldRoot.pivot.set(BOARD_ORIGIN_X, BOARD_CENTER_Y);
         worldRoot.position.set(worldPositionX, worldPositionY);
         worldRoot.scale.set(worldScale);
-        app.canvas.dataset.worldFraming = viewport.orientation === "portrait" ? "portrait-large" : "landscape-default";
-        app.canvas.dataset.worldScale = worldScale.toFixed(2);
+    }
+
+    const pixiPresenter: SfhsPixiPresenter<PresentationSnapshot> = {
+      present,
+      destroy(): void {
+        if (initialized) worldRoot.destroy({ children: true });
+        initialized = false;
+      }
+    };
+    const presentation = createSfhsPixiV8Presentation({ backgroundColor: 0x17283c, presenter: pixiPresenter });
+    return Object.freeze({
+      presentation,
+      resize(viewport: SfhsViewportState): void {
+        applyViewport(viewport);
+        const canvas = presentation.getPrimarySurface();
+        canvas.setAttribute("aria-label", "Isometric city board");
+        canvas.tabIndex = 0;
+        canvas.dataset.worldFraming = viewport.orientation === "portrait" ? "portrait-large" : "landscape-default";
+        canvas.dataset.worldScale = worldScale.toFixed(2);
       },
       screenToGrid(logicalX: number, logicalY: number): GridPoint | null {
         const worldX = (logicalX - worldPositionX) / worldScale + BOARD_ORIGIN_X;
@@ -531,11 +541,6 @@ namespace SkylineDrop {
         const y = Math.floor((relativeY - relativeX) / 2 + 0.5);
         if (!inBounds(x, y)) return null;
         return Object.freeze({ x, y });
-      },
-      destroy(): void {
-        latestSnapshot = null;
-        app.destroy(true, { children: true, texture: false, textureSource: false });
       }
     });
   }
-}

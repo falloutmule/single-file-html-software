@@ -1,0 +1,27 @@
+{
+  "schema": "sfhs.one-shot-physical-test-seed@1",
+  "artifact": {
+    "classification": "canonical",
+    "path": "dist/index.html",
+    "sha256": "d7e95638ad9d31e924fbf9ba9d8f4d95070d06a57b4ade461a2c42ab1f726721",
+    "bytes": 2091772,
+    "buildId": "skyline-drop-cfb081a04f41"
+  },
+  "source": {
+    "sha256": "cfb081a04f412d79d8a0cef71f7b2714d1d570097dc067b721d39bb2ec4c7645"
+  },
+  "target": {
+    "device": "Samsung Galaxy S21 Ultra",
+    "modelFamily": "SM-G998*",
+    "primaryBrowser": "Android Chrome",
+    "orientation": ["portrait", "landscape"]
+  },
+  "checks": [
+    "Record Android version, numeric Chrome version, viewport width/height, and DPR in both orientations.",
+    "Capture portrait and landscape/rotate-gate screenshots bound to this artifact hash.",
+    "Start a level; move, rotate, and drop a district; confirm the floating piece, landing shadow, footprint, road, and underground conduit remain understandable.",
+    "Confirm road and utility readability, valid/invalid placement feedback, surface/underground toggle, pause/resume after background/return, sound unlock, and fullscreen behavior.",
+    "Complete a representative placement loop and record performance, heat, browser gesture, occlusion, and legibility observations."
+  ],
+  "resultVocabulary": ["REPORTED PASS", "REPORTED FAIL"]
+}

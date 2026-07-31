@@ -1,5 +1,5 @@
 ---
-{"schema":"sfhs.one-shot-brief@1","project":{"id":"skyline-drop","title":"Skyline Drop"},"lane":{"id":"pixi-v8"},"target":{"device":"Samsung Galaxy S21 Ultra / Android Chrome","orientation":"portrait-first adaptive"},"status":"BLOCKED"}
+{"schema":"sfhs.one-shot-brief@1","project":{"id":"skyline-drop","title":"Skyline Drop"},"lane":{"id":"pixi-v8"},"target":{"device":"Samsung Galaxy S21 Ultra / Android Chrome","orientation":"portrait-first adaptive"},"status":"VERIFIED"}
 ---
 # One-Shot Brief — Skyline Drop
 
@@ -9,7 +9,7 @@ Preserve the supplied three-level portrait city-building puzzle while migrating 
 
 ## Current authorized goal
 
-Create the SFHS project packet and canonical packed artifact without changing game rules; exact verification is blocked on the SFHS scanner's handling of the bundled Pixi output.
+Graduate the preserved game to explicit ES modules and the real SFHS Pixi lifecycle without changing game rules. Canonical pack, exact verification, and structural Chromium interaction evidence now pass; exact Galaxy S21 Ultra acceptance remains required.
 
 ## Central verb and highest-risk mechanic
 

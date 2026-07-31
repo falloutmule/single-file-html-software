@@ -16,5 +16,9 @@
     "adapters/**/*.ts",
     "examples/**/*.ts",
     "vitest.config.ts"
+  ],
+  "exclude": [
+    "examples/*/test-results/**",
+    "examples/*/.candidate/**"
   ]
 }

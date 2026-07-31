@@ -1,4 +1,3 @@
-namespace SkylineDrop {
   export interface AudioController {
     unlock(): Promise<void>;
     play(kind: "place" | "error" | "toggle" | "win" | "click"): void;
@@ -56,4 +55,3 @@ namespace SkylineDrop {
       dispose(): void { if (context) void context.close(); context = null; master = null; }
     });
   }
-}

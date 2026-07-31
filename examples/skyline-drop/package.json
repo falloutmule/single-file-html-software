@@ -12,11 +12,16 @@
     "@sfhs/pixi-runtime": "workspace:*",
     "pixi.js": "8.19.0"
   },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "playwright": "1.61.1"
+  },
   "scripts": {
     "test": "pnpm run typecheck && pnpm run test:simulation",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build:candidate": "node scripts/build-candidate.mjs",
-    "test:simulation": "tsc -p tsconfig.simulation.json && node tests/simulation.test.full2.mjs && node tests/simulation-mechanics.test.mjs && node tests/utility-overlap.test.mjs && node tests/remix.test.mjs && node tests/main-street-road-merge.test.mjs",
+    "test:simulation": "pnpm run typecheck && pnpm exec esbuild src/simulation-test-entry.ts --bundle --format=iife --global-name=SkylineDrop --platform=node --outfile=.candidate/simulation.bundle.js && node tests/simulation.test.full2.mjs && node tests/simulation-mechanics.test.mjs && node tests/utility-overlap.test.mjs && node tests/remix.test.mjs && node tests/main-street-road-merge.test.mjs",
+    "test:browser:canonical": "node tests/canonical-browser-smoke.mjs",
     "verify:candidate": "node scripts/verify-candidate.mjs",
     "inspect:source": "node scripts/inspect-source.mjs",
     "test:browser:candidate": "xvfb-run -a python tests/browser-smoke.py && xvfb-run -a python tests/browser-desktop-smoke.py",

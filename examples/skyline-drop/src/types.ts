@@ -1,4 +1,3 @@
-namespace SkylineDrop {
   export const BOARD_SIZE = 8;
   export const LOGICAL_WIDTH = 720;
   export const LOGICAL_HEIGHT = 960;
@@ -184,4 +183,3 @@ namespace SkylineDrop {
     { dx: 0, dy: 1, direction: Direction.South },
     { dx: -1, dy: 0, direction: Direction.West }
   ]);
-}

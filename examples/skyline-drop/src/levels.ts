@@ -1,4 +1,5 @@
-namespace SkylineDrop {
+import { BOARD_SIZE, Direction, indexOf, type LevelDefinition, type TerrainKind } from "./types.ts";
+
   function terrain(entries: readonly [number, number, TerrainKind][]): readonly TerrainKind[] {
     const cells: TerrainKind[] = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, () => "empty");
     for (const [x, y, kind] of entries) cells[indexOf(x, y)] = kind;
@@ -89,4 +90,3 @@ namespace SkylineDrop {
     if (!level) throw new Error(`Unknown level index: ${index}`);
     return level;
   }
-}

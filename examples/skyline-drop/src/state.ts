@@ -1,4 +1,8 @@
-namespace SkylineDrop {
+import { BOARD_SIZE, type GamePhase, type GameState, type GridPoint, type Metrics } from "./types.ts";
+import { pieceById, rotatePiece } from "./pieces.ts";
+import { levelAt } from "./levels.ts";
+import { calculateMetrics } from "./simulation.ts";
+
   export const EMPTY_METRICS: Metrics = Object.freeze({
     population: 0,
     jobs: 0,
@@ -78,4 +82,3 @@ namespace SkylineDrop {
     });
     return Object.freeze({ ...base, metrics: calculateMetrics(base) });
   }
-}

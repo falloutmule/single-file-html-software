@@ -1,9 +1,12 @@
-namespace SkylineDrop {
+import type { ActionSnapshot, GameAction } from "./types.ts";
+
   export interface SemanticInput {
     enqueue(action: GameAction): void;
     sample(): ActionSnapshot;
+    sampleForStep(): ActionSnapshot;
     clear(): void;
     dispose(): void;
+    destroy(): void;
   }
 
   export function createSemanticInput(root: HTMLElement): SemanticInput {
@@ -76,8 +79,13 @@ namespace SkylineDrop {
         queue = [];
         return Object.freeze({ actions });
       },
+      sampleForStep(): ActionSnapshot {
+        const actions = Object.freeze(queue);
+        queue = [];
+        return Object.freeze({ actions });
+      },
       clear,
-      dispose(): void { for (const dispose of disposers.splice(0)) dispose(); clear(); }
+      dispose(): void { for (const dispose of disposers.splice(0)) dispose(); clear(); },
+      destroy(): void { for (const dispose of disposers.splice(0)) dispose(); clear(); }
     });
   }
-}
