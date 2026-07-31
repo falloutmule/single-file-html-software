@@ -60,7 +60,13 @@ type Element = DefaultTreeAdapterTypes.Element;
 type Node = DefaultTreeAdapterTypes.Node;
 interface TaggedTemplateNode extends JavaScriptNode {
   readonly type: "TaggedTemplateExpression";
-  readonly quasi: { readonly quasis: readonly { readonly start: number; readonly end: number }[] };
+  readonly quasi: {
+    readonly quasis: readonly {
+      readonly start: number;
+      readonly end: number;
+      readonly value: { readonly raw: string };
+    }[];
+  };
 }
 
 function normalizeLineEndings(value: string): string {
@@ -121,13 +127,12 @@ function inlineAssetReferences(
 }
 
 function textForRawElement(value: string, closingTag: "script" | "style"): string {
-  const escapedClosingTag = value.replace(new RegExp(`</${closingTag}`, "giu"), `<\\/${closingTag}`);
   if (closingTag === "style") {
-    return escapedClosingTag;
+    return value.replace(new RegExp(`</${closingTag}`, "giu"), `<\\/${closingTag}`);
   }
   const controls: number[] = [];
-  for (let offset = 0; offset < escapedClosingTag.length;) {
-    const codePoint = escapedClosingTag.codePointAt(offset)!;
+  for (let offset = 0; offset < value.length;) {
+    const codePoint = value.codePointAt(offset)!;
     const character = String.fromCodePoint(codePoint);
     const disallowed =
       codePoint <= 0x08 ||
@@ -140,23 +145,27 @@ function textForRawElement(value: string, closingTag: "script" | "style"): strin
     }
     offset += character.length;
   }
-  if (controls.length === 0) return escapedClosingTag;
-
-  try {
-    const taggedTemplateControl = taggedTemplateControlOffset(escapedClosingTag, controls);
-    if (taggedTemplateControl !== undefined) {
-      throw new SfhsPackError(
-        "SFHS_PACK_SCRIPT_CONTROL_INVALID",
-        "Generated inline JavaScript contains a raw C0/C1 control character in a tagged template literal."
-      );
+  const closingScript = /<\/script/iu.test(value);
+  if (controls.length > 0 || closingScript) {
+    try {
+      if (taggedTemplateRequiresRawPreservation(value, controls, closingScript)) {
+        throw new SfhsPackError(
+          "SFHS_PACK_SCRIPT_CONTROL_INVALID",
+          "Generated inline JavaScript contains a raw C0/C1 control character or closing-script sequence in a tagged template literal."
+        );
+      }
+    } catch (error) {
+      if (error instanceof SfhsPackError) throw error;
+      if (controls.length > 0) {
+        throw new SfhsPackError(
+          "SFHS_PACK_SCRIPT_CONTROL_INVALID",
+          "Generated inline JavaScript contains a raw C0/C1 control character that could not be safely serialized."
+        );
+      }
     }
-  } catch (error) {
-    if (error instanceof SfhsPackError) throw error;
-    throw new SfhsPackError(
-      "SFHS_PACK_SCRIPT_CONTROL_INVALID",
-      "Generated inline JavaScript contains a raw C0/C1 control character that could not be safely serialized."
-    );
   }
+  const escapedClosingTag = value.replace(new RegExp(`</${closingTag}`, "giu"), `<\\/${closingTag}`);
+  if (controls.length === 0) return escapedClosingTag;
   return Array.from(escapedClosingTag, (character) => {
     const codePoint = character.codePointAt(0)!;
     const disallowed =
@@ -169,7 +178,11 @@ function textForRawElement(value: string, closingTag: "script" | "style"): strin
   }).join("");
 }
 
-function taggedTemplateControlOffset(javascript: string, controls: readonly number[]): number | undefined {
+function taggedTemplateRequiresRawPreservation(
+  javascript: string,
+  controls: readonly number[],
+  closingScript: boolean
+): boolean {
   const root = parseJavaScript(javascript, { ecmaVersion: "latest", sourceType: "script" });
   const stack: JavaScriptNode[] = [root];
   while (stack.length > 0) {
@@ -177,8 +190,10 @@ function taggedTemplateControlOffset(javascript: string, controls: readonly numb
     if (node === undefined) continue;
     if (node.type === "TaggedTemplateExpression") {
       const quasis = (node as TaggedTemplateNode).quasi.quasis;
-      if (quasis.some((element) => controls.some((offset) => offset >= element.start && offset < element.end))) {
-        return controls.find((offset) => quasis.some((element) => offset >= element.start && offset < element.end));
+      const hasControl = quasis.some((element) => controls.some((offset) => offset >= element.start && offset < element.end));
+      const hasClosingScript = closingScript && quasis.some((element) => /<\/script/iu.test(element.value.raw));
+      if (hasControl || hasClosingScript) {
+        return true;
       }
     }
     for (const child of Object.values(node)) {
@@ -191,7 +206,7 @@ function taggedTemplateControlOffset(javascript: string, controls: readonly numb
       }
     }
   }
-  return undefined;
+  return false;
 }
 
 function replaceStylesheets(document: Document, stylesheet: string): void {
