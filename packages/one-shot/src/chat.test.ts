@@ -18,6 +18,18 @@ describe("Chat One-Shot protocol v2", () => {
     expect(selectChatMode({ candidateRuntime: { state: "UNAVAILABLE", detail: "missing" }, chromium: { state: "AVAILABLE", detail: "available" } }).mode).toBe("SOURCE_ONLY_MODE");
   });
 
+  it("replays the restricted Cat Paw environment without inventing a candidate artifact", () => {
+    const unavailable = { state: "UNAVAILABLE" as const, detail: "fixture unavailable" };
+    const available = { state: "AVAILABLE" as const, detail: "fixture available" };
+    const replay = selectChatMode({
+      sfhsCheckout: unavailable, pnpm: unavailable, template: unavailable, adapter: unavailable, runtime: unavailable, canonicalCli: unavailable, browserRunner: unavailable,
+      runtimeCompatible: available, candidateRuntime: unavailable, chromium: available,
+      headlessWebgl: unavailable, headfulWebgl: available, urlNavigation: unavailable, setContent: available
+    });
+    expect(replay).toMatchObject({ mode: "SOURCE_ONLY_MODE" });
+    expect(replay.reasons.join(" ")).toContain("candidate runtime");
+  });
+
   it("serializes record keys deterministically", () => {
     expect(stableJson({ z: 1, a: { y: 2, b: 3 } })).toBe('{\n  "a": {\n    "b": 3,\n    "y": 2\n  },\n  "z": 1\n}\n');
   });
