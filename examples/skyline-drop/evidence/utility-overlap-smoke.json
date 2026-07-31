@@ -1,0 +1,119 @@
+{
+  "schema": "skyline-drop-utility-overlap-proof@1",
+  "status": "PASS",
+  "scope": "overlapping underground conduit only",
+  "assertions": [
+    {
+      "name": "service bore is current piece",
+      "ok": true,
+      "detail": "service-bore"
+    },
+    {
+      "name": "overlap footprint remains valid",
+      "ok": true,
+      "detail": "DROP"
+    },
+    {
+      "name": "drop button remains available",
+      "ok": true,
+      "detail": "DROP"
+    },
+    {
+      "name": "overlap drop consumes one normal turn",
+      "ok": true,
+      "detail": "4"
+    },
+    {
+      "name": "overlap merge is reported",
+      "ok": true,
+      "detail": "District placed. 3 overlapping utility cells merged."
+    },
+    {
+      "name": "crossing cell 3,2 exists",
+      "ok": true,
+      "detail": "{'pieceSerial': 2, 'pieceId': 'row-homes', 'surface': 'home', 'visual': 'home', 'conduit': 15, 'population': 4, 'jobs': 0}"
+    },
+    {
+      "name": "crossing cell 3,2 merges masks",
+      "ok": true,
+      "detail": "expected=15 actual=15"
+    },
+    {
+      "name": "crossing cell 3,2 gains north-south route",
+      "ok": true,
+      "detail": "15"
+    },
+    {
+      "name": "crossing cell 3,2 keeps surface",
+      "ok": true,
+      "detail": "home"
+    },
+    {
+      "name": "crossing cell 3,3 exists",
+      "ok": true,
+      "detail": "{'pieceSerial': 2, 'pieceId': 'row-homes', 'surface': 'park', 'visual': 'park', 'conduit': 15, 'population': 0, 'jobs': 0}"
+    },
+    {
+      "name": "crossing cell 3,3 merges masks",
+      "ok": true,
+      "detail": "expected=15 actual=15"
+    },
+    {
+      "name": "crossing cell 3,3 gains north-south route",
+      "ok": true,
+      "detail": "15"
+    },
+    {
+      "name": "crossing cell 3,3 keeps surface",
+      "ok": true,
+      "detail": "park"
+    },
+    {
+      "name": "crossing cell 3,4 exists",
+      "ok": true,
+      "detail": "{'pieceSerial': 4, 'pieceId': 'mixed-corner', 'surface': 'shop', 'visual': 'shop', 'conduit': 13, 'population': 0, 'jobs': 2}"
+    },
+    {
+      "name": "crossing cell 3,4 merges masks",
+      "ok": true,
+      "detail": "expected=13 actual=13"
+    },
+    {
+      "name": "crossing cell 3,4 gains north-south route",
+      "ok": true,
+      "detail": "13"
+    },
+    {
+      "name": "crossing cell 3,4 keeps surface",
+      "ok": true,
+      "detail": "shop"
+    },
+    {
+      "name": "one visible Pixi canvas",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no external HTTP requests",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "externalHttpRequests": [],
+  "screenshots": [
+    "utility-overlap-preview-mobile.png",
+    "utility-overlap-merged-mobile.png"
+  ]
+}

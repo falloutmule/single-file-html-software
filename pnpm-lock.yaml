@@ -104,6 +104,18 @@ importers:
         specifier: 8.19.0
         version: 8.19.0
 
+  examples/skyline-drop:
+    dependencies:
+      '@sfhs/adapter-pixi-v8':
+        specifier: workspace:*
+        version: link:../../adapters/pixi-v8
+      '@sfhs/pixi-runtime':
+        specifier: workspace:*
+        version: link:../../packages/pixi-runtime
+      pixi.js:
+        specifier: 8.19.0
+        version: 8.19.0
+
   packages/browser-runner:
     dependencies:
       '@sfhs/contracts':

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#18283f">
+  <title>Skyline Drop</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app" aria-label="Skyline Drop city puzzle">
+    <div id="pixi-host" aria-hidden="true"></div>
+
+    <section id="top-hud" class="hud-panel" aria-live="polite">
+      <div class="brand-line">
+        <strong>SKYLINE DROP</strong>
+        <span id="level-label">Level 1 · Open Lot</span>
+      </div>
+      <button id="metrics-toggle" class="stats-grid" type="button" aria-controls="information-panel" aria-label="Show city status in the information panel">
+        <span>👥 <b id="population-value">0</b>/<b id="population-target">12</b></span>
+        <span>💼 <b id="jobs-value">0</b>/<b id="jobs-target">2</b></span>
+        <span>⚡ <b id="utility-value">0%</b></span>
+        <span>🌳 <b id="greenery-value">0%</b></span>
+        <span>▣ <b id="drops-value">0</b>/<b id="drops-target">8</b></span>
+        <span class="stats-hint" aria-hidden="true">INFO</span>
+      </button>
+      <div id="objective-text">Connect homes and shops to both the road entrance and utility hub.</div>
+    </section>
+
+    <section id="information-panel" class="hud-panel" role="status" aria-live="polite" aria-label="Selected city information">
+      <small id="information-kicker">CURRENT DISTRICT</small>
+      <strong id="information-title">Row Homes</strong>
+      <div id="information-copy">
+        <span id="information-summary">3 homes · 2 roads · 1 park</span>
+        <span id="information-status">Move or rotate the floating district, then drop it on a valid footprint.</span>
+      </div>
+      <div id="information-metrics" class="metrics-list" hidden>
+        <div class="metric-row"><span>Residents</span><b id="metrics-population">0 / 12</b><small>Active homes connected to road and utility</small></div>
+        <div class="metric-row"><span>Jobs</span><b id="metrics-jobs">0 / 2</b><small>Active shops connected to road and utility</small></div>
+        <div class="metric-row"><span>Utility coverage</span><b id="metrics-utility">0%</b><small>Buildings connected to roads and utilities</small></div>
+        <div class="metric-row"><span>Greenery</span><b id="metrics-greenery">0%</b><small>Active homes beside a tree or park</small></div>
+        <div class="metric-row"><span>Drops used</span><b id="metrics-drops">0 / 8</b><small>Districts placed this level</small></div>
+      </div>
+      <span id="information-hint">Tap the top metrics, a board object, or empty ground to change this panel.</span>
+    </section>
+
+    <section id="piece-panel" class="hud-panel" aria-live="polite">
+      <div><small>CURRENT</small><strong id="piece-name">Row Homes</strong></div>
+      <div><small>NEXT</small><span id="next-piece-names">Main Street · Apartment Court</span></div>
+      <p id="piece-summary">3 homes · 2 roads · 1 park</p>
+      <p id="placement-feedback" role="status" aria-live="polite" hidden>BLOCKED · Tree terrain blocks this footprint</p>
+      <button id="remix-button" class="small-button remix-button" data-action="remix" type="button" aria-label="Change current district road plan">🛣️ ROAD REMIX · 1</button>
+      <button id="redraw-button" class="small-button" type="button" hidden>↻ Redraw</button>
+    </section>
+
+    <section id="layer-indicator" class="hud-panel" aria-live="polite" hidden>
+      <strong>UNDERGROUND UTILITY VIEW</strong>
+      <span>Conduits glow cyan · bedrock blocks construction</span>
+    </section>
+
+    <div id="status-toast" role="status" aria-live="assertive"></div>
+
+    <section id="touch-controls" aria-label="Game controls">
+      <div class="move-pad">
+        <button data-action="move-up" aria-label="Move piece up">▲</button>
+        <button data-action="move-left" aria-label="Move piece left">◀</button>
+        <button data-action="move-right" aria-label="Move piece right">▶</button>
+        <button data-action="move-down" aria-label="Move piece down">▼</button>
+      </div>
+      <div class="action-pad">
+        <button data-action="rotate-left" aria-label="Rotate counterclockwise">↺</button>
+        <button data-action="rotate-right" aria-label="Rotate clockwise">↻</button>
+        <button data-action="toggle-layer" class="wide" aria-label="Switch to underground utility view">UNDERGROUND</button>
+        <button data-action="drop" class="drop-button wide" aria-label="Drop district" title="Drop district">DROP</button>
+      </div>
+    </section>
+
+    <button id="fullscreen-button" class="corner-button fullscreen-button" type="button" aria-label="Enter fullscreen" title="Enter fullscreen">⛶</button>
+    <button id="pause-button" class="corner-button" type="button" aria-label="Pause">Ⅱ</button>
+
+    <section id="title-screen" class="modal-screen active">
+      <div class="modal-card title-card">
+        <p class="eyebrow">A tiny city puzzle roguelike</p>
+        <h1>SKYLINE<br>DROP</h1>
+        <p>Float modern district pieces over an isometric landscape, fit them around trees and hills, then connect roads above and utilities below.</p>
+        <button id="start-button" class="primary-button" type="button">START BUILDING</button>
+        <p class="controls-copy">Move: arrows/WASD · Rotate: Q/E · Road Remix: M · Drop: Space · Underground: X · Restart: R</p>
+      </div>
+    </section>
+
+    <section id="upgrade-screen" class="modal-screen" aria-labelledby="upgrade-title">
+      <div class="modal-card upgrade-card-wrap">
+        <p class="eyebrow">City hall decision</p>
+        <h2 id="upgrade-title">Choose one upgrade</h2>
+        <div id="upgrade-cards"></div>
+      </div>
+    </section>
+
+    <section id="result-screen" class="modal-screen" aria-labelledby="result-title">
+      <div class="modal-card">
+        <p id="result-kicker" class="eyebrow">Planning report</p>
+        <h2 id="result-title">Level complete</h2>
+        <p id="result-copy"></p>
+        <button id="result-button" class="primary-button" type="button">CONTINUE</button>
+      </div>
+    </section>
+
+    <section id="pause-screen" class="modal-screen" aria-labelledby="pause-title">
+      <div class="modal-card">
+        <p class="eyebrow">Planning paused</p>
+        <h2 id="pause-title">Take a breath</h2>
+        <button id="resume-button" class="primary-button" type="button">RESUME</button>
+        <button id="restart-button" class="secondary-button" type="button">RESTART LEVEL</button>
+      </div>
+    </section>
+
+    <section id="capability-screen" class="modal-screen" aria-labelledby="capability-title">
+      <div class="modal-card">
+        <p class="eyebrow">Renderer unavailable</p>
+        <h2 id="capability-title">WebGL is required</h2>
+        <p>This build uses the SFHS PixiJS WebGL lane. No hidden or unverified Canvas fallback is used.</p>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="sfhs-entry.ts"></script>
+</body>
+</html>

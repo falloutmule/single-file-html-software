@@ -1,0 +1,18 @@
+
+> skyline-drop@0.1.0 verify:candidate
+> node scripts/verify-candidate.mjs
+
+{
+  "schema": "skyline-drop-candidate-verification@1",
+  "status": "PASS",
+  "bytes": 2216075,
+  "sha256": "6db110cd654e627f4f79ce53de60a52551032804c00a4383946d1dcc24357e33",
+  "buildId": "candidate-54da68637da064ed",
+  "outputSet": [
+    "index.html"
+  ],
+  "rendererMarker": "pixi-webgl",
+  "inlinedPngDataUris": 15,
+  "externalHttpReferences": 0,
+  "findings": []
+}

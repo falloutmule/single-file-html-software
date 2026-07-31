@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "none",
+    "outFile": ".candidate/game.js",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "removeComments": false
+  },
+  "files": [
+    "src/pixi-globals.d.ts",
+    "src/types.ts",
+    "src/pieces.ts",
+    "src/levels.ts",
+    "src/state.ts",
+    "src/simulation.ts",
+    "src/input.ts",
+    "src/audio.ts",
+    "src/viewport.ts",
+    "src/diagnostics.ts",
+    "src/presentation.ts",
+    "src/main.ts"
+  ]
+}

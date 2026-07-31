@@ -1,0 +1,9 @@
+{
+  "schema": "skyline-drop-source-inspection@1",
+  "status": "PASS",
+  "projectId": "skyline-drop",
+  "renderer": "pixi-v8",
+  "oneVisibleRendererPolicy": true,
+  "declaredAssetCount": 17,
+  "findings": []
+}

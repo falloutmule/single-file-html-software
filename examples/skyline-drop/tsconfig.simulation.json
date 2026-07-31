@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "none",
+    "outFile": ".candidate/simulation.bundle.js",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "lib": ["ES2022"],
+    "skipLibCheck": true
+  },
+  "files": [
+    "src/types.ts",
+    "src/pieces.ts",
+    "src/levels.ts",
+    "src/state.ts",
+    "src/simulation.ts"
+  ]
+}

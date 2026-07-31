@@ -1,0 +1,13 @@
+
+> skyline-drop@0.1.0 inspect:source
+> node scripts/inspect-source.mjs
+
+{
+  "schema": "skyline-drop-source-inspection@1",
+  "status": "PASS",
+  "projectId": "skyline-drop",
+  "renderer": "pixi-v8",
+  "oneVisibleRendererPolicy": true,
+  "declaredAssetCount": 17,
+  "findings": []
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@sfhs/example-skyline-drop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "dependencies": {
+    "@sfhs/adapter-pixi-v8": "workspace:*",
+    "@sfhs/pixi-runtime": "workspace:*",
+    "pixi.js": "8.19.0"
+  },
+  "scripts": {
+    "test": "pnpm run typecheck && pnpm run test:simulation",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build:candidate": "node scripts/build-candidate.mjs",
+    "test:simulation": "tsc -p tsconfig.simulation.json && node tests/simulation.test.full2.mjs && node tests/simulation-mechanics.test.mjs && node tests/utility-overlap.test.mjs && node tests/remix.test.mjs && node tests/main-street-road-merge.test.mjs",
+    "verify:candidate": "node scripts/verify-candidate.mjs",
+    "inspect:source": "node scripts/inspect-source.mjs",
+    "test:browser:candidate": "xvfb-run -a python tests/browser-smoke.py && xvfb-run -a python tests/browser-desktop-smoke.py",
+    "test:remix:browser": "xvfb-run -a python tests/remix-smoke.py",
+    "test:main-street-road-merge:browser": "xvfb-run -a python tests/main-street-road-merge-smoke.py"
+  }
+}

@@ -1,0 +1,1095 @@
+{
+  "package": "city_game_ready_assets",
+  "source": "source_preserved.jpg",
+  "export_policy": {
+    "format": "RGBA PNG",
+    "margin_px": 24,
+    "background": "near-black soft matte",
+    "fully_transparent_rgb": "0,0,0"
+  },
+  "assets": [
+    {
+      "file": "01_tower.png",
+      "source_components": [
+        1
+      ],
+      "source_bounds": [
+        475,
+        196,
+        581,
+        342
+      ],
+      "dimensions": [
+        154,
+        194
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 19868,
+        "partial": 415,
+        "opaque": 9593
+      },
+      "sha256": "925abe9f4b20e8e7349754f3814b5938dd6db7b36ba9e010682e56148837d457"
+    },
+    {
+      "file": "02_power_plant.png",
+      "source_components": [
+        2
+      ],
+      "source_bounds": [
+        693,
+        199,
+        797,
+        356
+      ],
+      "dimensions": [
+        152,
+        205
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 20342,
+        "partial": 763,
+        "opaque": 10055
+      },
+      "sha256": "9cef086485e497bf5761c1a1b17d9016b14dc2d72d8afa596631c58b4bae6d70"
+    },
+    {
+      "file": "03_brick_wall.png",
+      "source_components": [
+        3
+      ],
+      "source_bounds": [
+        298,
+        228,
+        366,
+        336
+      ],
+      "dimensions": [
+        116,
+        156
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 12013,
+        "partial": 157,
+        "opaque": 5926
+      },
+      "sha256": "7ed6c9f1bb579cc22adb3d0c890bb1b28dbcc8c00911346aff35a7cfa82bdb06"
+    },
+    {
+      "file": "04_office_block.png",
+      "source_components": [
+        4
+      ],
+      "source_bounds": [
+        384,
+        243,
+        451,
+        328
+      ],
+      "dimensions": [
+        115,
+        133
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 10341,
+        "partial": 276,
+        "opaque": 4678
+      },
+      "sha256": "540ae135f3985c6f994b68a6002406eea4c41db32c11b1017b7fe51ae00a911d"
+    },
+    {
+      "file": "05_glass_facade.png",
+      "source_components": [
+        5
+      ],
+      "source_bounds": [
+        224,
+        247,
+        263,
+        336
+      ],
+      "dimensions": [
+        87,
+        137
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 8450,
+        "partial": 101,
+        "opaque": 3368
+      },
+      "sha256": "4e1f966b8fdb0ea905f21d6b83c67462ca086ca830ae7ca5484d993423c62ad4"
+    },
+    {
+      "file": "06_houses.png",
+      "source_components": [
+        6
+      ],
+      "source_bounds": [
+        77,
+        271,
+        192,
+        336
+      ],
+      "dimensions": [
+        163,
+        113
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 10948,
+        "partial": 323,
+        "opaque": 7148
+      },
+      "sha256": "43f199c5d78ac434199e272834ccb3c5ed89382cd31b78684e5af007b1feb785"
+    },
+    {
+      "file": "07_storefront.png",
+      "source_components": [
+        7
+      ],
+      "source_bounds": [
+        600,
+        274,
+        672,
+        356
+      ],
+      "dimensions": [
+        120,
+        130
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 9710,
+        "partial": 343,
+        "opaque": 5547
+      },
+      "sha256": "e5305063f5ea95dc1c0d1b35b6870e912da983011fdaeffd47ae4a418a1dbdd3"
+    },
+    {
+      "file": "08_tree_terrain.png",
+      "source_components": [
+        8
+      ],
+      "source_bounds": [
+        433,
+        358,
+        552,
+        479
+      ],
+      "dimensions": [
+        167,
+        169
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 16523,
+        "partial": 448,
+        "opaque": 11252
+      },
+      "sha256": "538c3f2aeeb316133a2d65a6d11702b7d97afe5416169949bdc05187e11c3477"
+    },
+    {
+      "file": "09_lamp_terrain.png",
+      "source_components": [
+        9
+      ],
+      "source_bounds": [
+        302,
+        365,
+        409,
+        479
+      ],
+      "dimensions": [
+        155,
+        162
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 16194,
+        "partial": 558,
+        "opaque": 8358
+      },
+      "sha256": "22570b576b6df4bad86fb73c846cfedef3cd593be3c87dcd8b7826a07c3ae1c2"
+    },
+    {
+      "file": "10_building_facade_a.png",
+      "source_components": [
+        10
+      ],
+      "source_bounds": [
+        154,
+        385,
+        287,
+        434
+      ],
+      "dimensions": [
+        181,
+        97
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 11054,
+        "partial": 35,
+        "opaque": 6468
+      },
+      "sha256": "32f000c809b583bf454aa8bcf9e28ce3fbbc64107d454f1b837526443d883278"
+    },
+    {
+      "file": "11_building_facade_b.png",
+      "source_components": [
+        11
+      ],
+      "source_bounds": [
+        576,
+        393,
+        785,
+        480
+      ],
+      "dimensions": [
+        257,
+        135
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 17482,
+        "partial": 1474,
+        "opaque": 15739
+      },
+      "sha256": "e657c63af2fcc859aa0eb9688f5273571587e3031f22e42416f816025deb1a7f"
+    },
+    {
+      "file": "12_building_facade_c.png",
+      "source_components": [
+        12
+      ],
+      "source_bounds": [
+        52,
+        400,
+        137,
+        479
+      ],
+      "dimensions": [
+        133,
+        127
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 11457,
+        "partial": 333,
+        "opaque": 5101
+      },
+      "sha256": "f6024d6fa51a3ffdad779830f438b78e8158e6ed982b583886d99454d9f26b3d"
+    },
+    {
+      "file": "13_smoke_cloud.png",
+      "source_components": [
+        13,
+        19
+      ],
+      "source_bounds": [
+        585,
+        506,
+        699,
+        588
+      ],
+      "dimensions": [
+        162,
+        130
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 14807,
+        "partial": 639,
+        "opaque": 5614
+      },
+      "sha256": "236ee209f6cc2f738e180630412b41d1887e53e18626983a506d62c02dc60287"
+    },
+    {
+      "file": "14_industrial_structure.png",
+      "source_components": [
+        14
+      ],
+      "source_bounds": [
+        473,
+        510,
+        564,
+        584
+      ],
+      "dimensions": [
+        139,
+        122
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 10584,
+        "partial": 365,
+        "opaque": 6009
+      },
+      "sha256": "2bceeaae8edd7f791d45202cdf3a11602548b0242b04b0029b8d145bbeecce86"
+    },
+    {
+      "file": "15_coin_a.png",
+      "source_components": [
+        15
+      ],
+      "source_bounds": [
+        716,
+        514,
+        762,
+        561
+      ],
+      "dimensions": [
+        94,
+        95
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 7082,
+        "partial": 131,
+        "opaque": 1717
+      },
+      "sha256": "224cefa24e416b079cc3183f1e80b30fe7d2257ab16fa974d21951f81eb1928f"
+    },
+    {
+      "file": "16_coin_b.png",
+      "source_components": [
+        16
+      ],
+      "source_bounds": [
+        772,
+        520,
+        813,
+        559
+      ],
+      "dimensions": [
+        89,
+        87
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 6524,
+        "partial": 112,
+        "opaque": 1107
+      },
+      "sha256": "068f6bce45dd461a4803621d951e6855bf264800480b9825f9514c5e23ab7ff4"
+    },
+    {
+      "file": "17_crate_cluster.png",
+      "source_components": [
+        17
+      ],
+      "source_bounds": [
+        340,
+        521,
+        445,
+        590
+      ],
+      "dimensions": [
+        153,
+        117
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 10965,
+        "partial": 463,
+        "opaque": 6473
+      },
+      "sha256": "26d0f8fae9677c681b316d625859ba3d3ccbc635818056534e0dc94297f8d643"
+    },
+    {
+      "file": "18_long_wall.png",
+      "source_components": [
+        18
+      ],
+      "source_bounds": [
+        64,
+        524,
+        310,
+        577
+      ],
+      "dimensions": [
+        294,
+        101
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 16657,
+        "partial": 34,
+        "opaque": 13003
+      },
+      "sha256": "b76176a5e133a607aec572d1ec4c50ea9a87d250832a0d249fe4455eee7351cc"
+    },
+    {
+      "file": "19_barrel_a.png",
+      "source_components": [
+        20
+      ],
+      "source_bounds": [
+        720,
+        580,
+        762,
+        640
+      ],
+      "dimensions": [
+        90,
+        108
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 7371,
+        "partial": 189,
+        "opaque": 2160
+      },
+      "sha256": "b768febbf46f727bd857412df4ee1cbe7760e540933fbe3cbc1234dc2997bebd"
+    },
+    {
+      "file": "20_barrel_b.png",
+      "source_components": [
+        21
+      ],
+      "source_bounds": [
+        772,
+        581,
+        812,
+        639
+      ],
+      "dimensions": [
+        88,
+        106
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 7119,
+        "partial": 75,
+        "opaque": 2134
+      },
+      "sha256": "bde41984f8f1e205d6d11b199627b9810342428ae5bd0a29b6ea6bea8dca1388"
+    },
+    {
+      "file": "21_water_pipe_platform.png",
+      "source_components": [
+        22
+      ],
+      "source_bounds": [
+        398,
+        607,
+        605,
+        716
+      ],
+      "dimensions": [
+        255,
+        157
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 20335,
+        "partial": 717,
+        "opaque": 18983
+      },
+      "sha256": "c312bb555e87f6880a418bd07e9b2d1a2212a7fe8c7854e925c618b5148cafd5"
+    },
+    {
+      "file": "22_crate.png",
+      "source_components": [
+        23
+      ],
+      "source_bounds": [
+        627,
+        607,
+        695,
+        661
+      ],
+      "dimensions": [
+        116,
+        102
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 8765,
+        "partial": 190,
+        "opaque": 2877
+      },
+      "sha256": "b91f7cac232d38b4a50c53aaa54cd6a7d0117fe49a4f30644e5f9530141507f9"
+    },
+    {
+      "file": "23_power_box.png",
+      "source_components": [
+        24
+      ],
+      "source_bounds": [
+        37,
+        609,
+        125,
+        700
+      ],
+      "dimensions": [
+        136,
+        139
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 12024,
+        "partial": 298,
+        "opaque": 6582
+      },
+      "sha256": "e41e957322f762e4cfffaaff8dfbfd2cc3ca182c5ce7cd30025a16f360ff7bfd"
+    },
+    {
+      "file": "24_rock_terrain.png",
+      "source_components": [
+        25
+      ],
+      "source_bounds": [
+        140,
+        614,
+        376,
+        701
+      ],
+      "dimensions": [
+        284,
+        135
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 20386,
+        "partial": 789,
+        "opaque": 17165
+      },
+      "sha256": "1f4e64c9f4127e385567d5936db2d745f3012d81d522c9517db244667a87b4d1"
+    },
+    {
+      "file": "25_barrel_cluster.png",
+      "source_components": [
+        26
+      ],
+      "source_bounds": [
+        715,
+        656,
+        813,
+        720
+      ],
+      "dimensions": [
+        146,
+        112
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 11326,
+        "partial": 304,
+        "opaque": 4722
+      },
+      "sha256": "d8cb1eba5508583d6491dee3a7eec92272bbc9a6bef99f78a438b2c1e44adba5"
+    },
+    {
+      "file": "26_rock.png",
+      "source_components": [
+        27
+      ],
+      "source_bounds": [
+        627,
+        670,
+        701,
+        720
+      ],
+      "dimensions": [
+        122,
+        98
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 9103,
+        "partial": 319,
+        "opaque": 2534
+      },
+      "sha256": "db96d4a36920c85e82e0d427b7b34689911fbc92646b4099040ec80dc0c98d0f"
+    },
+    {
+      "file": "27_boulder_cluster.png",
+      "source_components": [
+        28,
+        35
+      ],
+      "source_bounds": [
+        314,
+        724,
+        426,
+        806
+      ],
+      "dimensions": [
+        160,
+        130
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 15356,
+        "partial": 602,
+        "opaque": 4842
+      },
+      "sha256": "98fa31fd4c6ed09a9e48c9393fdc0eefeed62bfbb6c34e6e35b2b1bc1a8a14a0"
+    },
+    {
+      "file": "28_tree_a.png",
+      "source_components": [
+        29
+      ],
+      "source_bounds": [
+        48,
+        728,
+        102,
+        807
+      ],
+      "dimensions": [
+        102,
+        127
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 10409,
+        "partial": 264,
+        "opaque": 2281
+      },
+      "sha256": "b2028d7bd6c2c0e25617ffa89f367ae44de96aea39c113e37d2cc3c10aa5c714"
+    },
+    {
+      "file": "29_tree_b.png",
+      "source_components": [
+        30
+      ],
+      "source_bounds": [
+        121,
+        738,
+        175,
+        807
+      ],
+      "dimensions": [
+        102,
+        117
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 9125,
+        "partial": 285,
+        "opaque": 2524
+      },
+      "sha256": "2e8242845a87662d686dfd39ae71e7311ab70d2ab135446ca16c933278801a03"
+    },
+    {
+      "file": "30_hedge_strip.png",
+      "source_components": [
+        31
+      ],
+      "source_bounds": [
+        443,
+        741,
+        687,
+        803
+      ],
+      "dimensions": [
+        292,
+        110
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 20900,
+        "partial": 755,
+        "opaque": 10465
+      },
+      "sha256": "82ac0f5e108435fa3811ea88273d58fbfa40e2c0b403732c0b6042fd66440cb1"
+    },
+    {
+      "file": "31_confirm_icon.png",
+      "source_components": [
+        32
+      ],
+      "source_bounds": [
+        704,
+        746,
+        753,
+        800
+      ],
+      "dimensions": [
+        97,
+        102
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 7248,
+        "partial": 8,
+        "opaque": 2638
+      },
+      "sha256": "5e524ee5c2b3432915f67a63914eb1e4507d8c0b0d237afb412a9b93e946885d"
+    },
+    {
+      "file": "32_cancel_icon.png",
+      "source_components": [
+        33
+      ],
+      "source_bounds": [
+        763,
+        746,
+        812,
+        800
+      ],
+      "dimensions": [
+        97,
+        102
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 7248,
+        "partial": 1,
+        "opaque": 2645
+      },
+      "sha256": "2466335fb0b63282de53d451a3759a04943240fa1ae8e4a8a64556a17a470fab"
+    },
+    {
+      "file": "33_boulder.png",
+      "source_components": [
+        34
+      ],
+      "source_bounds": [
+        203,
+        759,
+        292,
+        807
+      ],
+      "dimensions": [
+        137,
+        96
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 9756,
+        "partial": 319,
+        "opaque": 3077
+      },
+      "sha256": "10fa194d7bbee7d7add0a3fc02316c26442878ef076ebc33cf84b4e38a67004c"
+    },
+    {
+      "file": "34_cancel_button.png",
+      "source_components": [
+        36
+      ],
+      "source_bounds": [
+        770,
+        825,
+        812,
+        871
+      ],
+      "dimensions": [
+        90,
+        94
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 6528,
+        "partial": 10,
+        "opaque": 1922
+      },
+      "sha256": "862248b22c46d58bbf971026eff748bb1b6e8883c69577f3d147647780ab068a"
+    },
+    {
+      "file": "35_play_button.png",
+      "source_components": [
+        37
+      ],
+      "source_bounds": [
+        648,
+        826,
+        700,
+        870
+      ],
+      "dimensions": [
+        100,
+        92
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 6913,
+        "partial": 50,
+        "opaque": 2237
+      },
+      "sha256": "b87736ca49d5db3713aacf84a7378b3422e4b01176bb5167db0de430e553d550"
+    },
+    {
+      "file": "36_confirm_button.png",
+      "source_components": [
+        38
+      ],
+      "source_bounds": [
+        709,
+        826,
+        759,
+        869
+      ],
+      "dimensions": [
+        98,
+        91
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 6768,
+        "partial": 66,
+        "opaque": 2084
+      },
+      "sha256": "b6087fa39418c7a3fcbb5ba8696d3a2bee23213022b432fa3582fd8be05faebd"
+    },
+    {
+      "file": "37_ladder.png",
+      "source_components": [
+        39
+      ],
+      "source_bounds": [
+        556,
+        831,
+        594,
+        909
+      ],
+      "dimensions": [
+        86,
+        126
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 8022,
+        "partial": 151,
+        "opaque": 2663
+      },
+      "sha256": "31afa66d50af3b9bf2e103bb01410a41fb87a44842735538762001ca591bca94"
+    },
+    {
+      "file": "38_dirt_platform.png",
+      "source_components": [
+        40
+      ],
+      "source_bounds": [
+        37,
+        835,
+        529,
+        902
+      ],
+      "dimensions": [
+        540,
+        115
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 29181,
+        "partial": 2805,
+        "opaque": 30114
+      },
+      "sha256": "1f0d86337d296857b537a26e06f57249558054330b89731dbf24b484d1b59f71"
+    },
+    {
+      "file": "39_indicator.png",
+      "source_components": [
+        41
+      ],
+      "source_bounds": [
+        609,
+        847,
+        635,
+        887
+      ],
+      "dimensions": [
+        74,
+        88
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 5488,
+        "partial": 98,
+        "opaque": 926
+      },
+      "sha256": "fcab694c28339c4f71642996ed6eaf3750ce3ecfd4ac3208ebb6055a105301ef"
+    },
+    {
+      "file": "40_gold_control_strip.png",
+      "source_components": [
+        42
+      ],
+      "source_bounds": [
+        653,
+        889,
+        812,
+        936
+      ],
+      "dimensions": [
+        207,
+        95
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 14252,
+        "partial": 609,
+        "opaque": 4804
+      },
+      "sha256": "938c80c3dd9cc11d31dd012878a2df8bd0f95ebb66618d180faf400fb82ac46e"
+    },
+    {
+      "file": "41_water_platform.png",
+      "source_components": [
+        43
+      ],
+      "source_bounds": [
+        36,
+        925,
+        530,
+        1016
+      ],
+      "dimensions": [
+        542,
+        139
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 30466,
+        "partial": 656,
+        "opaque": 44216
+      },
+      "sha256": "121ab4faee23aaf1db2c88866cc92ec79f6c4cb7c8408ebe81ac8900a3a65e62"
+    },
+    {
+      "file": "42_play_icon.png",
+      "source_components": [
+        44
+      ],
+      "source_bounds": [
+        569,
+        929,
+        620,
+        984
+      ],
+      "dimensions": [
+        99,
+        103
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 7555,
+        "partial": 178,
+        "opaque": 2464
+      },
+      "sha256": "90a10f486aa265693a6b373bd4c2bda3de6938a6a4b800725c1e8c4078a6dcdf"
+    },
+    {
+      "file": "43_cloud_icon.png",
+      "source_components": [
+        45
+      ],
+      "source_bounds": [
+        652,
+        951,
+        696,
+        993
+      ],
+      "dimensions": [
+        92,
+        90
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 6459,
+        "partial": 31,
+        "opaque": 1790
+      },
+      "sha256": "573243d3129aa766eb1d03099dd7ed0982ec1f62cd13877fc6757ac53d90bef8"
+    },
+    {
+      "file": "44_stop_icon.png",
+      "source_components": [
+        46
+      ],
+      "source_bounds": [
+        706,
+        951,
+        748,
+        993
+      ],
+      "dimensions": [
+        90,
+        90
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 6336,
+        "partial": 1,
+        "opaque": 1763
+      },
+      "sha256": "a765a0b5557d330f483a52b0c0c0303eaf67ad2d5e0c77f012419c5e844e4ec1"
+    },
+    {
+      "file": "45_pause_icon.png",
+      "source_components": [
+        47
+      ],
+      "source_bounds": [
+        760,
+        952,
+        809,
+        993
+      ],
+      "dimensions": [
+        97,
+        89
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 6624,
+        "partial": 15,
+        "opaque": 1994
+      },
+      "sha256": "6cf9d6f664af5abb30c270335b72e0f9ebf41a1567e9ef49616b4b0e59e698fa"
+    },
+    {
+      "file": "46_shield_icon.png",
+      "source_components": [
+        48
+      ],
+      "source_bounds": [
+        562,
+        1000,
+        623,
+        1049
+      ],
+      "dimensions": [
+        109,
+        97
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 8498,
+        "partial": 137,
+        "opaque": 1938
+      },
+      "sha256": "31bcc762ce3dd009666899314e4b7b3a5e1ddc0309666b497b913f0aef175e5b"
+    },
+    {
+      "file": "47_gate_platform.png",
+      "source_components": [
+        49
+      ],
+      "source_bounds": [
+        645,
+        1014,
+        803,
+        1049
+      ],
+      "dimensions": [
+        206,
+        83
+      ],
+      "transparent_margin_px": 24,
+      "alpha": {
+        "transparent": 11570,
+        "partial": 158,
+        "opaque": 5370
+      },
+      "sha256": "5608a0533a962ee80460adaea5f00e948327b44e03101df66c144276ccebf891"
+    }
+  ]
+}
