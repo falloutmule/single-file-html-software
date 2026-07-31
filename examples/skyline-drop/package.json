@@ -22,6 +22,7 @@
     "build:candidate": "node scripts/build-candidate.mjs",
     "test:simulation": "pnpm run typecheck && pnpm exec esbuild src/simulation-test-entry.ts --bundle --format=iife --global-name=SkylineDrop --platform=node --outfile=.candidate/simulation.bundle.js && node tests/simulation.test.full2.mjs && node tests/simulation-mechanics.test.mjs && node tests/utility-overlap.test.mjs && node tests/remix.test.mjs && node tests/main-street-road-merge.test.mjs",
     "test:browser:canonical": "node tests/canonical-browser-smoke.mjs",
+    "test:canonical": "pnpm --workspace-root sfhs pack --json --project examples/skyline-drop && pnpm --workspace-root sfhs verify --json --project examples/skyline-drop && pnpm run test:browser:canonical",
     "verify:candidate": "node scripts/verify-candidate.mjs",
     "inspect:source": "node scripts/inspect-source.mjs",
     "test:browser:candidate": "xvfb-run -a python tests/browser-smoke.py && xvfb-run -a python tests/browser-desktop-smoke.py",
