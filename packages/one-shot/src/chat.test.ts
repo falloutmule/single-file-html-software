@@ -45,4 +45,13 @@ describe("Chat One-Shot protocol v2", () => {
     expect((await completeChatOneShot(project, output)).value).toEqual({ outcome: "ONE_SHOT_COMPLETE" });
     expect(JSON.parse(await readFile(output, "utf8"))).toMatchObject({ outcome: "ONE_SHOT_COMPLETE", source: { sha256: sourceHash } });
   });
+
+  it("generates a candidate physical seed without promoting it to canonical", async () => {
+    const project = await root(); await mkdir(join(project, "one-shot")); await writeFile(join(project, "source.txt"), "source"); await writeFile(join(project, "one-shot", "ARTIFACT.json"), JSON.stringify({ classification: "candidate", path: "candidate/index.unverified.html", sha256: "a".repeat(64), bytes: 12 }));
+    const sourceHash = "41cf6794ba4200b839c53531555f0f3998df4cbb01a4d5cb0b94e3ca5e23947d"; const artifactHash = "c032ca096c2c9504ac753cb018c94f4f26244af268e157cf30554a6991d72330";
+    await writeFile(join(project, "one-shot", "RUN-STATE.json"), JSON.stringify({ schema: "sfhs.one-shot-run-state@1", version: 1, project: { id: "fixture", source: { path: "source.txt", sha256: sourceHash } }, classification: "IMPLEMENT", executionMode: "CHAT_CANDIDATE_MODE", currentGate: "COMPLETION", completedGates: ["CONTRACT", "PHYSICAL_SEED"], failedGates: [], records: { artifact: { path: "one-shot/ARTIFACT.json", sha256: artifactHash } }, productStatus: "PRODUCT_COMPLETE", sfhsStatus: "SFHS_CANDIDATE", physicalEvidence: "UNTESTED", completionPolicy: { requiredBeforeCompletion: ["CONTRACT", "PHYSICAL_SEED"], deferredHardening: [], graduationBacklog: [], releaseBacklog: [] }, nextRequiredAction: "Test", updatedAt: "2026-01-01T00:00:00.000Z" }));
+    await completeChatOneShot(project, join(project, "completion.json"));
+    expect(JSON.parse(await readFile(join(project, "one-shot", "PHYSICAL-TEST-SEED.json"), "utf8"))).toMatchObject({ classification: "candidate", artifact: { path: "candidate/index.unverified.html" } });
+    expect(await readFile(join(project, "one-shot", "PHYSICAL-TEST-INSTRUCTIONS.md"), "utf8")).toContain("cannot become canonical device acceptance");
+  });
 });
