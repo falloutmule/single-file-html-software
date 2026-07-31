@@ -69,6 +69,15 @@ function record(value: unknown): Record<string, unknown> | undefined { return va
 function inside(root: string, path: string): boolean { const value = relative(root, path); return value === "" || (!value.startsWith(`..${sep}`) && value !== ".." && !value.includes(`..${sep}`)); }
 function result<T>(findings: readonly ChatFinding[], value?: T): ChatResult<T> { const ordered = [...findings].sort((a, b) => a.path.localeCompare(b.path) || a.code.localeCompare(b.code)); return { valid: !ordered.some((finding) => finding.severity === "error"), findings: ordered, ...(value === undefined ? {} : { value }) }; }
 
+function crc32(bytes: Uint8Array): number { let value = 0xffffffff; for (const byte of bytes) { value ^= byte; for (let index = 0; index < 8; index += 1) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0); } return (value ^ 0xffffffff) >>> 0; }
+function deterministicZip(entries: readonly { readonly path: string; readonly bytes: Uint8Array }[]): Uint8Array {
+  const ordered = [...entries].sort((left, right) => left.path.localeCompare(right.path)); const names = new Set<string>(); const encoder = new TextEncoder(); let offset = 0; const chunks: Uint8Array[] = []; const directory: Uint8Array[] = [];
+  const u16 = (target: Uint8Array, at: number, value: number): void => { target[at] = value & 0xff; target[at + 1] = (value >>> 8) & 0xff; }; const u32 = (target: Uint8Array, at: number, value: number): void => { for (let index = 0; index < 4; index += 1) target[at + index] = (value >>> (index * 8)) & 0xff; };
+  if (ordered.length > 256 || ordered.reduce((total, entry) => total + entry.bytes.length, 0) > 32 * 1024 * 1024) throw new Error("completion archive exceeds bounded limits");
+  for (const entry of ordered) { const path = entry.path.replaceAll("\\", "/"); if (!/^[a-zA-Z0-9][a-zA-Z0-9._/-]*$/u.test(path) || path.split("/").includes("..") || names.has(path)) throw new Error("unsafe completion archive path"); names.add(path); const name = encoder.encode(path); const checksum = crc32(entry.bytes); const local = new Uint8Array(30 + name.length); u32(local, 0, 0x04034b50); u16(local, 4, 20); u32(local, 14, checksum); u32(local, 18, entry.bytes.length); u32(local, 22, entry.bytes.length); u16(local, 26, name.length); local.set(name, 30); chunks.push(local, entry.bytes); const central = new Uint8Array(46 + name.length); u32(central, 0, 0x02014b50); u16(central, 4, 20); u16(central, 6, 20); u32(central, 16, checksum); u32(central, 20, entry.bytes.length); u32(central, 24, entry.bytes.length); u16(central, 28, name.length); u32(central, 42, offset); central.set(name, 46); directory.push(central); offset += local.length + entry.bytes.length; }
+  const directoryBytes = directory.reduce((total, entry) => total + entry.length, 0); const ending = new Uint8Array(22); u32(ending, 0, 0x06054b50); u16(ending, 8, ordered.length); u16(ending, 10, ordered.length); u32(ending, 12, directoryBytes); u32(ending, 16, offset); const output = new Uint8Array(offset + directoryBytes + ending.length); let at = 0; for (const chunk of [...chunks, ...directory, ending]) { output.set(chunk, at); at += chunk.length; } return output;
+}
+
 export function stableJson(value: unknown): string {
   const visit = (current: unknown): unknown => Array.isArray(current) ? current.map(visit) : record(current) === undefined ? current : Object.fromEntries(Object.entries(record(current)!).sort(([a], [b]) => a.localeCompare(b)).map(([key, child]) => [key, visit(child)]));
   return `${JSON.stringify(visit(value), null, 2)}\n`;
@@ -184,7 +193,11 @@ export async function completeChatOneShot(projectRoot: string, outputPath: strin
     if (seed !== undefined) await writeFile(join(packet, "PHYSICAL-TEST-INSTRUCTIONS.md"), `# Physical Test Instructions\n\n**Artifact classification: ${seed.classification.toUpperCase()}**\n\nTest ${seed.artifact.path} with SHA-256 ${seed.artifact.sha256}. ${seed.classification === "candidate" ? "A candidate pass improves product evidence only; it cannot become canonical device acceptance." : "This canonical artifact is eligible for device acceptance when its verifier identity is retained."}\n\nRecord the device model, OS, numeric browser version, portrait and landscape viewport dimensions and DPR, requested screenshots, complete semantic scenario, reset, background/return, audio, performance/heat, result (REPORTED PASS or REPORTED FAIL), and notes.\n`, "utf8");
     const completion = { schema: "sfhs.one-shot-chat-completion@1", outcome, timestamp: new Date(0).toISOString(), source: state.project.source, packet: state.records, productStatus: state.productStatus, sfhsStatus: state.sfhsStatus, completedGates: state.completedGates, completionPolicy: state.completionPolicy, files: [{ path: state.project.source.path, sha256: hash(source) }], nextAction: "Run the generated physical-test instructions for the exact testable artifact." };
     await writeChatJson(join(packet, "COMPLETION.json"), completion);
-    await writeChatJson(output, completion);
+    if (output.endsWith(".zip")) {
+      const recordEntries = await Promise.all(Object.values(state.records).map(async (reference) => ({ path: reference.path.replaceAll("\\", "/"), bytes: new Uint8Array(await readFile(resolve(project, reference.path))) })));
+      const entries = [{ path: "completion.json", bytes: new TextEncoder().encode(stableJson(completion)) }, { path: `source/${state.project.source.path.replaceAll("\\", "/")}`, bytes: source }, ...recordEntries];
+      const bytes = deterministicZip(entries); const temporary = `${output}.tmp`; await writeFile(temporary, bytes); await rename(temporary, output);
+    } else await writeChatJson(output, completion);
   }
   return result(findings, { outcome });
 }

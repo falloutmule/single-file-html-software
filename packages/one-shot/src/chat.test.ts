@@ -46,6 +46,14 @@ describe("Chat One-Shot protocol v2", () => {
     expect(JSON.parse(await readFile(output, "utf8"))).toMatchObject({ outcome: "ONE_SHOT_COMPLETE", source: { sha256: sourceHash } });
   });
 
+  it("writes byte-identical bounded completion ZIPs", async () => {
+    const project = await root(); await mkdir(join(project, "one-shot")); await writeFile(join(project, "source.txt"), "source");
+    const sourceHash = "41cf6794ba4200b839c53531555f0f3998df4cbb01a4d5cb0b94e3ca5e23947d";
+    await writeFile(join(project, "one-shot", "RUN-STATE.json"), JSON.stringify({ schema: "sfhs.one-shot-run-state@1", version: 1, project: { id: "fixture", source: { path: "source.txt", sha256: sourceHash } }, classification: "IMPLEMENT", executionMode: "SOURCE_ONLY_MODE", currentGate: "COMPLETION", completedGates: ["CONTRACT"], failedGates: [], records: {}, productStatus: "PRODUCT_COMPLETE", sfhsStatus: "SFHS_SOURCE_ONLY", physicalEvidence: "UNTESTED", completionPolicy: { requiredBeforeCompletion: ["CONTRACT"], deferredHardening: [], graduationBacklog: [], releaseBacklog: [] }, nextRequiredAction: "Stop", updatedAt: "2026-01-01T00:00:00.000Z" }));
+    const first = join(project, "first.zip"); const second = join(project, "second.zip"); await completeChatOneShot(project, first); await completeChatOneShot(project, second);
+    const firstBytes = await readFile(first); expect([...firstBytes.subarray(0, 4)]).toEqual([80, 75, 3, 4]); expect(firstBytes).toEqual(await readFile(second));
+  });
+
   it("generates a candidate physical seed without promoting it to canonical", async () => {
     const project = await root(); await mkdir(join(project, "one-shot")); await writeFile(join(project, "source.txt"), "source"); await writeFile(join(project, "one-shot", "ARTIFACT.json"), JSON.stringify({ classification: "candidate", path: "candidate/index.unverified.html", sha256: "a".repeat(64), bytes: 12 }));
     const sourceHash = "41cf6794ba4200b839c53531555f0f3998df4cbb01a4d5cb0b94e3ca5e23947d"; const artifactHash = "c032ca096c2c9504ac753cb018c94f4f26244af268e157cf30554a6991d72330";
