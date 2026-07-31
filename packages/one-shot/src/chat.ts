@@ -46,6 +46,15 @@ export interface ChatRunState {
   readonly updatedAt: string;
 }
 
+export interface ChatPhysicalTestSeed {
+  readonly schema: "sfhs.one-shot-physical-test-seed@1";
+  readonly classification: "candidate" | "canonical";
+  readonly artifact: { readonly path: string; readonly sha256: string; readonly bytes?: number; readonly buildId?: string };
+  readonly source: { readonly path: string; readonly sha256: string };
+  readonly required: readonly string[];
+  readonly resultVocabulary: readonly string[];
+}
+
 export interface ChatFinding { readonly code: string; readonly severity: "error" | "warning"; readonly path: string; readonly message: string; }
 export interface ChatResult<T = undefined> { readonly valid: boolean; readonly findings: readonly ChatFinding[]; readonly value?: T; }
 
@@ -78,7 +87,7 @@ async function command(command: string, args: readonly string[], cwd: string): P
 async function exists(path: string, detail: string): Promise<ChatCapability> { try { await stat(path); return { state: "AVAILABLE", detail, value: path }; } catch { return { state: "UNAVAILABLE", detail }; } }
 
 export function selectChatMode(capabilities: Readonly<Record<string, ChatCapability>>): { readonly mode: ChatExecutionMode; readonly reasons: readonly string[] } {
-  const native = ["sfhsCheckout", "pnpm", "template", "adapter", "runtime", "canonicalCli", "browserRunner"].every((name) => capabilities[name]?.state === "AVAILABLE");
+  const native = ["sfhsCheckout", "pnpm", "template", "adapter", "runtime", "canonicalCli", "browserRunner"].every((name) => capabilities[name]?.state === "AVAILABLE") && capabilities.runtimeCompatible?.state !== "UNAVAILABLE";
   if (native) return { mode: "SFHS_NATIVE_MODE", reasons: [] };
   const candidate = capabilities.candidateRuntime?.state === "AVAILABLE" && capabilities.chromium?.state === "AVAILABLE";
   if (candidate) return { mode: "CHAT_CANDIDATE_MODE", reasons: ["Canonical SFHS capabilities are incomplete; candidate runtime is available."] };
@@ -103,7 +112,14 @@ export async function collectChatPreflight(projectRoot: string, options: { reado
     chromium: await command(process.platform === "win32" ? "where.exe" : "sh", process.platform === "win32" ? ["chrome"] : ["-lc", "command -v chromium || command -v google-chrome"], cwd),
     playwright: { state: "UNTESTED", detail: "Deep probe not run." }, headlessWebgl: { state: "UNTESTED", detail: "Deep probe not run." }, headfulWebgl: { state: "UNTESTED", detail: "Deep probe not run." }, urlNavigation: { state: "UNTESTED", detail: "Deep probe not run." }, fileProtocol: { state: "UNTESTED", detail: "Deep probe not run." }
   };
-  if (options.depth === "deep") for (const name of ["playwright", "headlessWebgl", "headfulWebgl", "urlNavigation", "fileProtocol"] as const) capabilities[name] = { state: "BLOCKED_BY_POLICY", detail: "Deep browser probe requires the packaged browser helper; no helper was invoked by this collector." };
+  capabilities.runtimeCompatible = selected.state === "AVAILABLE" ? { state: "AVAILABLE", detail: "A Node.js 24+ runtime was discovered.", ...(selected.value === undefined ? {} : { value: selected.value }) } : selected;
+  const descriptorPath = join(cwd, ".sfhs-one-shot", "sfhs-chat-candidate-runtime.json");
+  try {
+    const descriptor = record(JSON.parse(await readFile(descriptorPath, "utf8")));
+    const compiler = record(descriptor?.candidateCompiler);
+    if (compiler?.state !== "AVAILABLE") capabilities.candidateRuntime = { state: "UNAVAILABLE", detail: typeof compiler?.reason === "string" ? compiler.reason : "Candidate runtime does not provide a portable compiler." };
+  } catch { /* A legacy externally supplied runtime ZIP has no descriptor; retain its probe result. */ }
+  if (options.depth === "deep") for (const name of ["playwright", "headlessWebgl", "headfulWebgl", "urlNavigation", "fileProtocol"] as const) capabilities[name] = { state: "UNTESTED", detail: "Deep browser helper is not available to this portable collector." };
   const selection = selectChatMode(capabilities);
   return { schema: "sfhs.one-shot-preflight@1", version: 1, timestamp: (options.now ?? (() => new Date()))().toISOString(), depth: options.depth, platform: process.platform, architecture: process.arch, workingDirectory: cwd, writableOutputRoot: { state: "AVAILABLE", detail: "Project one-shot directory is writable after command validation.", value: join(cwd, "one-shot") }, runtimes, selectedRuntime: selected, capabilities, selectedExecutionMode: selection.mode, reasons: selection.reasons };
 }
@@ -112,6 +128,39 @@ export async function validateChatRunState(projectRoot: string): Promise<ChatRes
   const path = join(resolve(projectRoot), "one-shot", "RUN-STATE.json"); const findings: ChatFinding[] = [];
   let value: unknown; try { value = JSON.parse(await readFile(path, "utf8")); } catch { return result([{ code: "SFHS_ONE_SHOT_RUN_STATE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run state is missing or invalid JSON." }]); }
   const state = record(value); if (state?.schema !== "sfhs.one-shot-run-state@1" || state.version !== 1 || !modes.includes(state.executionMode as ChatExecutionMode) || !gates.includes(state.currentGate as ChatGate)) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run state has an unsupported schema, mode, or gate." });
+  const source = record(record(state?.project)?.source);
+  if (typeof source?.path !== "string" || typeof source.sha256 !== "string" || !inside(resolve(projectRoot), resolve(projectRoot, source.path))) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run-state source identity must be a project-contained hashed path." });
+  else try { if (hash(await readFile(resolve(projectRoot, source.path))) !== source.sha256) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH", severity: "error", path: source.path, message: "Run-state source identity is stale; completion must be reopened." }); } catch { findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: source.path, message: "Run-state source identity is unreadable." }); }
   const records = record(state?.records); for (const entry of Object.values(records ?? {})) { const reference = record(entry); if (typeof reference?.path !== "string" || typeof reference.sha256 !== "string" || !inside(resolve(projectRoot), resolve(projectRoot, reference.path))) { findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: "one-shot/RUN-STATE.json", message: "Run-state record references must be project-contained hashed paths." }); continue; } try { if (hash(await readFile(resolve(projectRoot, reference.path))) !== reference.sha256) findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH", severity: "error", path: reference.path, message: "Run-state reference hash is stale." }); } catch { findings.push({ code: "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID", severity: "error", path: reference.path, message: "Run-state reference is unreadable." }); } }
+  if (state?.productStatus === "PRODUCT_USER_ACCEPTED" && !["REPORTED", "VERIFIED"].includes(state.physicalEvidence as string)) findings.push({ code: "SFHS_ONE_SHOT_PRODUCT_ACCEPTANCE_UNBOUND", severity: "error", path: "one-shot/RUN-STATE.json", message: "PRODUCT_USER_ACCEPTED requires retained REPORTED or VERIFIED human evidence." });
   return result(findings, state as unknown as ChatRunState);
+}
+
+export async function completeChatOneShot(projectRoot: string, outputPath: string): Promise<ChatResult<{ readonly outcome: string }>> {
+  const stateResult = await validateChatRunState(projectRoot); const findings = [...stateResult.findings]; const state = stateResult.value;
+  if (state === undefined) return result(findings);
+  const missing = state.completionPolicy.requiredBeforeCompletion.filter((gate) => !state.completedGates.includes(gate as ChatGate));
+  if (missing.length > 0) findings.push({ code: "SFHS_ONE_SHOT_COMPLETION_REQUIRED_OPEN", severity: "error", path: "one-shot/RUN-STATE.json", message: `Completion requires these open gates: ${missing.join(", ")}.` });
+  const project = resolve(projectRoot); const packet = join(project, "one-shot"); const artifactReference = record(state.records.artifact); let seed: ChatPhysicalTestSeed | undefined;
+  if (state.completedGates.includes("PHYSICAL_SEED") || artifactReference !== undefined) {
+    try {
+      if (artifactReference === undefined || typeof artifactReference.path !== "string") throw new Error("missing artifact");
+      const artifact = record(JSON.parse(await readFile(resolve(project, artifactReference.path), "utf8")));
+      const classification = artifact?.classification === "canonical" ? "canonical" : artifact?.classification === "candidate" ? "candidate" : undefined;
+      if (artifact === undefined || classification === undefined || typeof artifact.path !== "string" || typeof artifact.sha256 !== "string") throw new Error("invalid artifact");
+      seed = { schema: "sfhs.one-shot-physical-test-seed@1", classification, artifact: { path: artifact.path, sha256: artifact.sha256, ...(typeof artifact.bytes === "number" ? { bytes: artifact.bytes } : {}), ...(classification === "canonical" && typeof artifact.buildId === "string" ? { buildId: artifact.buildId } : {}) }, source: state.project.source, required: ["artifact identity", "device model", "numeric browser version", "portrait viewport width/height/DPR", "landscape viewport width/height/DPR or rotate-gate screenshot", "required screenshots", "complete semantic scenario", "background/return", "audio", "performance and heat"], resultVocabulary: ["REPORTED PASS", "REPORTED FAIL"] };
+    } catch { findings.push({ code: "SFHS_ONE_SHOT_PHYSICAL_SEED_INVALID", severity: "error", path: "one-shot/ARTIFACT.json", message: "The artifact record must declare a candidate or canonical path and SHA-256 before physical instructions can be generated." }); }
+  }
+  const outcome = findings.some((finding) => finding.severity === "error") ? "NEEDS_REPAIR" : "ONE_SHOT_COMPLETE";
+  if (outcome === "ONE_SHOT_COMPLETE") {
+    const output = resolve(outputPath);
+    if (!inside(project, output)) return result([...findings, { code: "SFHS_ONE_SHOT_COMPLETION_OUTPUT_INVALID", severity: "error", path: outputPath, message: "Completion output must remain inside the project." }]);
+    const source = await readFile(resolve(project, state.project.source.path));
+    if (seed !== undefined) await writeChatJson(join(packet, "PHYSICAL-TEST-SEED.json"), seed);
+    if (seed !== undefined) await writeFile(join(packet, "PHYSICAL-TEST-INSTRUCTIONS.md"), `# Physical Test Instructions\n\n**Artifact classification: ${seed.classification.toUpperCase()}**\n\nTest ${seed.artifact.path} with SHA-256 ${seed.artifact.sha256}. ${seed.classification === "candidate" ? "A candidate pass improves product evidence only; it cannot become canonical device acceptance." : "This canonical artifact is eligible for device acceptance when its verifier identity is retained."}\n\nRecord the device model, OS, numeric browser version, portrait and landscape viewport dimensions and DPR, requested screenshots, complete semantic scenario, reset, background/return, audio, performance/heat, result (REPORTED PASS or REPORTED FAIL), and notes.\n`, "utf8");
+    const completion = { schema: "sfhs.one-shot-chat-completion@1", outcome, timestamp: new Date(0).toISOString(), source: state.project.source, packet: state.records, productStatus: state.productStatus, sfhsStatus: state.sfhsStatus, completedGates: state.completedGates, completionPolicy: state.completionPolicy, files: [{ path: state.project.source.path, sha256: hash(source) }], nextAction: "Run the generated physical-test instructions for the exact testable artifact." };
+    await writeChatJson(join(packet, "COMPLETION.json"), completion);
+    await writeChatJson(output, completion);
+  }
+  return result(findings, { outcome });
 }

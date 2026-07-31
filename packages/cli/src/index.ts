@@ -44,7 +44,7 @@ import {
   type OneShotFindingCode,
   type OneShotInspection
 } from "@sfhs/one-shot";
-import { collectChatPreflight, validateChatRunState, writeChatJson } from "@sfhs/one-shot/chat";
+import { collectChatPreflight, completeChatOneShot, validateChatRunState, writeChatJson } from "@sfhs/one-shot/chat";
 import {
   packIntermediate,
   packProject,
@@ -77,6 +77,7 @@ export type CliCommand =
   | "one-shot inspect"
   | "one-shot kit"
   | "one-shot preflight"
+  | "one-shot complete"
   | "one-shot run-state inspect"
   | "one-shot run-state validate"
   | "pack"
@@ -96,6 +97,10 @@ export type CliFindingCode =
   | "SFHS_ONE_SHOT_RUN_STATE_INVALID"
   | "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID"
   | "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH"
+  | "SFHS_ONE_SHOT_PRODUCT_ACCEPTANCE_UNBOUND"
+  | "SFHS_ONE_SHOT_COMPLETION_OUTPUT_INVALID"
+  | "SFHS_ONE_SHOT_COMPLETION_REQUIRED_OPEN"
+  | "SFHS_ONE_SHOT_PHYSICAL_SEED_INVALID"
   | ValidationFindingCode
   | "SFHS_CLI_ARGUMENT_INVALID"
   | "SFHS_CLI_IO_FAILURE"
@@ -215,6 +220,7 @@ interface ParsedArguments {
   readonly laneArgument?: string;
   readonly depthArgument?: "fast" | "deep";
   readonly protocolArgument?: "chat-v2";
+  readonly stageArgument?: "chat-build";
 }
 
 export interface CliCommandExecution {
@@ -245,7 +251,7 @@ export type CliReleaseBrowserRunner = (
   evidenceDirectory: string
 ) => Promise<CliReleaseBrowserResult>;
 
-const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot run-state inspect|one-shot run-state validate> [--project <path>] [--brief <path>] [--output <path>] [--lane <id>] [--protocol chat-v2] [--depth <fast|deep>] [--changed <path>]... [--evidence <dir>] [--device-evidence <file>] [--json]";
+const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot complete|one-shot run-state inspect|one-shot run-state validate> [--project <path>] [--brief <path>] [--output <path>] [--lane <id>] [--protocol chat-v2] [--stage chat-build] [--depth <fast|deep>] [--changed <path>]... [--evidence <dir>] [--device-evidence <file>] [--json]";
 const execFileAsync = promisify(execFile);
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -294,7 +300,7 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     ? "release prepare"
     : argv[0] === "one-shot" && argv[1] === "run-state" && ["inspect", "validate"].includes(argv[2] ?? "")
       ? `one-shot run-state ${argv[2]!}`
-    : argv[0] === "one-shot" && ["init", "inspect", "audit", "kit", "preflight"].includes(argv[1] ?? "")
+    : argv[0] === "one-shot" && ["init", "inspect", "audit", "kit", "preflight", "complete"].includes(argv[1] ?? "")
       ? `one-shot ${argv[1]!}`
       : argv[0]) ?? "";
   const optionStart = commandCandidate.startsWith("one-shot run-state") ? 3 : commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") ? 2 : 1;
@@ -306,6 +312,7 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     commandCandidate !== "one-shot audit" &&
     commandCandidate !== "one-shot kit" &&
     commandCandidate !== "one-shot preflight" &&
+    commandCandidate !== "one-shot complete" &&
     commandCandidate !== "one-shot run-state inspect" &&
     commandCandidate !== "one-shot run-state validate" &&
     commandCandidate !== "validate" &&
@@ -333,6 +340,7 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   let laneArgument: string | undefined;
   let depthArgument: "fast" | "deep" | undefined;
   let protocolArgument: "chat-v2" | undefined;
+  let stageArgument: "chat-build" | undefined;
   const changedPaths: string[] = [];
 
   for (let index = optionStart; index < argv.length; index += 1) {
@@ -404,6 +412,11 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
       index += 1;
       continue;
     }
+    if (argument === "--stage") {
+      const value = argv[index + 1];
+      if (value !== "chat-build" || stageArgument !== undefined) return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
+      stageArgument = value; index += 1; continue;
+    }
 
     if (argument === "--evidence" || argument === "--device-evidence") {
       const value = argv[index + 1];
@@ -459,14 +472,16 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   const oneShotProject = commandCandidate === "one-shot inspect" || commandCandidate === "one-shot audit";
   const oneShotKit = commandCandidate === "one-shot kit";
   const oneShotPreflight = commandCandidate === "one-shot preflight";
+  const oneShotComplete = commandCandidate === "one-shot complete";
   const oneShotRunState = commandCandidate === "one-shot run-state inspect" || commandCandidate === "one-shot run-state validate";
   if (
-    (oneShotInit && (briefArgument === undefined || outputArgument === undefined || laneArgument === undefined || projectArgument !== undefined || depthArgument !== undefined)) ||
-    (oneShotProject && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined)) ||
+    (oneShotInit && (briefArgument === undefined || outputArgument === undefined || laneArgument === undefined || projectArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
+    (oneShotProject && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
     (oneShotKit && (outputArgument === undefined || projectArgument !== undefined || briefArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined)) ||
-    (oneShotPreflight && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined)) ||
-    (oneShotRunState && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined)) ||
-    (!oneShotInit && !oneShotProject && !oneShotKit && !oneShotPreflight && !oneShotRunState && (briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined))
+    (oneShotPreflight && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || stageArgument !== undefined)) ||
+    (oneShotComplete && (projectArgument === undefined || outputArgument === undefined || briefArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
+    (oneShotRunState && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined || stageArgument !== undefined)) ||
+    (!oneShotInit && !oneShotProject && !oneShotKit && !oneShotPreflight && !oneShotComplete && !oneShotRunState && (briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined || stageArgument !== undefined))
   ) return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
 
   return {
@@ -480,7 +495,8 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     ...(outputArgument === undefined ? {} : { outputArgument }),
     ...(laneArgument === undefined ? {} : { laneArgument }),
     ...(depthArgument === undefined ? {} : { depthArgument }),
-    ...(protocolArgument === undefined ? {} : { protocolArgument })
+    ...(protocolArgument === undefined ? {} : { protocolArgument }),
+    ...(stageArgument === undefined ? {} : { stageArgument })
   };
 }
 
@@ -705,6 +721,10 @@ async function runOneShotCommand(parsed: ParsedArguments, options: CliRunOptions
     await writeChatJson(join(project, "one-shot", "PREFLIGHT.json"), preflight);
     return resultFor(oneShotEnvelope(parsed.command, undefined, []), parsed.json);
   }
+  if (parsed.command === "one-shot complete") {
+    const completed = await completeChatOneShot(resolve(workingDirectory, parsed.projectArgument!), resolve(workingDirectory, parsed.outputArgument!));
+    return resultFor(oneShotEnvelope(parsed.command, undefined, completed.findings as readonly CliFinding[]), parsed.json);
+  }
   if (parsed.command === "one-shot run-state inspect" || parsed.command === "one-shot run-state validate") {
     const state = await validateChatRunState(resolve(workingDirectory, parsed.projectArgument!));
     return resultFor(oneShotEnvelope(parsed.command, undefined, state.findings as readonly CliFinding[]), parsed.json);
@@ -720,7 +740,7 @@ async function runOneShotCommand(parsed: ParsedArguments, options: CliRunOptions
     return resultFor(oneShotEnvelope(parsed.command, undefined, initialized.findings), parsed.json);
   }
   if (parsed.command === "one-shot kit") {
-    const built = await buildOneShotKit(resolve(workingDirectory, parsed.outputArgument!), { revision });
+    const built = await buildOneShotKit(resolve(workingDirectory, parsed.outputArgument!), { revision, ...(parsed.stageArgument === undefined ? {} : { stage: parsed.stageArgument }) });
     return resultFor(oneShotEnvelope(parsed.command, undefined, built.findings), parsed.json);
   }
   const project = resolve(workingDirectory, parsed.projectArgument!);

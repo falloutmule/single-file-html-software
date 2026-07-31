@@ -53,6 +53,8 @@
     { "path": "one-shot/schemas/one-shot-preflight.schema.json", "authority": "normative", "priority": 38, "required": false },
     { "path": "one-shot/schemas/one-shot-run-state.schema.json", "authority": "normative", "priority": 39, "required": false },
     { "path": "one-shot/schemas/one-shot-physical-test-seed.schema.json", "authority": "normative", "priority": 40, "required": false },
-    { "path": "one-shot/schemas/one-shot-chat-completion.schema.json", "authority": "normative", "priority": 41, "required": false }
+    { "path": "one-shot/schemas/one-shot-chat-completion.schema.json", "authority": "normative", "priority": 41, "required": false },
+    { "path": "one-shot/prompts/freeze-chat-one-shot-v2.md", "authority": "explanatory", "priority": 42, "required": false },
+    { "path": "one-shot/prompts/physical-acceptance-chat-v2.md", "authority": "explanatory", "priority": 43, "required": false }
   ]
 }

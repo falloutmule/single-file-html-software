@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { cp, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { writeChatJson } from "./chat.ts";
+import { stableJson, writeChatJson } from "./chat.ts";
 
 export const packageIdentity = "@sfhs/one-shot" as const;
 
@@ -19,6 +19,7 @@ export type OneShotFindingCode =
   | "SFHS_ONE_SHOT_CANONICAL_EVIDENCE_REQUIRED"
   | "SFHS_ONE_SHOT_PHYSICAL_EVIDENCE_REQUIRED"
   | "SFHS_ONE_SHOT_SOURCE_PACK_INVALID"
+  | "SFHS_ONE_SHOT_CANDIDATE_COMPILER_UNAVAILABLE"
   | "SFHS_ONE_SHOT_IO_FAILURE";
 
 export interface OneShotFinding {
@@ -88,6 +89,30 @@ const statuses = new Set<OneShotStatus>(["VERIFIED", "REPORTED", "INFERRED", "PR
 
 function sha256(value: Uint8Array | string): string {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function crc32(bytes: Uint8Array): number {
+  let value = 0xffffffff;
+  for (const byte of bytes) {
+    value ^= byte;
+    for (let index = 0; index < 8; index += 1) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+  }
+  return (value ^ 0xffffffff) >>> 0;
+}
+
+function storedZip(entries: readonly { readonly path: string; readonly content: string }[]): Uint8Array {
+  const encoder = new TextEncoder(); const chunks: Uint8Array[] = []; const directory: Uint8Array[] = []; let offset = 0;
+  const part = (length: number): Uint8Array => new Uint8Array(length);
+  const u16 = (target: Uint8Array, at: number, value: number): void => { target[at] = value & 0xff; target[at + 1] = (value >>> 8) & 0xff; };
+  const u32 = (target: Uint8Array, at: number, value: number): void => { for (let index = 0; index < 4; index += 1) target[at + index] = (value >>> (index * 8)) & 0xff; };
+  for (const entry of entries) {
+    const name = encoder.encode(entry.path); const content = encoder.encode(entry.content); const checksum = crc32(content); const local = part(30 + name.length);
+    u32(local, 0, 0x04034b50); u16(local, 4, 20); u16(local, 6, 0); u16(local, 8, 0); u16(local, 10, 0); u16(local, 12, 0); u32(local, 14, checksum); u32(local, 18, content.length); u32(local, 22, content.length); u16(local, 26, name.length); u16(local, 28, 0); local.set(name, 30);
+    chunks.push(local, content);
+    const central = part(46 + name.length); u32(central, 0, 0x02014b50); u16(central, 4, 20); u16(central, 6, 20); u16(central, 8, 0); u16(central, 10, 0); u16(central, 12, 0); u16(central, 14, 0); u32(central, 16, checksum); u32(central, 20, content.length); u32(central, 24, content.length); u16(central, 28, name.length); u16(central, 30, 0); u16(central, 32, 0); u16(central, 34, 0); u16(central, 36, 0); u32(central, 38, 0); u32(central, 42, offset); central.set(name, 46); directory.push(central); offset += local.length + content.length;
+  }
+  const directoryBytes = directory.reduce((total, entry) => total + entry.length, 0); const ending = part(22); u32(ending, 0, 0x06054b50); u16(ending, 4, 0); u16(ending, 6, 0); u16(ending, 8, entries.length); u16(ending, 10, entries.length); u32(ending, 12, directoryBytes); u32(ending, 16, offset); u16(ending, 20, 0);
+  const output = new Uint8Array(offset + directoryBytes + ending.length); let at = 0; for (const chunk of [...chunks, ...directory, ending]) { output.set(chunk, at); at += chunk.length; } return output;
 }
 
 function isInside(root: string, candidate: string): boolean {
@@ -294,7 +319,7 @@ export async function readSourcePackManifest(): Promise<SourcePackManifest> {
   return manifest as unknown as SourcePackManifest;
 }
 
-export async function buildOneShotKit(outputPath: string, options: { readonly revision: string }): Promise<OneShotResult> {
+export async function buildOneShotKit(outputPath: string, options: { readonly revision: string; readonly stage?: "chat-build" }): Promise<OneShotResult> {
   const findings: OneShotFinding[] = [];
   const target = resolve(outputPath);
   if (await stat(target).then(() => true).catch(() => false)) {
@@ -313,13 +338,29 @@ export async function buildOneShotKit(outputPath: string, options: { readonly re
       files.push({ path: entry.path, sha256: sha256(content), content, authority: entry.authority, priority: entry.priority, required: entry.required, ...(entry.lanes === undefined ? {} : { lanes: entry.lanes }), ...(entry.supersedes === undefined ? {} : { supersedes: entry.supersedes }) });
     }
     await mkdir(dirname(target), { recursive: true });
-    const archive = {
+    const archive: Record<string, unknown> = {
       schema: "sfhs.one-shot-kit@1",
       version: manifest.version,
       repository: { revision: options.revision, compatibility: manifest.compatibility },
       sourcePack: { authorityOrder: manifest.authorityOrder, superseded: manifest.superseded, sources: entries },
       files
     };
+    if (options.stage === "chat-build") {
+      const runtimePath = join(dirname(target), "sfhs-chat-candidate-runtime.zip");
+      const runtimeDescriptorPath = join(dirname(target), "sfhs-chat-candidate-runtime.json");
+      if (await stat(runtimePath).then(() => true).catch(() => false) || await stat(runtimeDescriptorPath).then(() => true).catch(() => false)) {
+        findings.push({ code: "SFHS_ONE_SHOT_OUTPUT_EXISTS", severity: "error", path: dirname(target), message: "Chat kit companion runtime paths must be new so their identity cannot be overwritten." });
+        return result(findings);
+      }
+      // The real builder imports workspace esbuild. Until that executable and its platform binary can be packaged directly,
+      // this intentionally contains inspection/provenance only and cannot advertise candidate compilation.
+      const runtime = storedZip([{ path: "README.md", content: "# SFHS Chat candidate runtime\n\nThis pinned runtime proves candidate-kit provenance but does not include a compiler. Current SFHS candidate compilation remains unavailable until the real esbuild-backed builder can be transported without creating a second builder.\n" }, { path: "preflight.mjs", content: "process.stdout.write(JSON.stringify({ schema: 'sfhs.chat-runtime-probe@1', candidateCompiler: 'UNAVAILABLE', reason: 'Pinned SFHS esbuild runtime is not packaged in this kit.' }) + '\\n');\n" }]);
+      await writeFile(runtimePath, runtime);
+      const runtimeDescriptor = { schema: "sfhs.one-shot-chat-candidate-runtime@1", repository: { revision: options.revision }, candidateCompiler: { state: "UNAVAILABLE", reason: "The portable compiler is deferred; this runtime never creates a candidate artifact." }, path: basename(runtimePath), bytes: runtime.byteLength, sha256: sha256(runtime), platformAssumptions: ["Node.js", "No network acquisition"], pixiVersion: "workspace-pinned", adapterVersion: "workspace-pinned" };
+      await writeFile(runtimeDescriptorPath, stableJson(runtimeDescriptor), "utf8");
+      archive.stage = "chat-build";
+      archive.candidateRuntime = { path: basename(runtimePath), bytes: runtime.byteLength, sha256: sha256(runtime), descriptor: basename(runtimeDescriptorPath), candidateCompiler: "UNAVAILABLE" };
+    }
     await writeFile(target, `${JSON.stringify(archive, null, 2)}\n`, "utf8");
   } catch {
     findings.push({ code: "SFHS_ONE_SHOT_SOURCE_PACK_INVALID", severity: "error", path: "one-shot/source-pack-manifest.json", message: "Source pack entries must be unique, ordered, repository-contained, and readable." });
