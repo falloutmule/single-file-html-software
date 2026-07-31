@@ -60,6 +60,13 @@ describe("Chat One-Shot protocol v2", () => {
     await writeFile(join(project, "one-shot", "RUN-STATE.json"), JSON.stringify({ schema: "sfhs.one-shot-run-state@1", version: 1, project: { id: "fixture", source: { path: "source.txt", sha256: sourceHash } }, classification: "IMPLEMENT", executionMode: "CHAT_CANDIDATE_MODE", currentGate: "COMPLETION", completedGates: ["CONTRACT", "PHYSICAL_SEED"], failedGates: [], records: { artifact: { path: "one-shot/ARTIFACT.json", sha256: artifactHash } }, productStatus: "PRODUCT_COMPLETE", sfhsStatus: "SFHS_CANDIDATE", physicalEvidence: "UNTESTED", completionPolicy: { requiredBeforeCompletion: ["CONTRACT", "PHYSICAL_SEED"], deferredHardening: [], graduationBacklog: [], releaseBacklog: [] }, nextRequiredAction: "Test", updatedAt: "2026-01-01T00:00:00.000Z" }));
     await completeChatOneShot(project, join(project, "completion.json"));
     expect(JSON.parse(await readFile(join(project, "one-shot", "PHYSICAL-TEST-SEED.json"), "utf8"))).toMatchObject({ classification: "candidate", artifact: { path: "candidate/index.unverified.html" } });
-    expect(await readFile(join(project, "one-shot", "PHYSICAL-TEST-INSTRUCTIONS.md"), "utf8")).toContain("cannot become canonical device acceptance");
+    expect(await readFile(join(project, "one-shot", "PHYSICAL-TEST-INSTRUCTIONS.md"), "utf8")).toContain("cannot establish canonical SFHS physical acceptance");
+  });
+
+  it("rejects a canonical physical seed without its exact build identity", async () => {
+    const project = await root(); await mkdir(join(project, "one-shot")); await writeFile(join(project, "source.txt"), "source"); await writeFile(join(project, "one-shot", "ARTIFACT.json"), JSON.stringify({ classification: "canonical", path: "dist/index.html", sha256: "a".repeat(64), bytes: 12 }));
+    const sourceHash = "41cf6794ba4200b839c53531555f0f3998df4cbb01a4d5cb0b94e3ca5e23947d"; const artifactHash = "2aba7d5538a2c28320025012d2b072679f1330f31cdd42fea7051236341a3034";
+    await writeFile(join(project, "one-shot", "RUN-STATE.json"), JSON.stringify({ schema: "sfhs.one-shot-run-state@1", version: 1, project: { id: "fixture", source: { path: "source.txt", sha256: sourceHash } }, classification: "IMPLEMENT", executionMode: "SFHS_NATIVE_MODE", currentGate: "PHYSICAL_SEED", completedGates: ["CONTRACT", "PHYSICAL_SEED"], failedGates: [], records: { artifact: { path: "one-shot/ARTIFACT.json", sha256: artifactHash } }, productStatus: "PRODUCT_COMPLETE", sfhsStatus: "SFHS_CANONICAL", physicalEvidence: "UNTESTED", completionPolicy: { requiredBeforeCompletion: ["CONTRACT", "PHYSICAL_SEED"], deferredHardening: [], graduationBacklog: [], releaseBacklog: [] }, nextRequiredAction: "Test", updatedAt: "2026-01-01T00:00:00.000Z" }));
+    expect((await completeChatOneShot(project, join(project, "completion.json"))).findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_ONE_SHOT_PHYSICAL_SEED_INVALID" })]));
   });
 });
