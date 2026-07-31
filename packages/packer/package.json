@@ -10,6 +10,7 @@
     "@sfhs/builder": "workspace:*",
     "@sfhs/contracts": "workspace:*",
     "@sfhs/core": "workspace:*",
+    "acorn": "8.17.0",
     "parse5": "8.0.1"
   }
 }

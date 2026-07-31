@@ -94,7 +94,7 @@ describe("@sfhs/verifier static scanner", () => {
     const packed = packIntermediate(
       Object.freeze({
         ...intermediate,
-        javascript: 'const value="\u0080"; const matcher=/\u0080/; globalThis.__sfhsControlProbe=[value,matcher.test(value)];',
+        javascript: 'const value="\\u0080"; const matcher=/\\u0080/; globalThis.__sfhsControlProbe=[value,matcher.test(value)];',
         emittedAssets: []
       })
     );
