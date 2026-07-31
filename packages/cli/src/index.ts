@@ -44,6 +44,7 @@ import {
   type OneShotFindingCode,
   type OneShotInspection
 } from "@sfhs/one-shot";
+import { collectChatPreflight, validateChatRunState, writeChatJson } from "@sfhs/one-shot/chat";
 import {
   packIntermediate,
   packProject,
@@ -75,6 +76,9 @@ export type CliCommand =
   | "one-shot init"
   | "one-shot inspect"
   | "one-shot kit"
+  | "one-shot preflight"
+  | "one-shot run-state inspect"
+  | "one-shot run-state validate"
   | "pack"
   | "release prepare"
   | "test"
@@ -89,6 +93,9 @@ export type CliFindingCode =
   | ArtifactVerificationFindingCode
   | EvidenceErrorCode
   | OneShotFindingCode
+  | "SFHS_ONE_SHOT_RUN_STATE_INVALID"
+  | "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID"
+  | "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH"
   | ValidationFindingCode
   | "SFHS_CLI_ARGUMENT_INVALID"
   | "SFHS_CLI_IO_FAILURE"
@@ -206,6 +213,8 @@ interface ParsedArguments {
   readonly briefArgument?: string;
   readonly outputArgument?: string;
   readonly laneArgument?: string;
+  readonly depthArgument?: "fast" | "deep";
+  readonly protocolArgument?: "chat-v2";
 }
 
 export interface CliCommandExecution {
@@ -236,7 +245,7 @@ export type CliReleaseBrowserRunner = (
   evidenceDirectory: string
 ) => Promise<CliReleaseBrowserResult>;
 
-const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit> [--project <path>] [--brief <path>] [--output <path>] [--lane <id>] [--changed <path>]... [--evidence <dir>] [--device-evidence <file>] [--json]";
+const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot run-state inspect|one-shot run-state validate> [--project <path>] [--brief <path>] [--output <path>] [--lane <id>] [--protocol chat-v2] [--depth <fast|deep>] [--changed <path>]... [--evidence <dir>] [--device-evidence <file>] [--json]";
 const execFileAsync = promisify(execFile);
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -283,10 +292,12 @@ function coreFinding(error: unknown, path: string): CliFinding {
 function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   const commandCandidate: string = (argv[0] === "release" && argv[1] === "prepare"
     ? "release prepare"
-    : argv[0] === "one-shot" && ["init", "inspect", "audit", "kit"].includes(argv[1] ?? "")
+    : argv[0] === "one-shot" && argv[1] === "run-state" && ["inspect", "validate"].includes(argv[2] ?? "")
+      ? `one-shot run-state ${argv[2]!}`
+    : argv[0] === "one-shot" && ["init", "inspect", "audit", "kit", "preflight"].includes(argv[1] ?? "")
       ? `one-shot ${argv[1]!}`
       : argv[0]) ?? "";
-  const optionStart = commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") ? 2 : 1;
+  const optionStart = commandCandidate.startsWith("one-shot run-state") ? 3 : commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") ? 2 : 1;
   if (
     commandCandidate !== "doctor" &&
     commandCandidate !== "inspect" &&
@@ -294,6 +305,9 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     commandCandidate !== "one-shot inspect" &&
     commandCandidate !== "one-shot audit" &&
     commandCandidate !== "one-shot kit" &&
+    commandCandidate !== "one-shot preflight" &&
+    commandCandidate !== "one-shot run-state inspect" &&
+    commandCandidate !== "one-shot run-state validate" &&
     commandCandidate !== "validate" &&
     commandCandidate !== "build" &&
     commandCandidate !== "check" &&
@@ -317,6 +331,8 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   let briefArgument: string | undefined;
   let outputArgument: string | undefined;
   let laneArgument: string | undefined;
+  let depthArgument: "fast" | "deep" | undefined;
+  let protocolArgument: "chat-v2" | undefined;
   const changedPaths: string[] = [];
 
   for (let index = optionStart; index < argv.length; index += 1) {
@@ -353,6 +369,17 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
       if (argument === "--lane") laneArgument = value;
       index += 1;
       continue;
+    }
+
+    if (argument === "--depth") {
+      const value = argv[index + 1];
+      if ((value !== "fast" && value !== "deep") || depthArgument !== undefined) return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
+      depthArgument = value; index += 1; continue;
+    }
+    if (argument === "--protocol") {
+      const value = argv[index + 1];
+      if (value !== "chat-v2" || protocolArgument !== undefined) return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
+      protocolArgument = value; index += 1; continue;
     }
 
     if (argument === "--changed") {
@@ -431,11 +458,15 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   const oneShotInit = commandCandidate === "one-shot init";
   const oneShotProject = commandCandidate === "one-shot inspect" || commandCandidate === "one-shot audit";
   const oneShotKit = commandCandidate === "one-shot kit";
+  const oneShotPreflight = commandCandidate === "one-shot preflight";
+  const oneShotRunState = commandCandidate === "one-shot run-state inspect" || commandCandidate === "one-shot run-state validate";
   if (
-    (oneShotInit && (briefArgument === undefined || outputArgument === undefined || laneArgument === undefined || projectArgument !== undefined)) ||
-    (oneShotProject && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined)) ||
-    (oneShotKit && (outputArgument === undefined || projectArgument !== undefined || briefArgument !== undefined || laneArgument !== undefined)) ||
-    (!oneShotInit && !oneShotProject && !oneShotKit && (briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined))
+    (oneShotInit && (briefArgument === undefined || outputArgument === undefined || laneArgument === undefined || projectArgument !== undefined || depthArgument !== undefined)) ||
+    (oneShotProject && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined)) ||
+    (oneShotKit && (outputArgument === undefined || projectArgument !== undefined || briefArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined)) ||
+    (oneShotPreflight && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined)) ||
+    (oneShotRunState && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined)) ||
+    (!oneShotInit && !oneShotProject && !oneShotKit && !oneShotPreflight && !oneShotRunState && (briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined))
   ) return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
 
   return {
@@ -447,7 +478,9 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     ...(deviceEvidenceArgument === undefined ? {} : { deviceEvidenceArgument }),
     ...(briefArgument === undefined ? {} : { briefArgument }),
     ...(outputArgument === undefined ? {} : { outputArgument }),
-    ...(laneArgument === undefined ? {} : { laneArgument })
+    ...(laneArgument === undefined ? {} : { laneArgument }),
+    ...(depthArgument === undefined ? {} : { depthArgument }),
+    ...(protocolArgument === undefined ? {} : { protocolArgument })
   };
 }
 
@@ -666,12 +699,23 @@ async function currentRevision(workingDirectory: string, configured: string | un
 
 async function runOneShotCommand(parsed: ParsedArguments, options: CliRunOptions, workingDirectory: string): Promise<CliRunResult> {
   const revision = await currentRevision(options.workspaceRoot ?? workingDirectory, options.sourceRevision);
+  if (parsed.command === "one-shot preflight") {
+    const project = resolve(workingDirectory, parsed.projectArgument!);
+    const preflight = await collectChatPreflight(project, { depth: parsed.depthArgument ?? "fast", ...(options.now === undefined ? {} : { now: options.now }) });
+    await writeChatJson(join(project, "one-shot", "PREFLIGHT.json"), preflight);
+    return resultFor(oneShotEnvelope(parsed.command, undefined, []), parsed.json);
+  }
+  if (parsed.command === "one-shot run-state inspect" || parsed.command === "one-shot run-state validate") {
+    const state = await validateChatRunState(resolve(workingDirectory, parsed.projectArgument!));
+    return resultFor(oneShotEnvelope(parsed.command, undefined, state.findings as readonly CliFinding[]), parsed.json);
+  }
   if (parsed.command === "one-shot init") {
     const initialized = await initializeOneShotProject({
       briefPath: resolve(workingDirectory, parsed.briefArgument!),
       outputPath: resolve(workingDirectory, parsed.outputArgument!),
       lane: parsed.laneArgument!,
-      revision
+      revision,
+      ...(parsed.protocolArgument === undefined ? {} : { protocol: parsed.protocolArgument })
     });
     return resultFor(oneShotEnvelope(parsed.command, undefined, initialized.findings), parsed.json);
   }

@@ -8,7 +8,8 @@
     "project": { "type": "object", "additionalProperties": false, "required": ["id", "title"], "properties": { "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,63}$" }, "title": { "type": "string", "minLength": 1 } } },
     "lane": { "type": "object", "additionalProperties": false, "required": ["id"], "properties": { "id": { "type": "string" } } },
     "target": { "type": "object", "additionalProperties": false, "required": ["device", "orientation"], "properties": { "device": { "type": "string" }, "orientation": { "type": "string" } } },
-    "status": { "$ref": "#/$defs/status" }
+    "status": { "$ref": "#/$defs/status" },
+    "protocol": { "type": "object", "additionalProperties": false, "required": ["version"], "properties": { "version": { "const": 2 } } }
   },
   "$defs": { "status": { "enum": ["VERIFIED", "REPORTED", "INFERRED", "PROPOSED", "UNTESTED", "BLOCKED", "SUPERSEDED"] } }
 }

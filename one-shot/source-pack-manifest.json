@@ -46,6 +46,13 @@
     { "path": "one-shot/schemas/one-shot-brief.schema.json", "authority": "normative", "priority": 31, "required": false },
     { "path": "one-shot/schemas/issue-log.schema.json", "authority": "normative", "priority": 32, "required": false },
     { "path": "one-shot/schemas/decision-log.schema.json", "authority": "normative", "priority": 33, "required": false },
-    { "path": "one-shot/schemas/one-shot-report.schema.json", "authority": "normative", "priority": 34, "required": false }
+    { "path": "one-shot/schemas/one-shot-report.schema.json", "authority": "normative", "priority": 34, "required": false },
+    { "path": "one-shot/instructions/chat-execution-protocol-v2.md", "authority": "normative", "priority": 35, "required": false },
+    { "path": "one-shot/prompts/create-chat-one-shot-v2.md", "authority": "explanatory", "priority": 36, "required": false },
+    { "path": "one-shot/prompts/resume-chat-one-shot-v2.md", "authority": "explanatory", "priority": 37, "required": false },
+    { "path": "one-shot/schemas/one-shot-preflight.schema.json", "authority": "normative", "priority": 38, "required": false },
+    { "path": "one-shot/schemas/one-shot-run-state.schema.json", "authority": "normative", "priority": 39, "required": false },
+    { "path": "one-shot/schemas/one-shot-physical-test-seed.schema.json", "authority": "normative", "priority": 40, "required": false },
+    { "path": "one-shot/schemas/one-shot-chat-completion.schema.json", "authority": "normative", "priority": 41, "required": false }
   ]
 }

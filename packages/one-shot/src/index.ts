@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { cp, mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { writeChatJson } from "./chat.ts";
 
 export const packageIdentity = "@sfhs/one-shot" as const;
 
@@ -151,13 +152,14 @@ function renderTemplate(template: string, brief: BriefRecord, revision: string):
     .replaceAll("{{SFHS_REVISION}}", revision);
 }
 
-async function renderPacket(outputRoot: string, brief: BriefRecord, revision: string): Promise<void> {
+async function renderPacket(outputRoot: string, brief: BriefRecord, revision: string, protocol?: "chat-v2"): Promise<void> {
   const packetRoot = join(outputRoot, "one-shot");
   await mkdir(packetRoot, { recursive: true });
   for (const name of packetFiles) {
     const templateName = name.replace(/\.md$/u, ".template.md");
     const template = await readFile(join(templateRoot, templateName), "utf8");
-    await writeFile(join(packetRoot, name), renderTemplate(template, brief, revision), "utf8");
+    const rendered = renderTemplate(template, brief, revision);
+    await writeFile(join(packetRoot, name), protocol === "chat-v2" && name === "ONE-SHOT-BRIEF.md" ? rendered.replace('"status":"PROPOSED"}', '"status":"PROPOSED","protocol":{"version":2}}') : rendered, "utf8");
   }
 }
 
@@ -166,6 +168,7 @@ export async function initializeOneShotProject(options: {
   readonly outputPath: string;
   readonly lane: string;
   readonly revision: string;
+  readonly protocol?: "chat-v2";
 }): Promise<OneShotResult> {
   const findings: OneShotFinding[] = [];
   let brief: BriefRecord | undefined;
@@ -198,7 +201,11 @@ export async function initializeOneShotProject(options: {
     const packageJson = JSON.parse(await readFile(packagePath, "utf8")) as Record<string, unknown>;
     packageJson.name = `@sfhs/example-${brief.project.id}`;
     await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
-    await renderPacket(temporaryRoot, brief, options.revision);
+    await renderPacket(temporaryRoot, brief, options.revision, options.protocol);
+    if (options.protocol === "chat-v2") {
+      const source = await readFile(projectManifestPath);
+      await writeChatJson(join(temporaryRoot, "one-shot", "RUN-STATE.json"), { schema: "sfhs.one-shot-run-state@1", version: 1, project: { id: brief.project.id, source: { path: "sfhs.project.json", sha256: sha256(source) } }, classification: "IMPLEMENT", executionMode: "SOURCE_ONLY_MODE", currentGate: "CONTRACT", completedGates: [], failedGates: [], records: {}, productStatus: "PRODUCT_INCOMPLETE", sfhsStatus: "SFHS_SOURCE_ONLY", physicalEvidence: "UNTESTED", completionPolicy: { requiredBeforeCompletion: ["CONTRACT", "PREFLIGHT", "RISK_SLICE", "PLAYABLE_LOOP", "SOURCE_TESTS", "SEMANTIC_SCENARIO", "VISUAL_AUDIO", "ARTIFACT_BROWSER", "PHYSICAL_SEED"], deferredHardening: [], graduationBacklog: [], releaseBacklog: [] }, nextRequiredAction: "Run fast Protocol v2 preflight.", updatedAt: new Date(0).toISOString() });
+    }
     await rename(temporaryRoot, outputRoot);
   } catch {
     await rm(temporaryRoot, { recursive: true, force: true }).catch(() => undefined);

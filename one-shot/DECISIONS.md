@@ -10,3 +10,5 @@
 | OSF-006 | VERIFIED | Make project initialization transactional and bind canonical report claims to verifier output. | A prepared project must be recoverable, and `VERIFIED` canonical language must name the same artifact the real SFHS verifier produced. |
 | OSF-007 | VERIFIED | Preserve the resolved manifest authority metadata inside every external source kit. | External contexts need the same reading priority, lane applicability, and supersession data as repository-native agents. |
 | OSF-008 | VERIFIED | Include every maintained packet template and schema in the external source kit. | A kit must let a repository-less agent assemble and audit the complete project packet without inventing missing records. |
+| OSF-009 | PROPOSED | Keep Chat Protocol v2 opt-in through `--protocol chat-v2` or `brief.protocol.version = 2`. | Existing initialization remains stable while Chat-specific records are explicit and auditable. |
+| OSF-010 | PROPOSED | Treat portable candidate compilation as candidate-only reuse of the current SFHS build semantics. | It cannot emit `dist/`, canonical identities, or verifier claims; unsupported kit environments fall back honestly. |
