@@ -1,0 +1,140 @@
+{
+  "schema": "skyline-drop-road-remix-proof@1",
+  "status": "PASS",
+  "scope": "authored connected Road Remix plans and explicit unsupported-piece state",
+  "assertions": [
+    {
+      "name": "Road Remix button names the mechanic",
+      "ok": true,
+      "detail": "\ud83d\udee3\ufe0f ROAD REMIX \u00b7 1"
+    },
+    {
+      "name": "run starts with one charge",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "Row Homes starts with Edge road",
+      "ok": true,
+      "detail": "Edge road"
+    },
+    {
+      "name": "Row Homes edge-road cells are connected",
+      "ok": true,
+      "detail": "[(0, 0), (0, 1)]"
+    },
+    {
+      "name": "Road Remix changes to Center road",
+      "ok": true,
+      "detail": "Center road"
+    },
+    {
+      "name": "Road Remix preserves piece ID",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Road Remix preserves anchor",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Road Remix preserves rotation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Road Remix preserves footprint",
+      "ok": true,
+      "detail": "{\"before\": [\"0,0\", \"0,1\", \"1,0\", \"1,1\", \"2,0\", \"2,1\"], \"after\": [\"0,0\", \"0,1\", \"1,0\", \"1,1\", \"2,0\", \"2,1\"]}"
+    },
+    {
+      "name": "Road Remix preserves tile counts and outputs",
+      "ok": true,
+      "detail": "{\"before\": [\"home|home|4|0\", \"home|home|4|0\", \"home|home|4|0\", \"park|park|0|0\", \"road|road|0|0\", \"road|road|0|0\"], \"after\": [\"home|home|4|0\", \"home|home|4|0\", \"home|home|4|0\", \"park|park|0|0\", \"road|road|0|0\", \"road|road|0|0\"]}"
+    },
+    {
+      "name": "center-road cells remain connected",
+      "ok": true,
+      "detail": "[(1, 0), (1, 1)]"
+    },
+    {
+      "name": "road moved from edge to center",
+      "ok": true,
+      "detail": "{\"before\": [[0, 0], [0, 1]], \"after\": [[1, 0], [1, 1]]}"
+    },
+    {
+      "name": "Road Remix consumes exactly one charge",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "information panel names Center road",
+      "ok": true,
+      "detail": "Road plan: Center road \u00b7 Road Remix moves the connected road section without changing the footprint \u00b7 0 charges remaining."
+    },
+    {
+      "name": "center-road Row Homes remains placeable",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "unsupported piece keeps Road Remix control visible",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "unsupported piece disables Road Remix",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "unsupported piece says no alternate plan",
+      "ok": true,
+      "detail": "NO ALTERNATE ROAD PLAN"
+    },
+    {
+      "name": "Road Crew upgrade exists",
+      "ok": true,
+      "detail": "\ud83d\udee3\ufe0fRoad CrewGain one additional Road Remix charge for this run."
+    },
+    {
+      "name": "Road Crew explains Road Remix charge",
+      "ok": true,
+      "detail": "\ud83d\udee3\ufe0fRoad CrewGain one additional Road Remix charge for this run."
+    },
+    {
+      "name": "one visible Pixi canvas",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "desktop Road Remix changes to Center road",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no external HTTP requests",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "externalHttpRequests": [],
+  "screenshots": [
+    "road-remix-edge-mobile.png",
+    "road-remix-center-mobile.png",
+    "road-remix-center-desktop.png"
+  ]
+}

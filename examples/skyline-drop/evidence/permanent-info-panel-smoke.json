@@ -1,0 +1,146 @@
+{
+  "schema": "skyline-drop-permanent-information-panel-proof@1",
+  "status": "PASS",
+  "scope": "one permanent contextual information panel only",
+  "assertions": [
+    {
+      "name": "permanent information panel is visible",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "panel defaults to current district",
+      "ok": true,
+      "detail": "Row Homes"
+    },
+    {
+      "name": "panel explains current district contents",
+      "ok": true,
+      "detail": "3 homes \u00b7 2 roads \u00b7 1 park"
+    },
+    {
+      "name": "panel has no close button",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "panel has measurable bounds",
+      "ok": true,
+      "detail": "{'x': 10, 'y': 628.421875, 'width': 410, 'height': 145.578125}"
+    },
+    {
+      "name": "controls have measurable bounds",
+      "ok": true,
+      "detail": "{'x': 8, 'y': 780, 'width': 414, 'height': 142}"
+    },
+    {
+      "name": "panel sits above controls",
+      "ok": true,
+      "detail": "panel_bottom=774.0 controls_top=780.0"
+    },
+    {
+      "name": "information title is readable",
+      "ok": true,
+      "detail": "19.0"
+    },
+    {
+      "name": "information summary is readable",
+      "ok": true,
+      "detail": "14.0"
+    },
+    {
+      "name": "information status is readable",
+      "ok": true,
+      "detail": "12.0"
+    },
+    {
+      "name": "top metrics select city status",
+      "ok": true,
+      "detail": "Current city status"
+    },
+    {
+      "name": "metric list appears in permanent panel",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "permanent panel remains visible in metric mode",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "tree terrain is selectable",
+      "ok": true,
+      "detail": "Trees"
+    },
+    {
+      "name": "tree rule is explained",
+      "ok": true,
+      "detail": "Existing forest blocks district placement"
+    },
+    {
+      "name": "mountain terrain is selectable",
+      "ok": true,
+      "detail": "Mountain"
+    },
+    {
+      "name": "mountain bedrock rule is explained",
+      "ok": true,
+      "detail": "Bedrock also blocks underground conduit"
+    },
+    {
+      "name": "empty ground returns panel to current district",
+      "ok": true,
+      "detail": "Row Homes"
+    },
+    {
+      "name": "layer change keeps panel permanent",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "underground current-district context is named",
+      "ok": true,
+      "detail": "CURRENT DISTRICT \u00b7 UNDERGROUND"
+    },
+    {
+      "name": "utility hub is selectable underground",
+      "ok": true,
+      "detail": "Utility Hub"
+    },
+    {
+      "name": "utility hub purpose is explained",
+      "ok": true,
+      "detail": "Municipal network source \u00b7 links north \u00b7 east \u00b7 south \u00b7 west"
+    },
+    {
+      "name": "one visible Pixi canvas",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no external HTTP requests",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "externalHttpRequests": [],
+  "screenshots": [
+    "permanent-info-panel-current-piece-mobile.png",
+    "permanent-info-panel-metrics-mobile.png",
+    "permanent-info-panel-tree-mobile.png",
+    "permanent-info-panel-mobile.png"
+  ]
+}

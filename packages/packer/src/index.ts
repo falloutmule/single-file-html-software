@@ -8,6 +8,7 @@ import {
   serialize,
   type DefaultTreeAdapterTypes
 } from "parse5";
+import { parse as parseJavaScript, type Node as JavaScriptNode } from "acorn";
 
 import {
   buildIntermediate,
@@ -27,6 +28,7 @@ export type PackErrorCode =
   | "SFHS_PACK_ARTIFACT_INVALID"
   | "SFHS_PACK_ASSET_REFERENCE_MISSING"
   | "SFHS_PACK_ENTRY_SCRIPT_INVALID"
+  | "SFHS_PACK_SCRIPT_CONTROL_INVALID"
   | "SFHS_PACK_STYLESHEET_INVALID"
   | "SFHS_PACK_WRITE_FAILED";
 
@@ -56,6 +58,16 @@ export interface PackedArtifact {
 type Document = DefaultTreeAdapterTypes.Document;
 type Element = DefaultTreeAdapterTypes.Element;
 type Node = DefaultTreeAdapterTypes.Node;
+interface TaggedTemplateNode extends JavaScriptNode {
+  readonly type: "TaggedTemplateExpression";
+  readonly quasi: {
+    readonly quasis: readonly {
+      readonly start: number;
+      readonly end: number;
+      readonly value: { readonly raw: string };
+    }[];
+  };
+}
 
 function normalizeLineEndings(value: string): string {
   return value.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
@@ -115,7 +127,86 @@ function inlineAssetReferences(
 }
 
 function textForRawElement(value: string, closingTag: "script" | "style"): string {
-  return value.replace(new RegExp(`</${closingTag}`, "giu"), `<\\/${closingTag}`);
+  if (closingTag === "style") {
+    return value.replace(new RegExp(`</${closingTag}`, "giu"), `<\\/${closingTag}`);
+  }
+  const controls: number[] = [];
+  for (let offset = 0; offset < value.length;) {
+    const codePoint = value.codePointAt(offset)!;
+    const character = String.fromCodePoint(codePoint);
+    const disallowed =
+      codePoint <= 0x08 ||
+      codePoint === 0x0b ||
+      codePoint === 0x0c ||
+      (codePoint >= 0x0e && codePoint <= 0x1f) ||
+      (codePoint >= 0x7f && codePoint <= 0x9f);
+    if (disallowed) {
+      controls.push(offset);
+    }
+    offset += character.length;
+  }
+  const closingScript = /<\/script/iu.test(value);
+  if (controls.length > 0 || closingScript) {
+    try {
+      if (taggedTemplateRequiresRawPreservation(value, controls, closingScript)) {
+        throw new SfhsPackError(
+          "SFHS_PACK_SCRIPT_CONTROL_INVALID",
+          "Generated inline JavaScript contains a raw C0/C1 control character or closing-script sequence in a tagged template literal."
+        );
+      }
+    } catch (error) {
+      if (error instanceof SfhsPackError) throw error;
+      if (controls.length > 0) {
+        throw new SfhsPackError(
+          "SFHS_PACK_SCRIPT_CONTROL_INVALID",
+          "Generated inline JavaScript contains a raw C0/C1 control character that could not be safely serialized."
+        );
+      }
+    }
+  }
+  const escapedClosingTag = value.replace(new RegExp(`</${closingTag}`, "giu"), `<\\/${closingTag}`);
+  if (controls.length === 0) return escapedClosingTag;
+  return Array.from(escapedClosingTag, (character) => {
+    const codePoint = character.codePointAt(0)!;
+    const disallowed =
+      codePoint <= 0x08 ||
+      codePoint === 0x0b ||
+      codePoint === 0x0c ||
+      (codePoint >= 0x0e && codePoint <= 0x1f) ||
+      (codePoint >= 0x7f && codePoint <= 0x9f);
+    return disallowed ? `\\u${codePoint.toString(16).padStart(4, "0")}` : character;
+  }).join("");
+}
+
+function taggedTemplateRequiresRawPreservation(
+  javascript: string,
+  controls: readonly number[],
+  closingScript: boolean
+): boolean {
+  const root = parseJavaScript(javascript, { ecmaVersion: "latest", sourceType: "script" });
+  const stack: JavaScriptNode[] = [root];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (node === undefined) continue;
+    if (node.type === "TaggedTemplateExpression") {
+      const quasis = (node as TaggedTemplateNode).quasi.quasis;
+      const hasControl = quasis.some((element) => controls.some((offset) => offset >= element.start && offset < element.end));
+      const hasClosingScript = closingScript && quasis.some((element) => /<\/script/iu.test(element.value.raw));
+      if (hasControl || hasClosingScript) {
+        return true;
+      }
+    }
+    for (const child of Object.values(node)) {
+      if (Array.isArray(child)) {
+        for (const entry of child) {
+          if (entry !== null && typeof entry === "object" && "type" in entry) stack.push(entry as JavaScriptNode);
+        }
+      } else if (child !== null && typeof child === "object" && "type" in child) {
+        stack.push(child as JavaScriptNode);
+      }
+    }
+  }
+  return false;
 }
 
 function replaceStylesheets(document: Document, stylesheet: string): void {

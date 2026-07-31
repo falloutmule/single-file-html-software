@@ -1,0 +1,11 @@
+LEVEL_1_SOLVED drops=2 pop=12 jobs=2 utility=100 greenery=67
+[{"piece":"row-homes","rotation":2,"x":2,"y":5},{"piece":"main-street","rotation":0,"x":2,"y":4}]
+LEVEL_2_SOLVED drops=3 pop=20 jobs=4 utility=100 greenery=100
+[{"piece":"row-homes","rotation":3,"x":0,"y":4},{"piece":"main-street","rotation":0,"x":2,"y":6},{"piece":"mixed-corner","rotation":0,"x":2,"y":5}]
+LEVEL_3_SOLVED drops=4 pop=38 jobs=6 utility=100 greenery=71
+[{"piece":"row-homes","rotation":2,"x":0,"y":5},{"piece":"main-street","rotation":0,"x":0,"y":4},{"piece":"mixed-corner","rotation":0,"x":2,"y":2},{"piece":"apartment-court","rotation":0,"x":4,"y":2}]
+SIMULATION_TEST PASS
+SIMULATION_MECHANICS PASS invalid pause restart loss upgrade
+UTILITY_OVERLAP PASS merge preserve-surface surface-overlap-blocked bedrock-blocked
+ROAD_REMIX PASS authored plans connected roads rotation uniqueness footprint inventory charge drop upgrade
+MAIN_STREET_ROAD_MERGE PASS i4 connected-road shop road-on-road reuse ownership access nonroad-blocked

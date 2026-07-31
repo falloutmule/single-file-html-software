@@ -52,31 +52,6 @@ importers:
         specifier: 1.61.1
         version: 1.61.1
 
-  examples/homeostasis:
-    dependencies:
-      '@sfhs/adapter-pixi-v8':
-        specifier: workspace:*
-        version: link:../../adapters/pixi-v8
-      '@sfhs/pixi-canvas-compat':
-        specifier: workspace:*
-        version: link:../../packages/pixi-canvas-compat
-      '@sfhs/pixi-runtime':
-        specifier: workspace:*
-        version: link:../../packages/pixi-runtime
-      pixi.js:
-        specifier: 8.19.0
-        version: 8.19.0
-    devDependencies:
-      '@sfhs/browser-runner':
-        specifier: workspace:*
-        version: link:../../packages/browser-runner
-      '@sfhs/packer':
-        specifier: workspace:*
-        version: link:../../packages/packer
-      playwright:
-        specifier: 1.61.1
-        version: 1.61.1
-
   examples/pixi-compat-geometry:
     dependencies:
       '@sfhs/pixi-canvas-compat':
@@ -103,6 +78,25 @@ importers:
       pixi.js:
         specifier: 8.19.0
         version: 8.19.0
+
+  examples/skyline-drop:
+    dependencies:
+      '@sfhs/adapter-pixi-v8':
+        specifier: workspace:*
+        version: link:../../adapters/pixi-v8
+      '@sfhs/pixi-runtime':
+        specifier: workspace:*
+        version: link:../../packages/pixi-runtime
+      pixi.js:
+        specifier: 8.19.0
+        version: 8.19.0
+    devDependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
 
   packages/browser-runner:
     dependencies:
@@ -217,6 +211,9 @@ importers:
       '@sfhs/core':
         specifier: workspace:*
         version: link:../core
+      acorn:
+        specifier: 8.17.0
+        version: 8.17.0
       parse5:
         specifier: 8.0.1
         version: 8.0.1

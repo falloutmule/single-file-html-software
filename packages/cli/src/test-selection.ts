@@ -9,6 +9,8 @@ export type TestStepId =
   | "lint"
   | "pixi-runtime"
   | "runner"
+  | "skyline-browser"
+  | "skyline-simulation"
   | "typecheck"
   | "unit-all";
 
@@ -44,6 +46,8 @@ const definitions: Readonly<Record<TestStepId, TestStepDefinition>> = Object.fre
     "run", "test", "adapters/pixi-v8/src", "examples/pixi-minimal/src"
   ]),
   runner: step("runner", ["run", "test", "packages/browser-runner/src"]),
+  "skyline-browser": step("skyline-browser", ["--filter", "@sfhs/example-skyline-drop", "test:canonical"]),
+  "skyline-simulation": step("skyline-simulation", ["--filter", "@sfhs/example-skyline-drop", "test:simulation"]),
   typecheck: step("typecheck", ["run", "typecheck"]),
   "unit-all": step("unit-all", ["run", "test"])
 });
@@ -124,6 +128,13 @@ export function selectProportionalTestPlan(
       }
       continue;
     }
+    if (path === "examples/skyline-drop" || path.startsWith("examples/skyline-drop/")) {
+      add(selected, "skyline-simulation");
+      if (mode === "check") {
+        add(selected, "skyline-browser");
+      }
+      continue;
+    }
     if (path === "pnpm-lock.yaml" || path === "pnpm-workspace.yaml" || path.startsWith("tools/")) {
       add(selected, "unit-all");
       if (mode === "check") {
@@ -164,10 +175,12 @@ export function selectProportionalTestPlan(
     "build-pack-verify",
     "pixi-runtime",
     "runner",
+    "skyline-simulation",
     "unit-all",
     "determinism",
     "browser-smoke",
-    "browser-scenarios"
+    "browser-scenarios",
+    "skyline-browser"
   ];
   const steps = Object.freeze(order.filter((id) => selected.has(id)).map((id) => definitions[id]));
   const reviewReason = unknownRuntimePaths.length > 0

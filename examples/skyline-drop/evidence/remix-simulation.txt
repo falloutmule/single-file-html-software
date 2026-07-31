@@ -1,0 +1,14 @@
+
+> skyline-drop@0.1.0 test:simulation
+> tsc -p tsconfig.simulation.json && node tests/simulation.test.full2.mjs && node tests/simulation-mechanics.test.mjs && node tests/utility-overlap.test.mjs && node tests/remix.test.mjs
+
+LEVEL_1_SOLVED drops=2 pop=12 jobs=2 utility=100 greenery=67
+[{"piece":"row-homes","rotation":2,"x":2,"y":5},{"piece":"main-street","rotation":0,"x":2,"y":4}]
+LEVEL_2_SOLVED drops=3 pop=20 jobs=4 utility=100 greenery=50
+[{"piece":"row-homes","rotation":2,"x":0,"y":5},{"piece":"main-street","rotation":1,"x":3,"y":5},{"piece":"mixed-corner","rotation":0,"x":4,"y":6}]
+LEVEL_3_SOLVED drops=4 pop=38 jobs=6 utility=100 greenery=71
+[{"piece":"row-homes","rotation":2,"x":0,"y":5},{"piece":"main-street","rotation":0,"x":0,"y":4},{"piece":"mixed-corner","rotation":0,"x":2,"y":2},{"piece":"apartment-court","rotation":0,"x":4,"y":2}]
+SIMULATION_TEST PASS
+SIMULATION_MECHANICS PASS invalid pause restart loss upgrade
+UTILITY_OVERLAP PASS merge preserve-surface surface-overlap-blocked bedrock-blocked
+REMIX PASS footprint contents charge exhaustion drop upgrade no-op-protection

@@ -1,0 +1,26 @@
+{
+  "bundles": [
+    {
+      "name": "common",
+      "assets": [
+        { "alias": "home", "src": "../../public/assets/06_houses.png" },
+        { "alias": "shop", "src": "../../public/assets/07_storefront.png" },
+        { "alias": "apartment", "src": "../../public/assets/04_office_block.png" },
+        { "alias": "tower", "src": "../../public/assets/01_tower.png" },
+        { "alias": "powerPlant", "src": "../../public/assets/02_power_plant.png" },
+        { "alias": "utility", "src": "../../public/assets/23_power_box.png" },
+        { "alias": "treeA", "src": "../../public/assets/28_tree_a.png" },
+        { "alias": "treeB", "src": "../../public/assets/29_tree_b.png" },
+        { "alias": "hedge", "src": "../../public/assets/30_hedge_strip.png" },
+        { "alias": "boulders", "src": "../../public/assets/27_boulder_cluster.png" },
+        { "alias": "rock", "src": "../../public/assets/33_boulder.png" },
+        { "alias": "gate", "src": "../../public/assets/47_gate_platform.png" },
+        { "alias": "smoke", "src": "../../public/assets/13_smoke_cloud.png" },
+        { "alias": "indicator", "src": "../../public/assets/39_indicator.png" },
+        { "alias": "coin", "src": "../../public/assets/15_coin_a.png" },
+        { "alias": "confirm", "src": "../../public/assets/31_confirm_icon.png" },
+        { "alias": "cancel", "src": "../../public/assets/32_cancel_icon.png" }
+      ]
+    }
+  ]
+}

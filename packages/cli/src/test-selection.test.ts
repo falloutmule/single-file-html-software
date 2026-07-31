@@ -13,6 +13,15 @@ describe("proportional SFHS test selection", () => {
     ]);
   });
 
+  it("selects Skyline simulation plus a freshly packed exact-artifact browser test without review warning", () => {
+    const plan = selectProportionalTestPlan(["examples\\skyline-drop"], "check");
+
+    expect(plan.steps.map((step) => step.id)).toEqual([
+      "lint", "typecheck", "skyline-simulation", "skyline-browser"
+    ]);
+    expect(plan.reviewRequired).toBe(false);
+  });
+
   it("selects downstream static and browser checks for contract changes", () => {
     expect(ids(["packages/contracts/src/index.ts"], "check")).toEqual([
       "lint", "typecheck", "contracts-core", "build-pack-verify", "browser-smoke"

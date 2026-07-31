@@ -76,6 +76,33 @@ describe("@sfhs/verifier static scanner", () => {
     expect(scanPackedBytes(new Uint8Array([0xc3, 0x28])).findings[0]?.code).toBe("SFHS_SCAN_UTF8_INVALID");
   });
 
+  it("continues to reject raw C0/C1 controls in HTML input", () => {
+    for (const control of ["\u0000", "\u001f", "\u007f", "\u0080", "\u009f"]) {
+      const source = `<!doctype html><script>const value="${control}"</script>`;
+      expect(codes(source)).toContain("SFHS_SCAN_HTML_PARSE_ERROR");
+      expect(scanPackedBytes(new TextEncoder().encode(source)).findings.map((finding) => finding.code)).toContain("SFHS_SCAN_HTML_PARSE_ERROR");
+    }
+    expect(codes('<!doctype html><style>.value::before{content:"\u0080"}</style>')).toContain("SFHS_SCAN_HTML_PARSE_ERROR");
+    expect(codes('<!doctype html><p>\u0080</p>')).toContain("SFHS_SCAN_HTML_PARSE_ERROR");
+    expect(scanPackedHtml("<!doctype html><p>\t\n\r</p>").valid).toBe(true);
+    expect(scanPackedHtml('<!doctype html><script>const value="\\u0080"</script>').valid).toBe(true);
+    expect(scanPackedHtml('<!doctype html><p>\u00a0</p>').valid).toBe(true);
+  });
+
+  it("accepts packer-escaped controls in generated JavaScript", async () => {
+    const intermediate = await buildProject(fixtureRoot);
+    const packed = packIntermediate(
+      Object.freeze({
+        ...intermediate,
+        javascript: 'const value="\\u0080"; const matcher=/\\u0080/; globalThis.__sfhsControlProbe=[value,matcher.test(value)];',
+        emittedAssets: []
+      })
+    );
+
+    expect(packed.html).not.toContain("\u0080");
+    expect(scanPackedBytes(packed.bytes)).toEqual({ schema: "sfhs.static-scan@1", valid: true, findings: [] });
+  });
+
   it("sorts repeated findings and honors an exact explicit allowlist", () => {
     const source = '<!doctype html><img src="https://assets.example/a.png"><script>fetch("https://api.example/v1")</script>';
     const first = scanPackedHtml(source, {

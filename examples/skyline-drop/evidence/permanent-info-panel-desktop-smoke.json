@@ -1,0 +1,40 @@
+{
+  "schema": "skyline-drop-permanent-information-panel-desktop-proof@1",
+  "status": "PASS",
+  "assertions": [
+    {
+      "name": "permanent panel visible on desktop",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "desktop panel defaults to current district",
+      "ok": true,
+      "detail": "Row Homes"
+    },
+    {
+      "name": "one visible Pixi canvas",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no external HTTP requests",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "externalHttpRequests": [],
+  "screenshot": "permanent-info-panel-desktop.png"
+}

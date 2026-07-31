@@ -1,0 +1,109 @@
+{
+  "schema": "skyline-drop-main-street-road-merge-proof@1",
+  "status": "PASS",
+  "scope": "Main Street I4 redesign and road-on-road surface merging",
+  "assertions": [
+    {
+      "name": "Main Street is now current",
+      "ok": true,
+      "detail": "Main Street"
+    },
+    {
+      "name": "Main Street composition is one shop and three roads",
+      "ok": true,
+      "detail": "1 shop \u00b7 3 roads"
+    },
+    {
+      "name": "Main Street begins as straight four",
+      "ok": true,
+      "detail": "{\"width\": 4, \"height\": 1, \"surfaces\": [\"road\", \"road\", \"road\", \"shop\"]}"
+    },
+    {
+      "name": "Main Street uses connected road-road-road-shop order",
+      "ok": true,
+      "detail": "{\"width\": 4, \"height\": 1, \"surfaces\": [\"road\", \"road\", \"road\", \"shop\"]}"
+    },
+    {
+      "name": "vertical Main Street remains four cells long",
+      "ok": true,
+      "detail": "{\"valid\": true, \"reason\": \"\", \"width\": 1, \"height\": 4, \"overlaps\": [\"2,4\", \"2,5\"], \"anchor\": {\"x\": 2, \"y\": 3}, \"rotation\": 1}"
+    },
+    {
+      "name": "road-on-road footprint is valid",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "two existing road cells will be reused",
+      "ok": true,
+      "detail": "{\"valid\": true, \"reason\": \"\", \"width\": 1, \"height\": 4, \"overlaps\": [\"2,4\", \"2,5\"], \"anchor\": {\"x\": 2, \"y\": 3}, \"rotation\": 1}"
+    },
+    {
+      "name": "Drop remains enabled for a road merge",
+      "ok": true,
+      "detail": "DROP"
+    },
+    {
+      "name": "road merge consumes one normal drop",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "name": "status reports reused shared roads",
+      "ok": true,
+      "detail": "District placed. 2 shared road cells reused \u00b7 2 overlapping utility cells merged."
+    },
+    {
+      "name": "first shared road records both owners",
+      "ok": true,
+      "detail": "{\"pieceSerial\": 2, \"pieceId\": \"row-homes\", \"roadOwners\": [2, 3], \"surface\": \"road\", \"visual\": \"road\", \"conduit\": 15, \"population\": 0, \"jobs\": 0}"
+    },
+    {
+      "name": "second shared road records both owners",
+      "ok": true,
+      "detail": "{\"pieceSerial\": 2, \"pieceId\": \"row-homes\", \"roadOwners\": [2, 3], \"surface\": \"road\", \"visual\": \"road\", \"conduit\": 15, \"population\": 0, \"jobs\": 0}"
+    },
+    {
+      "name": "new Main Street road is placed",
+      "ok": true,
+      "detail": "{\"pieceSerial\": 3, \"pieceId\": \"main-street\", \"roadOwners\": [3], \"surface\": \"road\", \"visual\": \"road\", \"conduit\": 15, \"population\": 0, \"jobs\": 0}"
+    },
+    {
+      "name": "Main Street shop lands at the endpoint",
+      "ok": true,
+      "detail": "{\"pieceSerial\": 3, \"pieceId\": \"main-street\", \"surface\": \"shop\", \"visual\": \"shop\", \"conduit\": 5, \"population\": 0, \"jobs\": 2}"
+    },
+    {
+      "name": "one visible Pixi canvas",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "desktop candidate starts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no external HTTP requests",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "externalHttpRequests": [],
+  "screenshots": [
+    "main-street-road-merge-preview-mobile.png",
+    "main-street-road-merge-landed-mobile.png"
+  ]
+}

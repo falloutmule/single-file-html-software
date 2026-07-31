@@ -1,0 +1,130 @@
+{
+  "schema": "skyline-drop-remix-proof@1",
+  "status": "PASS",
+  "scope": "single-charge Remix control and upgrade-card presence",
+  "assertions": [
+    {
+      "name": "Remix button is visible for Row Homes",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "run begins with one Remix charge",
+      "ok": true,
+      "detail": "\ud83d\udd00 REMIX \u00b7 1"
+    },
+    {
+      "name": "initial Remix control is enabled",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "Remix preserves piece ID",
+      "ok": true,
+      "detail": "row-homes->row-homes"
+    },
+    {
+      "name": "Remix preserves anchor",
+      "ok": true,
+      "detail": "{'x': 2, 'y': 5}->{'x': 2, 'y': 5}"
+    },
+    {
+      "name": "Remix preserves rotation",
+      "ok": true,
+      "detail": "0->0"
+    },
+    {
+      "name": "Remix preserves footprint",
+      "ok": true,
+      "detail": "{\"before\": [\"0,0\", \"0,1\", \"1,0\", \"1,1\", \"2,0\", \"2,1\"], \"after\": [\"0,0\", \"0,1\", \"1,0\", \"1,1\", \"2,0\", \"2,1\"]}"
+    },
+    {
+      "name": "Remix preserves tile counts",
+      "ok": true,
+      "detail": "{\"before\": [\"home|home|10|4|0\", \"home|home|12|4|0\", \"home|home|9|4|0\", \"park|park|10|0|0\", \"road|road|15|0|0\", \"road|road|15|0|0\"], \"after\": [\"home|home|10|4|0\", \"home|home|12|4|0\", \"home|home|9|4|0\", \"park|park|10|0|0\", \"road|road|15|0|0\", \"road|road|15|0|0\"]}"
+    },
+    {
+      "name": "Remix changes internal positions",
+      "ok": true,
+      "detail": "{\"before\": [\"road|road|15|0|0\", \"home|home|10|4|0\", \"home|home|12|4|0\", \"road|road|15|0|0\", \"park|park|10|0|0\", \"home|home|9|4|0\"], \"after\": [\"home|home|10|4|0\", \"home|home|12|4|0\", \"road|road|15|0|0\", \"park|park|10|0|0\", \"home|home|9|4|0\", \"road|road|15|0|0\"]}"
+    },
+    {
+      "name": "Remix consumes exactly one charge",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "used Remix button remains visible",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "used Remix button is disabled",
+      "ok": true,
+      "detail": "True"
+    },
+    {
+      "name": "used Remix button reports zero",
+      "ok": true,
+      "detail": "\ud83d\udd00 REMIX \u00b7 0"
+    },
+    {
+      "name": "permanent panel reports remaining charges",
+      "ok": true,
+      "detail": "Remix rearranges the contents without changing the footprint \u00b7 0 charges remaining."
+    },
+    {
+      "name": "disabled Remix cannot change arrangement",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "disabled Remix does not enqueue an error",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Remix Permit upgrade card exists",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "upgrade card explains added charge",
+      "ok": true,
+      "detail": "\ud83d\udd00Remix PermitGain one additional Remix charge for this run."
+    },
+    {
+      "name": "one visible Pixi canvas",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "name": "desktop Remix control changes state",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no console errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no external HTTP requests",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "externalHttpRequests": [],
+  "screenshots": [
+    "remix-before-mobile.png",
+    "remix-after-mobile.png",
+    "remix-after-desktop.png"
+  ]
+}

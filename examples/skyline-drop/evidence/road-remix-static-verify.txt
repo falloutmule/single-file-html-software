@@ -1,0 +1,14 @@
+{
+  "schema": "skyline-drop-candidate-verification@1",
+  "status": "PASS",
+  "bytes": 2215798,
+  "sha256": "0bf68c4340c09facb8f6365ae82a7fd64834f022e236c8311e36a71c8646f3c7",
+  "buildId": "candidate-041497512cb501e8",
+  "outputSet": [
+    "index.html"
+  ],
+  "rendererMarker": "pixi-webgl",
+  "inlinedPngDataUris": 15,
+  "externalHttpReferences": 0,
+  "findings": []
+}
