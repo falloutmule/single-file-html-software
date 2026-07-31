@@ -3,6 +3,7 @@ import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { runInNewContext } from "node:vm";
 
 import { describe, expect, it } from "vitest";
 
@@ -68,6 +69,37 @@ describe("@sfhs/builder", () => {
     );
     expect(await readOptional(plan.outputPath)).toEqual(outputBefore);
     expect(existsSync(join(fixtureRoot, ".sfhs-intermediate"))).toBe(false);
+  });
+
+  it("uses esbuild to serialize raw C0/C1 JavaScript controls without changing string or regexp behavior", async () => {
+    const temporaryParent = await mkdtemp(join(tmpdir(), "sfhs-builder-controls-"));
+    const temporaryRoot = join(temporaryParent, "project");
+    try {
+      await cp(fixtureRoot, temporaryRoot, {
+        recursive: true,
+        filter: (source) => !source.includes(`${join("pixi-minimal", "dist")}`)
+      });
+      const manifestPath = join(temporaryRoot, "sfhs.project.json");
+      const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as { source: { entry: string } };
+      manifest.source.entry = "src/control-probe.ts";
+      await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+      await writeFile(
+        join(temporaryRoot, "src", "control-probe.ts"),
+        'globalThis.sfhsControlProbe=["\u0080",/\u0080/.test("\u0080"),"\u00a0"];\n',
+        "utf8"
+      );
+
+      const first = await buildProject(temporaryRoot);
+      const second = await buildProject(temporaryRoot);
+      expect(first.javascript).toBe(second.javascript);
+      expect(first.javascript).toContain('"\\x80"');
+      expect(first.javascript).toMatch(/\\(?:u0080|x80)/u);
+      const sandbox: { sfhsControlProbe?: unknown } = {};
+      runInNewContext(first.javascript, sandbox);
+      expect(sandbox.sfhsControlProbe).toEqual(["\u0080", true, "\u00a0"]);
+    } finally {
+      await rm(temporaryParent, { recursive: true, force: true });
+    }
   });
 
   it("fails with a stable code before bundling an invalid project", async () => {

@@ -267,7 +267,9 @@ export async function buildIntermediate(plan: BuildPlan): Promise<IntermediateBu
       sourcemap: false,
       minify: plan.manifest.build.minify,
       legalComments: "none",
-      charset: "utf8",
+      // Let esbuild serialize JavaScript syntax rather than carrying raw C0/C1 controls into HTML.
+      // The packer remains fail-closed if an unsupported syntax context retains one.
+      charset: "ascii",
       treeShaking: true,
       logLevel: "silent",
       outdir: intermediateDirectory,

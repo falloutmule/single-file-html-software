@@ -94,7 +94,7 @@ describe("@sfhs/packer", () => {
     expect(packed.html).not.toContain(asset.fileName);
   });
 
-  it("escapes scanner-rejected controls only in inline JavaScript while preserving string and regexp semantics", async () => {
+  it("serializes raw scanner-rejected controls in inline JavaScript while preserving string and regexp semantics", async () => {
     const intermediate = await buildProject(fixtureRoot);
     const javascript = 'globalThis.sfhsControlProbe=["\u0080",/\u0080/.test("\u0080")];';
     const packed = packIntermediate(Object.freeze({ ...intermediate, javascript, emittedAssets: [] }));
@@ -105,6 +105,26 @@ describe("@sfhs/packer", () => {
     const sandbox: { sfhsControlProbe?: unknown } = {};
     runInNewContext(script!, sandbox);
     expect(sandbox.sfhsControlProbe).toEqual(["\u0080", true]);
+  });
+
+  it("fails closed for a raw control in a tagged template literal", async () => {
+    const intermediate = await buildProject(fixtureRoot);
+    const javascript = 'const tag=(parts)=>parts.raw[0];globalThis.sfhsControlProbe=tag`\u0080`;';
+    expect(() => packIntermediate(Object.freeze({ ...intermediate, javascript, emittedAssets: [] }))).toThrow(
+      expect.objectContaining({ code: "SFHS_PACK_SCRIPT_CONTROL_INVALID" })
+    );
+  });
+
+  it("continues to escape an inline closing-script sequence without changing JavaScript semantics", async () => {
+    const intermediate = await buildProject(fixtureRoot);
+    const javascript = 'globalThis.sfhsScriptTerminator="</script>";';
+    const packed = packIntermediate(Object.freeze({ ...intermediate, javascript, emittedAssets: [] }));
+    expect(packed.html).toContain('"<\\/script>"');
+    const script = /<script data-sfhs-inline="entry">([\s\S]*?)<\/script>/u.exec(packed.html)?.[1];
+    expect(script).toBeDefined();
+    const sandbox: { sfhsScriptTerminator?: unknown } = {};
+    runInNewContext(script!, sandbox);
+    expect(sandbox.sfhsScriptTerminator).toBe("</script>");
   });
 
   it("fails closed when the authored module entry is missing", async () => {

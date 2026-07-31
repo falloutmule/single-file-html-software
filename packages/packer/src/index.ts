@@ -8,6 +8,7 @@ import {
   serialize,
   type DefaultTreeAdapterTypes
 } from "parse5";
+import { parse as parseJavaScript, type Node as JavaScriptNode } from "acorn";
 
 import {
   buildIntermediate,
@@ -27,6 +28,7 @@ export type PackErrorCode =
   | "SFHS_PACK_ARTIFACT_INVALID"
   | "SFHS_PACK_ASSET_REFERENCE_MISSING"
   | "SFHS_PACK_ENTRY_SCRIPT_INVALID"
+  | "SFHS_PACK_SCRIPT_CONTROL_INVALID"
   | "SFHS_PACK_STYLESHEET_INVALID"
   | "SFHS_PACK_WRITE_FAILED";
 
@@ -119,8 +121,38 @@ function textForRawElement(value: string, closingTag: "script" | "style"): strin
   if (closingTag === "style") {
     return escapedClosingTag;
   }
-  // HTML parsers reject C0/C1 controls even when a JavaScript string or regexp can represent them.
-  // Emit JavaScript Unicode escapes only in inline script text; HTML, CSS, and data URLs remain byte-exact.
+  const controls: number[] = [];
+  for (let offset = 0; offset < escapedClosingTag.length;) {
+    const codePoint = escapedClosingTag.codePointAt(offset)!;
+    const character = String.fromCodePoint(codePoint);
+    const disallowed =
+      codePoint <= 0x08 ||
+      codePoint === 0x0b ||
+      codePoint === 0x0c ||
+      (codePoint >= 0x0e && codePoint <= 0x1f) ||
+      (codePoint >= 0x7f && codePoint <= 0x9f);
+    if (disallowed) {
+      controls.push(offset);
+    }
+    offset += character.length;
+  }
+  if (controls.length === 0) return escapedClosingTag;
+
+  try {
+    const taggedTemplateControl = taggedTemplateControlOffset(escapedClosingTag, controls);
+    if (taggedTemplateControl !== undefined) {
+      throw new SfhsPackError(
+        "SFHS_PACK_SCRIPT_CONTROL_INVALID",
+        "Generated inline JavaScript contains a raw C0/C1 control character in a tagged template literal."
+      );
+    }
+  } catch (error) {
+    if (error instanceof SfhsPackError) throw error;
+    throw new SfhsPackError(
+      "SFHS_PACK_SCRIPT_CONTROL_INVALID",
+      "Generated inline JavaScript contains a raw C0/C1 control character that could not be safely serialized."
+    );
+  }
   return Array.from(escapedClosingTag, (character) => {
     const codePoint = character.codePointAt(0)!;
     const disallowed =
@@ -131,6 +163,31 @@ function textForRawElement(value: string, closingTag: "script" | "style"): strin
       (codePoint >= 0x7f && codePoint <= 0x9f);
     return disallowed ? `\\u${codePoint.toString(16).padStart(4, "0")}` : character;
   }).join("");
+}
+
+function taggedTemplateControlOffset(javascript: string, controls: readonly number[]): number | undefined {
+  const root = parseJavaScript(javascript, { ecmaVersion: "latest", sourceType: "script" });
+  const stack: JavaScriptNode[] = [root];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (node === undefined) continue;
+    if (node.type === "TaggedTemplateExpression") {
+      const quasi = node.quasi;
+      if (quasi.quasis.some((element) => controls.some((offset) => offset >= element.start && offset < element.end))) {
+        return controls.find((offset) => quasi.quasis.some((element) => offset >= element.start && offset < element.end));
+      }
+    }
+    for (const child of Object.values(node)) {
+      if (Array.isArray(child)) {
+        for (const entry of child) {
+          if (entry !== null && typeof entry === "object" && "type" in entry) stack.push(entry as JavaScriptNode);
+        }
+      } else if (child !== null && typeof child === "object" && "type" in child) {
+        stack.push(child as JavaScriptNode);
+      }
+    }
+  }
+  return undefined;
 }
 
 function replaceStylesheets(document: Document, stylesheet: string): void {
