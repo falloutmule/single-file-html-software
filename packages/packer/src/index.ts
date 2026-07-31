@@ -115,7 +115,22 @@ function inlineAssetReferences(
 }
 
 function textForRawElement(value: string, closingTag: "script" | "style"): string {
-  return value.replace(new RegExp(`</${closingTag}`, "giu"), `<\\/${closingTag}`);
+  const escapedClosingTag = value.replace(new RegExp(`</${closingTag}`, "giu"), `<\\/${closingTag}`);
+  if (closingTag === "style") {
+    return escapedClosingTag;
+  }
+  // HTML parsers reject C0/C1 controls even when a JavaScript string or regexp can represent them.
+  // Emit JavaScript Unicode escapes only in inline script text; HTML, CSS, and data URLs remain byte-exact.
+  return Array.from(escapedClosingTag, (character) => {
+    const codePoint = character.codePointAt(0)!;
+    const disallowed =
+      codePoint <= 0x08 ||
+      codePoint === 0x0b ||
+      codePoint === 0x0c ||
+      (codePoint >= 0x0e && codePoint <= 0x1f) ||
+      (codePoint >= 0x7f && codePoint <= 0x9f);
+    return disallowed ? `\\u${codePoint.toString(16).padStart(4, "0")}` : character;
+  }).join("");
 }
 
 function replaceStylesheets(document: Document, stylesheet: string): void {

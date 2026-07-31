@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { runInNewContext } from "node:vm";
 
 import { buildProject } from "@sfhs/builder";
 import { validateArtifactManifest } from "@sfhs/contracts";
@@ -91,6 +92,19 @@ describe("@sfhs/packer", () => {
 
     expect(packed.html).toContain(`data:${asset.mediaType};base64,`);
     expect(packed.html).not.toContain(asset.fileName);
+  });
+
+  it("escapes scanner-rejected controls only in inline JavaScript while preserving string and regexp semantics", async () => {
+    const intermediate = await buildProject(fixtureRoot);
+    const javascript = 'globalThis.sfhsControlProbe=["\u0080",/\u0080/.test("\u0080")];';
+    const packed = packIntermediate(Object.freeze({ ...intermediate, javascript, emittedAssets: [] }));
+    expect(packed.html).toContain('"\\u0080"');
+    expect(packed.html).not.toContain("\u0080");
+    const script = /<script data-sfhs-inline="entry">([\s\S]*?)<\/script>/u.exec(packed.html)?.[1];
+    expect(script).toBeDefined();
+    const sandbox: { sfhsControlProbe?: unknown } = {};
+    runInNewContext(script!, sandbox);
+    expect(sandbox.sfhsControlProbe).toEqual(["\u0080", true]);
   });
 
   it("fails closed when the authored module entry is missing", async () => {
