@@ -1,0 +1,3 @@
+# Collect Chat Physical Acceptance
+
+Before the user starts, provide the generated physical-test seed and instructions. State prominently whether the artifact is `candidate` or `canonical`; a candidate pass can improve product evidence but never canonical release acceptance. Collect artifact hash, device model, OS, numeric browser version, portrait and landscape viewport dimensions/DPR, required screenshots, complete semantic loop, reset, background/return, audio, heat/performance observations, result, and notes. Retain a physical failure as superseded evidence when a later repair is tested; never overwrite it.

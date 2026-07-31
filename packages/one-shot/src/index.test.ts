@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { auditOneShotProject, packageIdentity, parseOneShotFrontMatter, readOneShotBrief } from "./index.ts";
+import { auditOneShotProject, buildOneShotKit, packageIdentity, parseOneShotFrontMatter, readOneShotBrief } from "./index.ts";
 
 const roots: string[] = [];
 async function temporaryRoot(): Promise<string> { const root = await mkdtemp(join(tmpdir(), "sfhs-one-shot-")); roots.push(root); return root; }
@@ -87,5 +87,15 @@ describe("@sfhs/one-shot", () => {
     await writeFile(path, `---\n${JSON.stringify(brief)}\n---\n# Player-facing brief\n`, "utf8");
     await expect(readOneShotBrief(path)).resolves.toMatchObject({ project: { id: "test-game" } });
     expect(await readFile(path, "utf8")).toContain("Player-facing brief");
+  });
+
+  it("builds a bound chat kit without claiming a portable compiler", async () => {
+    const root = await temporaryRoot(); const target = join(root, "sfhs-chat-build-kit.json");
+    expect((await buildOneShotKit(target, { revision: "a".repeat(40), stage: "chat-build" })).valid).toBe(true);
+    const kit = JSON.parse(await readFile(target, "utf8"));
+    expect(kit).toMatchObject({ stage: "chat-build", candidateRuntime: { path: "sfhs-chat-candidate-runtime.zip", candidateCompiler: "UNAVAILABLE" } });
+    const runtime = await readFile(join(root, "sfhs-chat-candidate-runtime.zip"));
+    expect([...runtime.subarray(0, 4)]).toEqual([80, 75, 3, 4]);
+    expect(JSON.parse(await readFile(join(root, "sfhs-chat-candidate-runtime.json"), "utf8"))).toMatchObject({ candidateCompiler: { state: "UNAVAILABLE" } });
   });
 });

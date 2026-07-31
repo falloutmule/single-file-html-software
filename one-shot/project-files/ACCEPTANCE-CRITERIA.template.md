@@ -8,3 +8,8 @@
 - Portrait usability:
 - Landscape usability:
 - Artifact/evidence completion condition:
+- Semantic scenario contract (game loop, primary workflow, or representative interaction/reset):
+- Required visual state IDs, reason, orientation, artifact class, and evidence mode:
+- Required-before-completion tests:
+- Deferred hardening / graduation backlog / release backlog:
+- Stop condition:

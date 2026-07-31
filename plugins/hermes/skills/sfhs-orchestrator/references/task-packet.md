@@ -28,6 +28,12 @@ For a One-Shot game task, the bounded task packet must name the project-local
 records while working; a checker reads them and treats a candidate artifact,
 unverified physical claim, or declared-only adapter as noncanonical.
 
+Chat Protocol v2 is only for initial Chat creation. When it is selected, the
+packet also names the preflight, run-state, execution mode, completed gates,
+and the two-axis product/SFHS status. Hermes preserves those records for a
+later workflow but does not reinterpret a candidate as canonical or run a
+graduation/import workflow implicitly.
+
 The checker receives the original contract and builder result paths. It must
 recompute HEAD, status, artifact identity, and verifier output. It has an empty
 write allowlist and returns exactly one bounded checker verdict. A checker

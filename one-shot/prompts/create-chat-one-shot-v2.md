@@ -1,0 +1,3 @@
+# Create a Chat One-Shot v2
+
+Use `one-shot/START-HERE.md` and Protocol v2. First run fast preflight, record the selected execution mode and run state, then prove the highest-risk interaction. Before artifact production run deep preflight, complete the product-defined semantic scenario and visual states, create the appropriate candidate or canonical evidence, generate the physical-test seed, and stop at the completion outcome. Keep product status, SFHS status, and evidence status separate. Do not perform remote actions or optional hardening after completion; classify it in the completion policy instead.

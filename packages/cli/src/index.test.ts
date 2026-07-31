@@ -107,6 +107,13 @@ describe("@sfhs/cli", () => {
     });
   });
 
+  it("does not create Protocol v2 records in a legacy project", async () => {
+    const projectRoot = await makeTemporaryProject();
+    const result = await runCli(["one-shot", "preflight", "--json", "--project", projectRoot], { cwd: projectRoot });
+    expect(result.exitCode).toBe(1);
+    await expect(readdir(projectRoot)).resolves.not.toContain("one-shot");
+  });
+
   it("never reports success when the project contract has an error", async () => {
     const invalidProject = {
       ...validProject,

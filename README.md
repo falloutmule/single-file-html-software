@@ -127,6 +127,8 @@ coordinates concept intake, the real current template, project instructions,
 verification, recovery, and honest evidence while SFHS core remains the
 authoritative builder, packer, verifier, and browser runner.
 
+For a deliberate Chat build, opt into Protocol v2 with `pnpm sfhs one-shot init --protocol chat-v2`, then record `pnpm sfhs one-shot preflight --project <project> --json`. It records environment capability, execution mode, resumable run state, and physical-test readiness without promoting a candidate to canonical status.
+
 ```powershell
 pnpm sfhs one-shot kit --output .sfhs-one-shot/sfhs-one-shot-kit.json --json
 ```

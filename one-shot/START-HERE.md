@@ -23,6 +23,8 @@ pnpm sfhs one-shot kit --output .sfhs-one-shot/sfhs-one-shot-kit.json --json
 6. Continue through authored source, `pnpm sfhs inspect`, `validate`, proportional `check`, `pack`, exact `verify`, relevant browser evidence, and report. Only the SFHS packer can create canonical `dist/index.html`.
 7. Keep fallback output under `candidate/` and label it `UNTESTED` or `BLOCKED`. Physical evidence can supersede automation; preserve replaced evidence as `SUPERSEDED`.
 
+For a deliberate Chat build, select Protocol v2 in the brief and read [Chat execution protocol v2](instructions/chat-execution-protocol-v2.md). It adds preflight, execution-mode, resumable-run, physical-seed, and completion rules without replacing canonical SFHS commands.
+
 Do not push, publish, merge, tag, deploy, install profiles, or mutate a remote unless explicitly authorized.
 
 Read [authority and boundaries](instructions/authority-and-boundaries.md) next.
