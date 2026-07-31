@@ -128,7 +128,7 @@ export function selectProportionalTestPlan(
       }
       continue;
     }
-    if (path.startsWith("examples/skyline-drop/")) {
+    if (path === "examples/skyline-drop" || path.startsWith("examples/skyline-drop/")) {
       add(selected, "skyline-simulation");
       if (mode === "check") {
         add(selected, "skyline-browser");

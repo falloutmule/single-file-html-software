@@ -14,7 +14,7 @@ describe("proportional SFHS test selection", () => {
   });
 
   it("selects Skyline simulation plus a freshly packed exact-artifact browser test without review warning", () => {
-    const plan = selectProportionalTestPlan(["examples\\skyline-drop\\src\\main.ts"], "check");
+    const plan = selectProportionalTestPlan(["examples\\skyline-drop"], "check");
 
     expect(plan.steps.map((step) => step.id)).toEqual([
       "lint", "typecheck", "skyline-simulation", "skyline-browser"
