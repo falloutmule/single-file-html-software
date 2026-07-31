@@ -58,6 +58,10 @@ export interface PackedArtifact {
 type Document = DefaultTreeAdapterTypes.Document;
 type Element = DefaultTreeAdapterTypes.Element;
 type Node = DefaultTreeAdapterTypes.Node;
+interface TaggedTemplateNode extends JavaScriptNode {
+  readonly type: "TaggedTemplateExpression";
+  readonly quasi: { readonly quasis: readonly { readonly start: number; readonly end: number }[] };
+}
 
 function normalizeLineEndings(value: string): string {
   return value.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
@@ -172,9 +176,9 @@ function taggedTemplateControlOffset(javascript: string, controls: readonly numb
     const node = stack.pop();
     if (node === undefined) continue;
     if (node.type === "TaggedTemplateExpression") {
-      const quasi = node.quasi;
-      if (quasi.quasis.some((element) => controls.some((offset) => offset >= element.start && offset < element.end))) {
-        return controls.find((offset) => quasi.quasis.some((element) => offset >= element.start && offset < element.end));
+      const quasis = (node as TaggedTemplateNode).quasi.quasis;
+      if (quasis.some((element) => controls.some((offset) => offset >= element.start && offset < element.end))) {
+        return controls.find((offset) => quasis.some((element) => offset >= element.start && offset < element.end));
       }
     }
     for (const child of Object.values(node)) {
