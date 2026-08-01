@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"sfhs.graduation-behavior-baseline@1","type":"object","required":["schema","version","entries"],"properties":{"schema":{"const":"sfhs.graduation-behavior-baseline@1"},"version":{"const":1},"entries":{"type":"array"}}}

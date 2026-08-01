@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sfhs.graduation-intake@1",
+  "type": "object",
+  "required": ["schema", "version", "stage", "inputs", "sourceCandidates", "findings"],
+  "properties": { "schema": {"const":"sfhs.graduation-intake@1"}, "version": {"const":1}, "stage": {"type":"string"}, "inputs": {"type":"array"}, "sourceCandidates": {"type":"array"}, "findings": {"type":"array"} }
+}

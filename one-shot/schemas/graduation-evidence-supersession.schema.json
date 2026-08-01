@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"sfhs.graduation-evidence-supersession@1","type":"object","required":["schema","records"],"properties":{"schema":{"const":"sfhs.graduation-evidence-supersession@1"},"records":{"type":"array"}}}

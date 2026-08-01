@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sfhs.graduation-state@1",
+  "type": "object",
+  "required": ["schema", "version", "stage", "sourceId", "strategy", "records", "nextAction"],
+  "properties": { "schema": {"const":"sfhs.graduation-state@1"}, "version": {"const":1}, "stage": {"enum":["GRADUATION_UNINSPECTED","GRADUATION_INSPECTED","GRADUATION_PLAN_READY","GRADUATION_IMPORTED","GRADUATION_MIGRATING","GRADUATION_CANONICALIZED","GRADUATION_PHYSICAL_PENDING","GRADUATION_COMPLETE","GRADUATION_NEEDS_REPAIR","GRADUATION_BLOCKED"]}, "sourceId": {"type":"string"}, "strategy": {"type":"string"}, "records": {"type":"object"}, "nextAction": {"type":"string"} }
+}

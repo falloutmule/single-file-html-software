@@ -10,7 +10,7 @@ Use the repository's SFHS CLI as the source of truth. Do not recreate build, pac
 ## Route the request
 
 1. Read `AGENTS.md` and discover `sfhs.project.json` from the requested path.
-2. For a complete bounded game or interactive application, read `one-shot/START-HERE.md` first. For a Chat-authored build, use the opt-in Protocol v2 preflight and run-state before source work; it selects environment mode and a packet but does not replace the CLI.
+2. For a complete bounded game or interactive application, read `one-shot/START-HERE.md` first. For a Chat-authored build, use the opt-in Protocol v2 preflight and run-state before source work; it selects environment mode and a packet but does not replace the CLI. For durable migration of a completed Chat package or legacy intake, read `one-shot/instructions/graduation-protocol-v1.md` and begin with `sfhs one-shot graduate inspect`; graduation never performs remote actions or invents canonical evidence.
 3. Reconcile repository root, branch, status, HEAD, and remotes before mutation.
 4. Run `pnpm sfhs inspect --json --project <path>`.
 5. Route to the narrowest specialist:

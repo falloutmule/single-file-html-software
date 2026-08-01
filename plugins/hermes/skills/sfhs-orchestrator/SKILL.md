@@ -51,4 +51,10 @@ Do not edit generated `dist/index.html`. Do not push, publish, merge, tag,
 deploy, install plugins, alter Hermes core, or change a persistent Hermes
 profile unless the task packet and the user explicitly authorize that action.
 
+For a durable Chat-to-Codex migration, use the Graduation Protocol v1 after a
+packet is complete: inspect safely, resolve source authority, plan before
+mutation, import transactionally, and materialize into an ignored disposable
+workspace copy. Graduation does not automatically rewrite source or manage a
+remote repository.
+
 See `references/task-packet.md` for dispatch and result rules.
