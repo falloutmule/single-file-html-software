@@ -63,7 +63,7 @@ describe("graduation archive intake", () => {
   });
   it("does not treat installed dependency manifests as competing standalone source roots", async () => {
     const root = await temporaryRoot(); await mkdir(join(root, "src"), { recursive: true }); await mkdir(join(root, "node_modules", "nested-project"), { recursive: true });
-    await writeFile(join(root, "sfhs.project.json"), "{}\n"); await writeFile(join(root, "src", "main.ts"), "export {};\n"); await writeFile(join(root, "node_modules", "nested-project", "sfhs.project.json"), "{}\n");
+    await mkdir(join(root, "docs", "migration"), { recursive: true }); await writeFile(join(root, "sfhs.project.json"), "{}\n"); await writeFile(join(root, "src", "main.ts"), "export {};\n"); await writeFile(join(root, "node_modules", "nested-project", "sfhs.project.json"), "{}\n"); await writeFile(join(root, "docs", "migration", "LEGACY-SOURCE-MANIFEST.json"), "{}\n");
     const inspected = await inspectGraduationInput({ source: root }); expect(inspected.valid).toBe(true); expect(inspected.value?.lineage.revisions).toHaveLength(1); expect(inspected.value?.lineage.revisions[0]?.root).toBe("");
   });
   it("inspects one bounded nested source archive from a graduation wrapper", async () => {

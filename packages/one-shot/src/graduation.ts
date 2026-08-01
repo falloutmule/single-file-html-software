@@ -219,7 +219,7 @@ async function listDirectory(root: string): Promise<readonly GraduationFile[]> {
 
 function rootsFor(files: readonly GraduationFile[]): readonly string[] {
   const roots = new Set<string>();
-  for (const file of files) if (file.path.endsWith("sfhs.project.json") || file.path.endsWith("SOURCE-MANIFEST.json")) roots.add(file.path.includes("/") ? file.path.slice(0, file.path.lastIndexOf("/") + 1) : "");
+  for (const file of files) if (file.path.endsWith("sfhs.project.json") || file.path === "SOURCE-MANIFEST.json" || file.path.endsWith("/SOURCE-MANIFEST.json")) roots.add(file.path.includes("/") ? file.path.slice(0, file.path.lastIndexOf("/") + 1) : "");
   return Object.freeze([...roots].sort());
 }
 function text(file: GraduationFile): string | undefined { try { return new TextDecoder("utf-8", { fatal: true }).decode(file.content); } catch { return undefined; } }
