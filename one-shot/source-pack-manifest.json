@@ -70,6 +70,9 @@
     { "path": "one-shot/schemas/graduation-materialization.schema.json", "authority": "normative", "priority": 55, "required": false },
     { "path": "one-shot/schemas/graduation-report.schema.json", "authority": "normative", "priority": 56, "required": false },
     { "path": "one-shot/project-files/GRADUATION-INTAKE.template.json", "authority": "explanatory", "priority": 57, "required": false },
-    { "path": "one-shot/project-files/MIGRATION-PLAN.template.json", "authority": "explanatory", "priority": 58, "required": false }
+    { "path": "one-shot/project-files/MIGRATION-PLAN.template.json", "authority": "explanatory", "priority": 58, "required": false },
+    { "path": "one-shot/prompts/normalize-legacy-graduation.md", "authority": "explanatory", "priority": 59, "required": false },
+    { "path": "one-shot/prompts/plan-graduation.md", "authority": "explanatory", "priority": 60, "required": false },
+    { "path": "one-shot/prompts/audit-graduated-project.md", "authority": "explanatory", "priority": 61, "required": false }
   ]
 }
