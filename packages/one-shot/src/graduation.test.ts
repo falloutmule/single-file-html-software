@@ -95,13 +95,13 @@ describe("graduation migration records", () => {
   });
   it("imports transactionally and materializes to an ignored workspace location", async () => {
     const root = await temporaryRoot(); const source = join(root, "source"); const destination = join(root, "product"); await mkdir(join(source, "src"), { recursive: true });
-    await writeFile(join(source, "sfhs.project.json"), "{}\n"); await writeFile(join(source, "src", "main.ts"), "export {};\n"); await mkdir(join(source, "candidate")); await writeFile(join(source, "candidate", "index.unverified.html"), "historical");
+    await writeFile(join(source, "sfhs.project.json"), "{}\n"); await writeFile(join(source, "package.json"), JSON.stringify({ dependencies: { "pixi.js": "8.19.0" } })); await writeFile(join(source, "src", "main.ts"), "export {};\n"); await mkdir(join(source, "candidate")); await writeFile(join(source, "candidate", "index.unverified.html"), "historical");
     const inspected = await inspectGraduationInput({ source }); const planned = createGraduationPlan(inspected.value!.intake, inspected.value!.lineage, inspected.value!.intake.inputs[0]!.files);
     const imported = await importGraduationProject({ sourceRoot: source, destination, plan: planned.value!.plan, revision: "a".repeat(40) });
     expect(imported.valid).toBe(true); await expect(readFile(join(destination, "candidate", "index.unverified.html"))).rejects.toThrow();
     const second = await importGraduationProject({ sourceRoot: source, destination, plan: planned.value!.plan, revision: "a".repeat(40) }); expect(second.valid).toBe(false);
-    const workspace = join(root, "workspace"); await mkdir(join(workspace, "examples"), { recursive: true }); await mkdir(join(workspace, "adapters", "pixi-v8"), { recursive: true }); await mkdir(join(workspace, "packages", "pixi-runtime"), { recursive: true }); const materialized = await materializeGraduationProject({ sourceRoot: destination, workspaceRoot: workspace, projectId: "test-product", revision: "a".repeat(40) });
-    expect(materialized.valid).toBe(true); expect(materialized.value?.path).toContain(".sfhs-grad-test-product-"); expect((await stat(join(materialized.value!.path, "node_modules", "@sfhs", "adapter-pixi-v8"))).isDirectory()).toBe(true);
+    const workspace = join(root, "workspace"); await mkdir(join(workspace, "examples"), { recursive: true }); await mkdir(join(workspace, "adapters", "pixi-v8", "node_modules", "pixi.js"), { recursive: true }); await mkdir(join(workspace, "packages", "pixi-runtime"), { recursive: true }); const materialized = await materializeGraduationProject({ sourceRoot: destination, workspaceRoot: workspace, projectId: "test-product", revision: "a".repeat(40) });
+    expect(materialized.valid).toBe(true); expect(materialized.value?.path).toContain(".sfhs-grad-test-product-"); expect((await stat(join(materialized.value!.path, "node_modules", "@sfhs", "adapter-pixi-v8"))).isDirectory()).toBe(true); expect((await stat(join(materialized.value!.path, "node_modules", "pixi.js"))).isDirectory()).toBe(true);
   });
   it("binds completion records transactionally and reopens stale record references", async () => {
     const root = await temporaryRoot(); await mkdir(join(root, "one-shot"), { recursive: true }); await mkdir(join(root, "dist"), { recursive: true });

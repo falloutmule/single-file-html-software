@@ -366,6 +366,18 @@ export async function materializeGraduationProject(options: { readonly sourceRoo
         const target = join(staging, "node_modules", "@sfhs", name.slice("@sfhs/".length)); await mkdir(dirname(target), { recursive: true });
         await symlink(packagePath, target, process.platform === "win32" ? "junction" : "dir"); linkedPackages.push(name);
       }
+      // An external project may import a package (currently Pixi) directly while
+      // its standalone package manifest declares the normal semver dependency.
+      // The disposable overlay may use only packages already pinned in the SFHS
+      // workspace; it never installs or fetches dependencies.
+      for (const [name, specifier] of Object.entries(dependencies)) {
+        if (name.startsWith("@sfhs/") || typeof specifier !== "string") continue;
+        const candidates = [join(workspaceRoot, "node_modules", name), join(workspaceRoot, "adapters", "pixi-v8", "node_modules", name)];
+        const resolvedPackagePath = (await Promise.all(candidates.map(async (candidate) => ({ candidate, exists: await stat(candidate).then((entry) => entry.isDirectory()).catch(() => false) })))).find((candidate) => candidate.exists)?.candidate;
+        if (resolvedPackagePath === undefined) throw new Error("external dependency unavailable");
+        const target = join(staging, "node_modules", name); await mkdir(dirname(target), { recursive: true });
+        await symlink(resolvedPackagePath, target, process.platform === "win32" ? "junction" : "dir"); linkedPackages.push(name);
+      }
       const overlay = { schema: "sfhs.graduation-materialization@1", sourceRoot, sourceTreeSha256: sourceHash, sfhsCommit: options.revision, generatedWorkspacePath: relative(workspaceRoot, destination).replaceAll("\\", "/"), copiedFiles: files.filter((file) => !historicalDirectoryNames.has(file.path.split("/")[0]!)).map((file) => file.path), excludedFiles: [...historicalDirectoryNames].sort(), workspaceLinks: linkedPackages.sort(), cleanup: "safe-to-delete" };
       await writeChatJson(join(staging, "MATERIALIZATION.json"), overlay);
     });
