@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { deflateRawSync } from "node:zlib";
+import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import {
   auditGraduationProject,
   createGraduationPlan,
+  completeGraduationProject,
   extractGraduationZip,
   extractGraduationSelectedSource,
   importGraduationProject,
@@ -66,6 +68,17 @@ describe("graduation archive intake", () => {
     const inspected = await inspectGraduationInput({ source: wrapper });
     expect(inspected.valid).toBe(true); expect(inspected.value?.lineage.selectedSourceId).toBeDefined(); expect(inspected.value?.intake.inputs[0]?.files.some((file) => file.path === "cat-air-hockey/src/main.ts")).toBe(true);
   });
+  it("fails closed when nested archives collide, exceed global limits, or recurse beyond one level", async () => {
+    const root = await temporaryRoot(); const wrapper = join(root, "inputs.zip");
+    const nested = zip([{ path: "project/src/main.ts", text: "export {};" }]);
+    await writeFile(wrapper, zip([{ path: "project/src/main.ts", text: "outer" }, { path: "source.zip", bytes: nested }]));
+    const collision = await inspectGraduationInput({ source: wrapper });
+    expect(collision.valid).toBe(false); expect(collision.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_GRAD_ARCHIVE_PATH_UNSAFE" })]));
+    const oversize = await inspectGraduationInput({ source: wrapper, limits: { maxEntries: 2, maxEntryBytes: 1024, maxExpandedBytes: 1024, maxCompressionRatio: 100 } });
+    expect(oversize.valid).toBe(false);
+    const deeper = zip([{ path: "deeper.zip", bytes: nested }]);
+    expect((await inspectGraduationZip(deeper, undefined, 1)).valid).toBe(false);
+  });
   it("extracts a validated archive transactionally after inspection", async () => {
     const root = await temporaryRoot(); const output = join(root, "extracted");
     const extracted = await extractGraduationZip(zip([{ path: "project/src/main.ts", text: "export {};", deflate: true }]), output);
@@ -89,6 +102,19 @@ describe("graduation migration records", () => {
     const second = await importGraduationProject({ sourceRoot: source, destination, plan: planned.value!.plan, revision: "a".repeat(40) }); expect(second.valid).toBe(false);
     const workspace = join(root, "workspace"); await mkdir(join(workspace, "examples"), { recursive: true }); const materialized = await materializeGraduationProject({ sourceRoot: destination, workspaceRoot: workspace, projectId: "test-product", revision: "a".repeat(40) });
     expect(materialized.valid).toBe(true); expect(materialized.value?.path).toContain(".sfhs-grad-test-product-");
+  });
+  it("binds completion records transactionally and reopens stale record references", async () => {
+    const root = await temporaryRoot(); await mkdir(join(root, "one-shot"), { recursive: true }); await mkdir(join(root, "dist"), { recursive: true });
+    await writeFile(join(root, "SOURCE-IDENTITY.json"), "{}\n"); await writeFile(join(root, "one-shot", "MIGRATION-PLAN.json"), "{}\n"); await writeFile(join(root, "one-shot", "browser.json"), "{}\n"); await writeFile(join(root, "dist", "index.html"), "<html></html>");
+    const sourceHash = createHash("sha256").update("{}\n").digest("hex"); const planHash = createHash("sha256").update("{}\n").digest("hex");
+    await writeFile(join(root, "one-shot", "GRADUATION-STATE.json"), JSON.stringify({ schema: "sfhs.graduation-state@1", version: 1, stage: "GRADUATION_CANONICALIZED", sourceId: "source", projectRoot: ".", strategy: "DIRECT_CANONICALIZATION", records: { source: { path: "SOURCE-IDENTITY.json", sha256: sourceHash }, plan: { path: "one-shot/MIGRATION-PLAN.json", sha256: planHash } }, productStatus: "PRODUCT_COMPLETE", sfhsStatus: "SFHS_CANONICAL", evidenceStatus: "VERIFIED", physicalStatus: "UNTESTED", requiredRepairs: [], deferredWork: [], nextAction: "complete" }));
+    const bad = await completeGraduationProject(root, { canonicalArtifact: { path: "candidate/index.unverified.html", sha256: "c".repeat(64), bytes: 1, buildId: "candidate", verifier: "sfhs verify" }, browserEvidence: "one-shot/browser.json", physical: "UNTESTED" });
+    expect(bad.valid).toBe(false); await expect(readFile(join(root, "one-shot", "GRADUATION-REPORT.json"))).rejects.toThrow();
+    const completed = await completeGraduationProject(root, { canonicalArtifact: { path: "dist/index.html", sha256: "c".repeat(64), bytes: 13, buildId: "build", verifier: "sfhs verify" }, browserEvidence: "one-shot/browser.json", physical: "UNTESTED" });
+    expect(completed.valid).toBe(true); expect(completed.value?.outcome).toBe("GRADUATION_PHYSICAL_PENDING");
+    await writeFile(join(root, "one-shot", "GRADUATION-REPORT.json"), "tampered\n");
+    const audited = await auditGraduationProject(root);
+    expect(audited.valid).toBe(false); expect(audited.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_GRAD_MATERIALIZATION_STALE" })]));
   });
   it("accepts the existing Skyline graduation as a completed golden fixture", async () => {
     const root = resolve(process.cwd(), "examples", "skyline-drop"); const audited = await auditGraduationProject(root);

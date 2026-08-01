@@ -10,7 +10,8 @@ export default tseslint.config(
       "test-results/**",
       "examples/*/test-results/**",
       "examples/*/.candidate/**",
-      "examples/*/candidate/**"
+      "examples/*/candidate/**",
+      "examples/.sfhs-grad-*/**"
     ]
   },
   js.configs.recommended,

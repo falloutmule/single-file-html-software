@@ -106,7 +106,8 @@ export async function inspectGraduationZip(bytes: Uint8Array, limits: Graduation
     if (directoryEntry && (compressed !== 0 || expanded !== 0)) return result([failure("SFHS_GRAD_INPUT_INVALID", path, "ZIP directory entries must not contain file data.")]);
     if (expanded > limits.maxEntryBytes || expandedTotal + expanded > limits.maxExpandedBytes || (compressed > 0 && expanded / compressed > limits.maxCompressionRatio) || (compressed === 0 && expanded > 0)) return result([failure("SFHS_GRAD_ARCHIVE_LIMIT_EXCEEDED", path, "Archive entry exceeds configured expanded-size or compression-ratio limits.")]);
     if (localOffset + 30 > bytes.length || u32(bytes, localOffset) !== 0x04034b50) return result([failure("SFHS_GRAD_INPUT_INVALID", path, "ZIP local-file header is missing or malformed.")]);
-    const localNameLength = u16(bytes, localOffset + 26); const localExtraLength = u16(bytes, localOffset + 28); const contentOffset = localOffset + 30 + localNameLength + localExtraLength;
+    const localFlags = u16(bytes, localOffset + 6); const localCompression = u16(bytes, localOffset + 8); const localNameLength = u16(bytes, localOffset + 26); const localExtraLength = u16(bytes, localOffset + 28); const contentOffset = localOffset + 30 + localNameLength + localExtraLength;
+    if (contentOffset > bytes.length || localFlags !== flags || localCompression !== compression || localNameLength !== nameLength || !bytes.subarray(localOffset + 30, localOffset + 30 + localNameLength).every((value, offset) => value === bytes[at + 46 + offset])) return result([failure("SFHS_GRAD_INPUT_INVALID", path, "ZIP local-file header does not match its central-directory entry.")]);
     if (contentOffset + compressed > bytes.length) return result([failure("SFHS_GRAD_INPUT_INVALID", path, "ZIP entry data is truncated.")]);
     paths.add(path); expandedTotal += expanded; if (!directoryEntry) records.push({ path, compression, flags, crc: checksum, compressed, expanded, localOffset }); at = endAt;
   }
@@ -118,16 +119,18 @@ export async function inspectGraduationZip(bytes: Uint8Array, limits: Graduation
     let content: Uint8Array;
     try { content = entry.compression === 0 ? new Uint8Array(compressed) : new Uint8Array(await inflateRawAsync(compressed)); } catch { return result([failure("SFHS_GRAD_INPUT_INVALID", entry.path, "ZIP deflate data could not be decoded.")]); }
     if (content.length !== entry.expanded || crc32(content) !== entry.crc) return result([failure("SFHS_GRAD_ARCHIVE_HASH_MISMATCH", entry.path, "ZIP entry CRC or declared uncompressed size does not match its decoded bytes.")]);
-    if (entry.path.toLowerCase().endsWith(".zip") && nestedDepth >= 1) findings.push(warning("SFHS_GRAD_ARCHIVE_FEATURE_UNSUPPORTED", entry.path, "Nested archive exceeds the one-level graduation inspection limit and is retained as data."));
+    if (entry.path.toLowerCase().endsWith(".zip") && nestedDepth >= 1) findings.push(failure("SFHS_GRAD_ARCHIVE_FEATURE_UNSUPPORTED", entry.path, "Nested archive exceeds the one-level graduation inspection limit."));
     files.push({ path: entry.path, bytes: content.length, sha256: hash(content), content });
   }
   return result(findings, Object.freeze(files));
 }
 
 async function expandNestedArchiveFiles(files: readonly GraduationFile[], limits: GraduationLimits): Promise<GraduationResult<readonly GraduationFile[]>> {
-  const findings: GraduationFinding[] = []; const expanded: GraduationFile[] = [];
+  const findings: GraduationFinding[] = []; const expanded: GraduationFile[] = []; const paths = new Set<string>();
+  let expandedBytes = 0;
   for (const file of files) {
-    expanded.push(file);
+    if (paths.has(file.path)) return result([failure("SFHS_GRAD_ARCHIVE_PATH_UNSAFE", file.path, "Nested archive collides with an existing normalized archive path.")]);
+    paths.add(file.path); expanded.push(file); expandedBytes += file.bytes;
     if (!file.path.toLowerCase().endsWith(".zip")) continue;
     const nested = await inspectGraduationZip(file.content!, limits, 1);
     findings.push(...nested.findings);
@@ -135,7 +138,12 @@ async function expandNestedArchiveFiles(files: readonly GraduationFile[], limits
       findings.push(failure("SFHS_GRAD_INPUT_INVALID", file.path, "Nested graduation archive could not be safely inspected."));
       continue;
     }
-    expanded.push(...nested.value);
+    for (const nestedFile of nested.value) {
+      if (paths.has(nestedFile.path)) return result([...findings, failure("SFHS_GRAD_ARCHIVE_PATH_UNSAFE", nestedFile.path, "Nested archive entry collides with an outer or sibling normalized path.")]);
+      paths.add(nestedFile.path); expandedBytes += nestedFile.bytes;
+      if (expanded.length + 1 > limits.maxEntries || expandedBytes > limits.maxExpandedBytes) return result([...findings, failure("SFHS_GRAD_ARCHIVE_LIMIT_EXCEEDED", file.path, "Nested archive entries exceed the global graduation intake limits.")]);
+      expanded.push(nestedFile);
+    }
   }
   return result(findings, Object.freeze(expanded));
 }
@@ -364,10 +372,38 @@ export async function materializeGraduationProject(options: { readonly sourceRoo
 }
 
 async function readJson(path: string): Promise<Record<string, unknown> | undefined> { try { return asObject(JSON.parse(await readFile(path, "utf8"))); } catch { return undefined; } }
+async function validateGraduationRecordReferences(root: string, state: Record<string, unknown> | undefined): Promise<readonly GraduationFinding[]> {
+  const records = asObject(state?.records); const findings: GraduationFinding[] = []; const seen = new Set<string>();
+  if (records === undefined) return [failure("SFHS_GRAD_MATERIALIZATION_INVALID", "one-shot/GRADUATION-STATE.json", "Graduation state must retain hashed authoritative record references.")];
+  for (const [name, raw] of Object.entries(records)) {
+    const reference = asObject(raw); const recordPath = typeof reference?.path === "string" ? reference.path : undefined; const expected = typeof reference?.sha256 === "string" ? reference.sha256 : undefined;
+    if (recordPath === undefined || expected === undefined || seen.has(recordPath) || !inside(root, resolve(root, recordPath))) { findings.push(failure("SFHS_GRAD_MATERIALIZATION_INVALID", `one-shot/GRADUATION-STATE.json#${name}`, "Graduation records must be unique, project-contained, hashed paths.")); continue; }
+    seen.add(recordPath);
+    try { if (hash(await readFile(resolve(root, recordPath))) !== expected) findings.push(failure("SFHS_GRAD_MATERIALIZATION_STALE", recordPath, "Graduation record bytes differ from the state-bound hash; reopen graduation completion.")); } catch { findings.push(failure("SFHS_GRAD_MATERIALIZATION_INVALID", recordPath, "A graduation record referenced by state is unreadable.")); }
+  }
+  return findings;
+}
+
+async function writeGraduationCompletionRecords(root: string, records: Readonly<Record<string, string>>): Promise<void> {
+  const token = randomUUID(); const originals = new Map<string, Uint8Array | undefined>(); const temporary: string[] = []; const written: string[] = [];
+  try {
+    for (const [relativePath, content] of Object.entries(records)) {
+      const target = resolve(root, relativePath); if (!inside(root, target)) throw new Error("unsafe");
+      originals.set(target, await readFile(target).then((value) => new Uint8Array(value)).catch(() => undefined));
+      await mkdir(dirname(target), { recursive: true }); const staged = `${target}.graduation-${token}`; await writeFile(staged, content, "utf8"); temporary.push(staged);
+    }
+    for (const target of originals.keys()) { await rename(`${target}.graduation-${token}`, target); written.push(target); }
+  } catch (error) {
+    for (const target of written.reverse()) { const original = originals.get(target); if (original === undefined) await rm(target, { force: true }).catch(() => undefined); else await writeFile(target, original).catch(() => undefined); }
+    throw error;
+  } finally { await Promise.all(temporary.map((path) => rm(path, { force: true }).catch(() => undefined))); }
+}
+
 export async function auditGraduationProject(projectRoot: string): Promise<GraduationResult<{ readonly stage: GraduationStage; readonly inspection: ArchitectureInspection }>> {
   const root = resolve(projectRoot); const findings: GraduationFinding[] = []; const files = await listDirectory(root); const state = await readJson(join(root, "one-shot", "GRADUATION-STATE.json"));
   const legacyStatus = await readFile(join(root, "one-shot", "GRADUATION-STATUS.md"), "utf8").catch(() => undefined);
   const inspection = inspectGraduationArchitecture(files);
+  if (state !== undefined) findings.push(...await validateGraduationRecordReferences(root, state));
   if (inspection.facts.directPixiApplication === "DETECTED") findings.push(warning("SFHS_GRAD_ADAPTER_REWIRE_REQUIRED", "src", "Direct Pixi Application ownership remains detected."));
   if (inspection.facts.namespaceGlobals === "DETECTED") findings.push(warning("SFHS_GRAD_MODULE_INTEGRATION_REQUIRED", "src", "Namespace/global integration assumptions remain detected."));
   const materialization = await readJson(join(root, "MATERIALIZATION.json"));
@@ -379,7 +415,7 @@ export async function auditGraduationProject(projectRoot: string): Promise<Gradu
   if (materialization !== undefined && typeof materialization.sourceRoot === "string" && typeof materialization.sourceTreeSha256 === "string") {
     const current = treeIdentity(authoritativeTreeFiles(files));
     if (current === materialization.sourceTreeSha256) { /* Materialized overlays include the source payload only. */ }
-    else findings.push(warning("SFHS_GRAD_MATERIALIZATION_STALE", "MATERIALIZATION.json", "Materialized project content differs from its recorded source identity; re-materialize before relying on it."));
+    else findings.push(failure("SFHS_GRAD_MATERIALIZATION_STALE", "MATERIALIZATION.json", "Materialized project content differs from its recorded source identity; re-materialize before relying on it."));
   }
   return result(findings, { stage, inspection });
 }
@@ -387,15 +423,27 @@ export async function auditGraduationProject(projectRoot: string): Promise<Gradu
 export async function completeGraduationProject(projectRoot: string, options: { readonly canonicalArtifact?: { readonly path: string; readonly sha256: string; readonly bytes: number; readonly buildId: string; readonly verifier: string }; readonly browserEvidence?: string; readonly physical: "REPORTED" | "UNTESTED" | "BLOCKED" }): Promise<GraduationResult<{ readonly outcome: GraduationStage }>> {
   const root = resolve(projectRoot); const audited = await auditGraduationProject(root); const findings = [...audited.findings];
   if (options.canonicalArtifact === undefined) findings.push(failure("SFHS_GRAD_CANONICAL_EVIDENCE_REQUIRED", "dist/index.html", "Graduation completion requires an exact canonical verifier identity."));
+  else if (options.canonicalArtifact.path.replaceAll("\\", "/") !== "dist/index.html" || !/^[a-f0-9]{64}$/u.test(options.canonicalArtifact.sha256) || !Number.isSafeInteger(options.canonicalArtifact.bytes) || options.canonicalArtifact.bytes <= 0 || options.canonicalArtifact.buildId.length === 0 || options.canonicalArtifact.verifier !== "sfhs verify") findings.push(failure("SFHS_GRAD_CANONICAL_EVIDENCE_REQUIRED", "dist/index.html", "Canonical completion identity must bind the real verifier to dist/index.html, a SHA-256, bytes, and build id."));
   if (options.browserEvidence === undefined) findings.push(failure("SFHS_GRAD_BROWSER_EVIDENCE_REQUIRED", "one-shot", "Graduation completion requires retained canonical browser evidence."));
+  else if (!inside(root, resolve(root, options.browserEvidence))) findings.push(failure("SFHS_GRAD_BROWSER_EVIDENCE_REQUIRED", options.browserEvidence, "Canonical browser evidence must be retained inside the project."));
   if (options.physical === "UNTESTED") findings.push(warning("SFHS_GRAD_PHYSICAL_EVIDENCE_INCOMPLETE", "one-shot", "Canonical physical testing remains pending."));
   const errors = findings.some((finding) => finding.severity === "error"); const outcome: GraduationStage = errors ? "GRADUATION_BLOCKED" : options.physical === "REPORTED" ? "GRADUATION_COMPLETE" : "GRADUATION_PHYSICAL_PENDING";
   if (!errors) {
     const artifact = options.canonicalArtifact!;
     const seed = { schema: "sfhs.graduation-physical-test-seed@1", classification: "canonical", artifact, required: ["device model", "Android version", "numeric Chrome version", "portrait and landscape viewport dimensions and DPR", "screenshots", "primary workflow", "background/return", "audio", "performance and heat"], resultVocabulary: ["REPORTED PASS", "REPORTED FAIL"] };
-    await writeChatJson(join(root, "one-shot", "GRADUATION-PHYSICAL-TEST-SEED.json"), seed);
-    await writeFile(join(root, "one-shot", "GRADUATION-PHYSICAL-TEST-INSTRUCTIONS.md"), `# Graduation Physical Test\n\nTest canonical ${artifact.path} (${artifact.bytes} bytes, SHA-256 ${artifact.sha256}, build ${artifact.buildId}). Record device model, Android and numeric Chrome versions, portrait/landscape viewport dimensions and DPR, required screenshots, workflow, lifecycle, audio, performance/heat, and **REPORTED PASS** or **REPORTED FAIL**.\n`, "utf8");
-    await writeChatJson(join(root, "one-shot", "GRADUATION-REPORT.json"), { schema: "sfhs.graduation-report@1", stage: outcome, canonicalArtifact: artifact, browserEvidence: options.browserEvidence, physical: options.physical, remoteActions: "not-authorized" });
+    const report = { schema: "sfhs.graduation-report@1", stage: outcome, canonicalArtifact: artifact, browserEvidence: options.browserEvidence, physical: options.physical, remoteActions: "not-authorized" };
+    const state = await readJson(join(root, "one-shot", "GRADUATION-STATE.json"));
+    const recordValues = {
+      physicalSeed: { path: "one-shot/GRADUATION-PHYSICAL-TEST-SEED.json", sha256: hash(stableJson(seed)) },
+      report: { path: "one-shot/GRADUATION-REPORT.json", sha256: hash(stableJson(report)) }
+    };
+    const updatedState = { ...state, stage: outcome, physicalStatus: options.physical, records: { ...asObject(state?.records), ...recordValues }, nextAction: outcome === "GRADUATION_COMPLETE" ? "Graduation complete; move optional work into a separately authorized backlog." : "Collect canonical physical evidence and formal device metadata." };
+    await writeGraduationCompletionRecords(root, {
+      "one-shot/GRADUATION-PHYSICAL-TEST-SEED.json": stableJson(seed),
+      "one-shot/GRADUATION-PHYSICAL-TEST-INSTRUCTIONS.md": `# Graduation Physical Test\n\nTest canonical ${artifact.path} (${artifact.bytes} bytes, SHA-256 ${artifact.sha256}, build ${artifact.buildId}). Record device model, Android and numeric Chrome versions, portrait/landscape viewport dimensions and DPR, required screenshots, workflow, lifecycle, audio, performance/heat, and **REPORTED PASS** or **REPORTED FAIL**.\n`,
+      "one-shot/GRADUATION-REPORT.json": stableJson(report),
+      "one-shot/GRADUATION-STATE.json": stableJson(updatedState)
+    });
   }
   return result(findings, { outcome });
 }
