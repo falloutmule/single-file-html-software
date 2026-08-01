@@ -4,7 +4,7 @@
  * agent-authored migration work respectively.
  */
 import { createHash, randomUUID } from "node:crypto";
-import { cp, mkdir, readFile, readdir, rename, rm, stat, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, realpath, rename, rm, stat, symlink, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { inflateRaw } from "node:zlib";
 import { promisify } from "node:util";
@@ -325,6 +325,50 @@ function authoritativeTreeFiles(files: readonly GraduationFile[]): readonly Grad
   });
 }
 function treeIdentity(files: readonly GraduationFile[]): string { return hash(files.map((file) => `${file.path}\0${file.sha256}\0${file.bytes}`).sort().join("\n")); }
+const packageName = /^(?:@[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?\/)?[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/u;
+const sfhsPackageName = /^@sfhs\/[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/u;
+
+function packageSegments(name: string): readonly string[] | undefined {
+  if (!packageName.test(name)) return undefined;
+  return name.startsWith("@") ? name.split("/") : [name];
+}
+function materializationInvalid(path: string, message: string): GraduationResult<never> { return result([failure("SFHS_GRAD_MATERIALIZATION_INVALID", path, message)]); }
+async function packageIdentity(workspaceRoot: string, packagePath: string, expectedName: string): Promise<{ readonly path: string; readonly packageJsonSha256: string } | undefined> {
+  try {
+    const realWorkspace = await realpath(workspaceRoot); const realPackage = await realpath(packagePath);
+    if (!inside(realWorkspace, realPackage) || !((await stat(realPackage)).isDirectory())) return undefined;
+    const packageJson = await readFile(join(realPackage, "package.json")); const parsed = asObject(JSON.parse(textDecoder.decode(packageJson)));
+    if (parsed?.name !== expectedName) return undefined;
+    return { path: relative(realWorkspace, realPackage).replaceAll("\\", "/"), packageJsonSha256: hash(packageJson) };
+  } catch { return undefined; }
+}
+async function materializationConfiguration(sourceRoot: string, workspaceRoot: string): Promise<GraduationResult<{ readonly dependencies: Readonly<Record<string, unknown>>; readonly workspacePackages: readonly string[]; readonly identities: ReadonlyMap<string, { readonly path: string; readonly packageJsonSha256: string }>; readonly allowedExternal: ReadonlySet<string> }>> {
+  const packageJson = await readJson(join(sourceRoot, "package.json")); const dependencies = { ...asObject(packageJson?.dependencies), ...asObject(packageJson?.devDependencies) };
+  const pin = await readJson(join(sourceRoot, "one-shot", "SFHS-PIN.json")); const rawPinned = pin?.workspacePackages;
+  if (rawPinned !== undefined && !Array.isArray(rawPinned)) return materializationInvalid("one-shot/SFHS-PIN.json", "workspacePackages must be an explicit array of SFHS package names.");
+  const requested = [...Object.entries(dependencies).filter(([name, specifier]) => name.startsWith("@sfhs/") && specifier === "workspace:*").map(([name]) => name), ...(rawPinned ?? [])];
+  const seen = new Set<string>(); const workspacePackages: string[] = [];
+  for (const value of requested) {
+    if (typeof value !== "string" || !sfhsPackageName.test(value)) return materializationInvalid("one-shot/SFHS-PIN.json", "Workspace overlay entries must be portable @sfhs package names, not paths.");
+    if (seen.has(value)) return materializationInvalid("one-shot/SFHS-PIN.json", `Workspace overlay package ${value} is listed more than once.`);
+    seen.add(value); workspacePackages.push(value);
+  }
+  workspacePackages.sort(); const identities = new Map<string, { readonly path: string; readonly packageJsonSha256: string }>(); const allowedExternal = new Set<string>();
+  for (const name of workspacePackages) {
+    const path = name === "@sfhs/adapter-pixi-v8" ? join(workspaceRoot, "adapters", "pixi-v8") : join(workspaceRoot, "packages", name.slice("@sfhs/".length));
+    const identity = await packageIdentity(workspaceRoot, path, name);
+    if (identity === undefined) return materializationInvalid("one-shot/SFHS-PIN.json", `Requested workspace package ${name} is not a matching package inside the pinned SFHS checkout.`);
+    identities.set(name, identity);
+    const workspacePackage = asObject(JSON.parse(await readFile(join(path, "package.json"), "utf8")));
+    for (const dependency of Object.keys(asObject(workspacePackage?.dependencies) ?? {})) allowedExternal.add(dependency);
+  }
+  for (const [name, specifier] of Object.entries(dependencies)) {
+    if (name.startsWith("@sfhs/")) continue;
+    if (typeof specifier !== "string" || packageSegments(name) === undefined) return materializationInvalid("package.json", "Standalone dependency names must be portable package names with string specifiers.");
+    if (!allowedExternal.has(name)) return materializationInvalid("package.json", `External dependency ${name} is not a direct dependency of the selected pinned SFHS workspace packages.`);
+  }
+  return result([], { dependencies, workspacePackages, identities, allowedExternal });
+}
 
 export async function importGraduationProject(options: { readonly sourceRoot: string; readonly destination: string; readonly plan: MigrationPlan; readonly revision: string }): Promise<GraduationResult<{ readonly state: GraduationState }>> {
   const findings: GraduationFinding[] = []; const sourceRoot = resolve(options.sourceRoot); const destination = resolve(options.destination);
@@ -336,11 +380,12 @@ export async function importGraduationProject(options: { readonly sourceRoot: st
     await atomicDirectory(destination, async (staging) => {
       await cp(sourceRoot, staging, { recursive: true, filter: safeCopyFilter });
       const recordRoot = join(staging, "one-shot"); await mkdir(recordRoot, { recursive: true });
+      const sourceIdentity = { schema: "sfhs.graduation-source-identity@1", treeSha256: sourceHash, sourceRoot: "." };
       const records = {
-        source: { path: "SOURCE-IDENTITY.json", sha256: hash(stableJson({ root: ".", treeSha256: sourceHash })) },
+        source: { path: "SOURCE-IDENTITY.json", sha256: hash(stableJson(sourceIdentity)) },
         plan: { path: "one-shot/MIGRATION-PLAN.json", sha256: hash(stableJson(options.plan)) }
       };
-      await writeChatJson(join(staging, "SOURCE-IDENTITY.json"), { schema: "sfhs.graduation-source-identity@1", treeSha256: sourceHash, sourceRoot: "." });
+      await writeChatJson(join(staging, "SOURCE-IDENTITY.json"), sourceIdentity);
       await writeChatJson(join(recordRoot, "GRADUATION-INTAKE.json"), { schema: "sfhs.graduation-intake@1", version: 1, stage: "GRADUATION_IMPORTED", inputs: [], sourceCandidates: [{ id: options.plan.sourceId, root: ".", authority: "AUTHORITATIVE", input: "SOURCE-IDENTITY.json", reason: "Imported source identity selected by the validated migration plan." }], findings: [] });
       await writeChatJson(join(recordRoot, "SOURCE-LINEAGE.json"), { schema: "sfhs.source-lineage@1", version: 1, selectedSourceId: options.plan.sourceId, revisions: [{ id: options.plan.sourceId, root: ".", authority: "AUTHORITATIVE", input: "SOURCE-IDENTITY.json", reason: "Imported source identity selected by the validated migration plan." }] });
       await writeChatJson(join(recordRoot, "BEHAVIOR-BASELINE.json"), { schema: "sfhs.graduation-behavior-baseline@1", version: 1, entries: [{ id: "migration-plan-preservation", description: "Preserve the behavior listed in the validated migration plan.", classification: "PRESERVE", migrationRequirement: "Execute source, canonical browser, and physical evidence required by the plan.", evidence: ["one-shot/MIGRATION-PLAN.json"] }] });
@@ -358,19 +403,17 @@ export async function importGraduationProject(options: { readonly sourceRoot: st
 export async function materializeGraduationProject(options: { readonly sourceRoot: string; readonly workspaceRoot: string; readonly projectId: string; readonly revision: string }): Promise<GraduationResult<{ readonly path: string; readonly treeSha256: string }>> {
   const sourceRoot = resolve(options.sourceRoot); const workspaceRoot = resolve(options.workspaceRoot); const files = authoritativeTreeFiles(await listDirectory(sourceRoot)); const sourceHash = treeIdentity(files);
   if (!/^[a-z0-9][a-z0-9-]{1,63}$/u.test(options.projectId)) return result([failure("SFHS_GRAD_ARGUMENT_INVALID", "/projectId", "Materialized project id must be portable lowercase kebab-case.")]);
+  const configuration = await materializationConfiguration(sourceRoot, workspaceRoot);
+  const overlayConfiguration = configuration.value;
+  if (!configuration.valid || overlayConfiguration === undefined) return result(configuration.findings);
   const destination = join(workspaceRoot, "examples", `.sfhs-grad-${options.projectId}-${sourceHash.slice(0, 12)}`);
   if (!(await ensureMissing(destination))) return result([], { path: destination, treeSha256: sourceHash });
   try {
     await atomicDirectory(destination, async (staging) => {
       await cp(sourceRoot, staging, { recursive: true, filter: safeCopyFilter });
-      const packageJson = await readJson(join(staging, "package.json")); const dependencies = { ...asObject(packageJson?.dependencies), ...asObject(packageJson?.devDependencies) };
-      const pin = await readJson(join(staging, "one-shot", "SFHS-PIN.json"));
-      const pinnedWorkspacePackages = Array.isArray(pin?.workspacePackages) ? pin.workspacePackages.filter((value): value is string => typeof value === "string" && /^@sfhs\/[a-z0-9-]+$/u.test(value)) : [];
-      const workspacePackages = new Set<string>([...Object.entries(dependencies).filter(([name, specifier]) => name.startsWith("@sfhs/") && specifier === "workspace:*").map(([name]) => name), ...pinnedWorkspacePackages]);
       const linkedPackages: string[] = [];
-      for (const name of workspacePackages) {
+      for (const name of overlayConfiguration.workspacePackages) {
         const packagePath = name === "@sfhs/adapter-pixi-v8" ? join(options.workspaceRoot, "adapters", "pixi-v8") : join(options.workspaceRoot, "packages", name.slice("@sfhs/".length));
-        if (!(await stat(packagePath).then((entry) => entry.isDirectory()).catch(() => false))) throw new Error("workspace dependency unavailable");
         const target = join(staging, "node_modules", "@sfhs", name.slice("@sfhs/".length)); await mkdir(dirname(target), { recursive: true });
         await symlink(packagePath, target, process.platform === "win32" ? "junction" : "dir"); linkedPackages.push(name);
       }
@@ -378,15 +421,16 @@ export async function materializeGraduationProject(options: { readonly sourceRoo
       // its standalone package manifest declares the normal semver dependency.
       // The disposable overlay may use only packages already pinned in the SFHS
       // workspace; it never installs or fetches dependencies.
-      for (const [name, specifier] of Object.entries(dependencies)) {
+      for (const [name, specifier] of Object.entries(overlayConfiguration.dependencies)) {
         if (name.startsWith("@sfhs/") || typeof specifier !== "string") continue;
         const candidates = [join(workspaceRoot, "node_modules", name), join(workspaceRoot, "adapters", "pixi-v8", "node_modules", name)];
-        const resolvedPackagePath = (await Promise.all(candidates.map(async (candidate) => ({ candidate, exists: await stat(candidate).then((entry) => entry.isDirectory()).catch(() => false) })))).find((candidate) => candidate.exists)?.candidate;
+        const resolvedPackagePath = (await Promise.all(candidates.map(async (candidate) => ({ candidate, identity: await packageIdentity(workspaceRoot, candidate, name) })))).find((candidate) => candidate.identity !== undefined)?.candidate;
         if (resolvedPackagePath === undefined) throw new Error("external dependency unavailable");
-        const target = join(staging, "node_modules", name); await mkdir(dirname(target), { recursive: true });
+        const segments = packageSegments(name); if (segments === undefined) throw new Error("unsafe external dependency name");
+        const target = join(staging, "node_modules", ...segments); await mkdir(dirname(target), { recursive: true });
         await symlink(resolvedPackagePath, target, process.platform === "win32" ? "junction" : "dir"); linkedPackages.push(name);
       }
-      const overlay = { schema: "sfhs.graduation-materialization@1", sourceRoot, sourceTreeSha256: sourceHash, sfhsCommit: options.revision, generatedWorkspacePath: relative(workspaceRoot, destination).replaceAll("\\", "/"), copiedFiles: files.filter((file) => !historicalDirectoryNames.has(file.path.split("/")[0]!)).map((file) => file.path), excludedFiles: [...historicalDirectoryNames].sort(), workspaceLinks: linkedPackages.sort(), cleanup: "safe-to-delete" };
+      const overlay = { schema: "sfhs.graduation-materialization@1", sourceRoot, sourceTreeSha256: sourceHash, sfhsCommit: options.revision, generatedWorkspacePath: relative(workspaceRoot, destination).replaceAll("\\", "/"), copiedFiles: files.filter((file) => !historicalDirectoryNames.has(file.path.split("/")[0]!)).map((file) => file.path), excludedFiles: [...historicalDirectoryNames].sort(), workspaceLinks: linkedPackages.sort(), workspaceLinkIdentities: overlayConfiguration.workspacePackages.map((name) => ({ name, ...overlayConfiguration.identities.get(name)! })), cleanup: "safe-to-delete" };
       await writeChatJson(join(staging, "MATERIALIZATION.json"), overlay);
     });
     return result([], { path: destination, treeSha256: sourceHash });
@@ -438,6 +482,8 @@ export async function auditGraduationProject(projectRoot: string): Promise<Gradu
     const current = treeIdentity(authoritativeTreeFiles(files));
     if (current === materialization.sourceTreeSha256) { /* Materialized overlays include the source payload only. */ }
     else findings.push(failure("SFHS_GRAD_MATERIALIZATION_STALE", "MATERIALIZATION.json", "Materialized project content differs from its recorded source identity; re-materialize before relying on it."));
+    const pin = await readJson(join(root, "one-shot", "SFHS-PIN.json"));
+    if (typeof pin?.sfhsCommit !== "string" || materialization.sfhsCommit !== pin.sfhsCommit) findings.push(failure("SFHS_GRAD_MATERIALIZATION_STALE", "MATERIALIZATION.json", "Materialization is bound to a different or missing SFHS pin; re-materialize before relying on it."));
   }
   return result(findings, { stage, inspection });
 }
