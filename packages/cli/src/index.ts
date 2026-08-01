@@ -50,6 +50,7 @@ import {
   completeGraduationProject,
   createGraduationPlan,
   extractGraduationZip,
+  extractGraduationSelectedSource,
   importGraduationProject,
   inspectGraduationInput,
   materializeGraduationProject,
@@ -798,12 +799,12 @@ async function runOneShotCommand(parsed: ParsedArguments, options: CliRunOptions
       let extractionFindings: readonly CliFinding[] = [];
       if (!sourceIsDirectory && source.toLowerCase().endsWith(".zip")) {
         const extractTo = join(dirname(resolve(workingDirectory, parsed.outputArgument!)), `.sfhs-grad-intake-${basename(source, ".zip")}-${Date.now()}`);
-        const extracted = await extractGraduationZip(new Uint8Array(await readFile(source)), extractTo);
+        const selected = await extractGraduationSelectedSource(inspected.value.intake, inspected.value.lineage, extractTo);
+        const extracted = selected.valid ? selected : await extractGraduationZip(new Uint8Array(await readFile(source)), extractTo);
         extractionFindings = extracted.findings as readonly CliFinding[];
         if (extracted.value !== undefined) {
           extractionRoot = extracted.value.path;
-          const selected = inspected.value.lineage.revisions.find((entry) => entry.id === inspected.value!.lineage.selectedSourceId);
-          importRoot = selected?.root === undefined || selected.root === "" ? extractionRoot : join(extractionRoot, selected.root);
+          importRoot = selected.valid ? extractionRoot : (() => { const selectedLineage = inspected.value!.lineage.revisions.find((entry) => entry.id === inspected.value!.lineage.selectedSourceId); return selectedLineage?.root === undefined || selectedLineage.root === "" ? extractionRoot! : join(extractionRoot!, selectedLineage.root); })();
         }
       }
       const imported = planned.value === undefined || (!sourceIsDirectory && extractionRoot === undefined)

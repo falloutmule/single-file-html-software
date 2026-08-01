@@ -7,6 +7,7 @@ import {
   auditGraduationProject,
   createGraduationPlan,
   extractGraduationZip,
+  extractGraduationSelectedSource,
   importGraduationProject,
   inspectGraduationArchitecture,
   inspectGraduationInput,
@@ -22,10 +23,10 @@ afterEach(async () => { await Promise.all(roots.splice(0).map((root) => rm(root,
 function crc32(bytes: Uint8Array): number { let value = 0xffffffff; for (const byte of bytes) { value ^= byte; for (let index = 0; index < 8; index += 1) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0); } return (value ^ 0xffffffff) >>> 0; }
 function u16(bytes: Uint8Array, at: number, value: number): void { bytes[at] = value & 0xff; bytes[at + 1] = (value >>> 8) & 0xff; }
 function u32(bytes: Uint8Array, at: number, value: number): void { for (let index = 0; index < 4; index += 1) bytes[at + index] = (value >>> (index * 8)) & 0xff; }
-function zip(entries: readonly { readonly path: string; readonly text: string; readonly deflate?: boolean }[]): Uint8Array {
+function zip(entries: readonly { readonly path: string; readonly text?: string; readonly bytes?: Uint8Array; readonly deflate?: boolean }[]): Uint8Array {
   const encoder = new TextEncoder(); const chunks: Uint8Array[] = []; const central: Uint8Array[] = []; let offset = 0;
   for (const entry of entries) {
-    const name = encoder.encode(entry.path); const plain = encoder.encode(entry.text); const compressed = entry.deflate ? new Uint8Array(deflateRawSync(plain)) : plain; const method = entry.deflate ? 8 : 0; const crc = crc32(plain);
+    const name = encoder.encode(entry.path); const plain = entry.bytes ?? encoder.encode(entry.text ?? ""); const compressed = entry.deflate ? new Uint8Array(deflateRawSync(plain)) : plain; const method = entry.deflate ? 8 : 0; const crc = crc32(plain);
     const local = new Uint8Array(30 + name.length); u32(local, 0, 0x04034b50); u16(local, 4, 20); u16(local, 8, method); u32(local, 14, crc); u32(local, 18, compressed.length); u32(local, 22, plain.length); u16(local, 26, name.length); local.set(name, 30); chunks.push(local, compressed);
     const directory = new Uint8Array(46 + name.length); u32(directory, 0, 0x02014b50); u16(directory, 4, 20); u16(directory, 6, 20); u16(directory, 10, method); u32(directory, 16, crc); u32(directory, 20, compressed.length); u32(directory, 24, plain.length); u16(directory, 28, name.length); u32(directory, 42, offset); directory.set(name, 46); central.push(directory); offset += local.length + compressed.length;
   }
@@ -34,7 +35,7 @@ function zip(entries: readonly { readonly path: string; readonly text: string; r
 
 describe("graduation archive intake", () => {
   it("accepts stored and deflated UTF-8 entries and verifies CRC before extraction", async () => {
-    const archive = zip([{ path: "cat-air-hockey/SOURCE-MANIFEST.json", text: "{}" }, { path: "cat-air-hockey/src/main.ts", text: "export const hello = 'é';", deflate: true }]);
+    const archive = zip([{ path: "cat-air-hockey/", text: "" }, { path: "cat-air-hockey/SOURCE-MANIFEST.json", text: "{}" }, { path: "cat-air-hockey/src/main.ts", text: "export const hello = 'é';", deflate: true }]);
     const inspected = await inspectGraduationZip(archive);
     expect(inspected.valid).toBe(true); expect(inspected.value?.map((file) => file.path)).toEqual(["cat-air-hockey/SOURCE-MANIFEST.json", "cat-air-hockey/src/main.ts"]);
   });
@@ -48,12 +49,22 @@ describe("graduation archive intake", () => {
   });
   it("normalizes a split legacy Cat-Paw-shaped source and keeps its candidate historical", async () => {
     const root = await temporaryRoot(); const source = join(root, "source.zip"); const evidence = join(root, "evidence.zip");
-    await writeFile(source, zip([{ path: "cat-air-hockey/SOURCE-MANIFEST.json", text: "{\"schema\":\"source\"}" }, { path: "cat-air-hockey/sfhs.project.json", text: "{}" }, { path: "cat-air-hockey/src/main.ts", text: "export {};" }, { path: "cat-air-hockey/candidate/index.unverified.html", text: "<html/>" }, { path: "cat-air-hockey/ISSUES-ENCOUNTERED.md", text: "failed then repaired" }]));
+    await writeFile(source, zip([{ path: "cat-air-hockey/SOURCE-MANIFEST.json", text: "{\"schema\":\"source\"}" }, { path: "cat-air-hockey/sfhs.project.json", text: "{\"viewport\":{\"orientation\":\"portrait\"}}" }, { path: "cat-air-hockey/src/main.ts", text: "export {};" }, { path: "cat-air-hockey/candidate/index.unverified.html", text: "<html/>" }, { path: "cat-air-hockey/ISSUES-ENCOUNTERED.md", text: "failed then repaired" }]));
     await writeFile(evidence, zip([{ path: "evidence/match-flow-repaired.json", text: "{}", deflate: true }]));
     const inspected = await inspectGraduationInput({ source, evidence });
     expect(inspected.valid).toBe(true); expect(inspected.value?.intake.sourceCandidates[0]?.authority).toBe("AUTHORITATIVE"); expect(inspected.value?.intake.candidateArtifacts[0]?.path).toBe("cat-air-hockey/candidate/index.unverified.html");
     const plan = createGraduationPlan(inspected.value!.intake, inspected.value!.lineage, inspected.value!.intake.inputs.flatMap((input) => input.files));
     expect(plan.value?.plan.strategy).toBe("DIRECT_CANONICALIZATION");
+    expect(plan.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_GRAD_PROJECT_CONTRACT_REWIRE_REQUIRED" })]));
+    const selected = await extractGraduationSelectedSource(inspected.value!.intake, inspected.value!.lineage, join(root, "selected"));
+    expect(selected.valid).toBe(true); expect(await readFile(join(root, "selected", "src", "main.ts"), "utf8")).toBe("export {};");
+  });
+  it("inspects one bounded nested source archive from a graduation wrapper", async () => {
+    const root = await temporaryRoot(); const wrapper = join(root, "inputs.zip");
+    const source = zip([{ path: "cat-air-hockey/", text: "" }, { path: "cat-air-hockey/SOURCE-MANIFEST.json", text: "{}" }, { path: "cat-air-hockey/sfhs.project.json", text: "{}" }, { path: "cat-air-hockey/src/main.ts", text: "export {};" }]);
+    await writeFile(wrapper, zip([{ path: "cat-paw-inputs/", text: "" }, { path: "cat-paw-inputs/source.zip", bytes: source }]));
+    const inspected = await inspectGraduationInput({ source: wrapper });
+    expect(inspected.valid).toBe(true); expect(inspected.value?.lineage.selectedSourceId).toBeDefined(); expect(inspected.value?.intake.inputs[0]?.files.some((file) => file.path === "cat-air-hockey/src/main.ts")).toBe(true);
   });
   it("extracts a validated archive transactionally after inspection", async () => {
     const root = await temporaryRoot(); const output = join(root, "extracted");

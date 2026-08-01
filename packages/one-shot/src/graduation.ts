@@ -28,7 +28,7 @@ export type GraduationFindingCode =
   | "SFHS_GRAD_SOURCE_MISSING" | "SFHS_GRAD_SOURCE_AUTHORITY_AMBIGUOUS" | "SFHS_GRAD_SOURCE_LINEAGE_INCOMPLETE"
   | "SFHS_GRAD_SOURCE_MANIFEST_INVALID" | "SFHS_GRAD_BEHAVIOR_BASELINE_INCOMPLETE" | "SFHS_GRAD_STRATEGY_UNSUPPORTED"
   | "SFHS_GRAD_ADAPTER_REWIRE_REQUIRED" | "SFHS_GRAD_MODULE_INTEGRATION_REQUIRED" | "SFHS_GRAD_LOOP_REWIRE_REQUIRED"
-  | "SFHS_GRAD_INPUT_REWIRE_REQUIRED" | "SFHS_GRAD_ASSET_PIPELINE_REWIRE_REQUIRED" | "SFHS_GRAD_ASSET_SPATIAL_REQUIRED"
+  | "SFHS_GRAD_INPUT_REWIRE_REQUIRED" | "SFHS_GRAD_ASSET_PIPELINE_REWIRE_REQUIRED" | "SFHS_GRAD_PROJECT_CONTRACT_REWIRE_REQUIRED" | "SFHS_GRAD_ASSET_SPATIAL_REQUIRED"
   | "SFHS_GRAD_CANDIDATE_TOOLING_HISTORICAL_ONLY" | "SFHS_GRAD_CANDIDATE_IN_CANONICAL_DIST"
   | "SFHS_GRAD_MATERIALIZATION_INVALID" | "SFHS_GRAD_MATERIALIZATION_STALE" | "SFHS_GRAD_BEHAVIOR_REGRESSION"
   | "SFHS_GRAD_PRODUCT_REPAIR_REQUIRED" | "SFHS_GRAD_CANONICAL_EVIDENCE_REQUIRED"
@@ -86,7 +86,7 @@ function eocd(bytes: Uint8Array): number | undefined {
 }
 
 /** Read ZIP central directories without extracting or running supplied content. */
-export async function inspectGraduationZip(bytes: Uint8Array, limits: GraduationLimits = graduationLimits): Promise<GraduationResult<readonly GraduationFile[]>> {
+export async function inspectGraduationZip(bytes: Uint8Array, limits: GraduationLimits = graduationLimits, nestedDepth = 0): Promise<GraduationResult<readonly GraduationFile[]>> {
   const findings: GraduationFinding[] = [];
   const end = eocd(bytes);
   if (end === undefined || end + 22 > bytes.length) return result([failure("SFHS_GRAD_INPUT_INVALID", "/archive", "ZIP end-of-central-directory record is missing or truncated.")]);
@@ -99,14 +99,16 @@ export async function inspectGraduationZip(bytes: Uint8Array, limits: Graduation
     const flags = u16(bytes, at + 8); const compression = u16(bytes, at + 10); const checksum = u32(bytes, at + 16); const compressed = u32(bytes, at + 20); const expanded = u32(bytes, at + 24); const nameLength = u16(bytes, at + 28); const extraLength = u16(bytes, at + 30); const comment = u16(bytes, at + 32); const localOffset = u32(bytes, at + 42); const endAt = at + 46 + nameLength + extraLength + comment;
     if (endAt > centralOffset + centralBytes) return result([failure("SFHS_GRAD_INPUT_INVALID", "/archive", "ZIP entry fields exceed the central-directory bounds.")]);
     let rawName: string; try { rawName = textDecoder.decode(bytes.subarray(at + 46, at + 46 + nameLength)); } catch { return result([failure("SFHS_GRAD_ARCHIVE_PATH_UNSAFE", `/entries/${index}`, "ZIP filename is not valid UTF-8.")]); }
-    const path = normalizeGraduationArchivePath(rawName);
+    const directoryEntry = /[\\/]$/u.test(rawName);
+    const path = normalizeGraduationArchivePath(directoryEntry ? rawName.replace(/[\\/]+$/u, "") : rawName);
     if (path === undefined || paths.has(path)) return result([failure("SFHS_GRAD_ARCHIVE_PATH_UNSAFE", rawName, path === undefined ? "Archive entry path is absolute, traversing, or otherwise unsafe." : "Archive contains duplicate normalized paths.")]);
     if ((flags & 1) !== 0 || compression !== 0 && compression !== 8) return result([failure("SFHS_GRAD_ARCHIVE_FEATURE_UNSUPPORTED", path, (flags & 1) !== 0 ? "Encrypted ZIP entries are not supported." : "ZIP compression method is not supported.")]);
+    if (directoryEntry && (compressed !== 0 || expanded !== 0)) return result([failure("SFHS_GRAD_INPUT_INVALID", path, "ZIP directory entries must not contain file data.")]);
     if (expanded > limits.maxEntryBytes || expandedTotal + expanded > limits.maxExpandedBytes || (compressed > 0 && expanded / compressed > limits.maxCompressionRatio) || (compressed === 0 && expanded > 0)) return result([failure("SFHS_GRAD_ARCHIVE_LIMIT_EXCEEDED", path, "Archive entry exceeds configured expanded-size or compression-ratio limits.")]);
     if (localOffset + 30 > bytes.length || u32(bytes, localOffset) !== 0x04034b50) return result([failure("SFHS_GRAD_INPUT_INVALID", path, "ZIP local-file header is missing or malformed.")]);
     const localNameLength = u16(bytes, localOffset + 26); const localExtraLength = u16(bytes, localOffset + 28); const contentOffset = localOffset + 30 + localNameLength + localExtraLength;
     if (contentOffset + compressed > bytes.length) return result([failure("SFHS_GRAD_INPUT_INVALID", path, "ZIP entry data is truncated.")]);
-    paths.add(path); expandedTotal += expanded; records.push({ path, compression, flags, crc: checksum, compressed, expanded, localOffset }); at = endAt;
+    paths.add(path); expandedTotal += expanded; if (!directoryEntry) records.push({ path, compression, flags, crc: checksum, compressed, expanded, localOffset }); at = endAt;
   }
   if (at !== centralOffset + centralBytes) return result([failure("SFHS_GRAD_INPUT_INVALID", "/archive", "ZIP central-directory length is inconsistent.")]);
   const files: GraduationFile[] = [];
@@ -116,10 +118,26 @@ export async function inspectGraduationZip(bytes: Uint8Array, limits: Graduation
     let content: Uint8Array;
     try { content = entry.compression === 0 ? new Uint8Array(compressed) : new Uint8Array(await inflateRawAsync(compressed)); } catch { return result([failure("SFHS_GRAD_INPUT_INVALID", entry.path, "ZIP deflate data could not be decoded.")]); }
     if (content.length !== entry.expanded || crc32(content) !== entry.crc) return result([failure("SFHS_GRAD_ARCHIVE_HASH_MISMATCH", entry.path, "ZIP entry CRC or declared uncompressed size does not match its decoded bytes.")]);
-    if (entry.path.toLowerCase().endsWith(".zip")) findings.push(warning("SFHS_GRAD_ARCHIVE_FEATURE_UNSUPPORTED", entry.path, "Nested archive retained as data; recursive archive inspection is intentionally not performed."));
+    if (entry.path.toLowerCase().endsWith(".zip") && nestedDepth >= 1) findings.push(warning("SFHS_GRAD_ARCHIVE_FEATURE_UNSUPPORTED", entry.path, "Nested archive exceeds the one-level graduation inspection limit and is retained as data."));
     files.push({ path: entry.path, bytes: content.length, sha256: hash(content), content });
   }
   return result(findings, Object.freeze(files));
+}
+
+async function expandNestedArchiveFiles(files: readonly GraduationFile[], limits: GraduationLimits): Promise<GraduationResult<readonly GraduationFile[]>> {
+  const findings: GraduationFinding[] = []; const expanded: GraduationFile[] = [];
+  for (const file of files) {
+    expanded.push(file);
+    if (!file.path.toLowerCase().endsWith(".zip")) continue;
+    const nested = await inspectGraduationZip(file.content!, limits, 1);
+    findings.push(...nested.findings);
+    if (!nested.valid || nested.value === undefined) {
+      findings.push(failure("SFHS_GRAD_INPUT_INVALID", file.path, "Nested graduation archive could not be safely inspected."));
+      continue;
+    }
+    expanded.push(...nested.value);
+  }
+  return result(findings, Object.freeze(expanded));
 }
 
 /**
@@ -146,6 +164,30 @@ export async function extractGraduationZip(bytes: Uint8Array, destination: strin
   } catch {
     await rm(staging, { recursive: true, force: true }).catch(() => undefined);
     return result([...inspected.findings, failure("SFHS_GRAD_IO_FAILURE", output, "Graduation archive extraction failed transactionally; no destination was created.")]);
+  }
+}
+
+/** Materialize exactly the lineage-selected source root from inspected input. */
+export async function extractGraduationSelectedSource(intake: GraduationIntake, lineage: SourceLineage, destination: string): Promise<GraduationResult<{ readonly path: string; readonly files: readonly GraduationFile[] }>> {
+  const selected = lineage.revisions.find((candidate) => candidate.id === lineage.selectedSourceId);
+  if (selected === undefined || selected.authority !== "AUTHORITATIVE") return result([failure("SFHS_GRAD_SOURCE_AUTHORITY_AMBIGUOUS", "SOURCE-LINEAGE.json", "A selected authoritative source is required before extraction.")]);
+  const sourceFiles = intake.inputs.flatMap((input) => input.files).filter((file) => file.path.startsWith(selected.root));
+  if (sourceFiles.length === 0) return result([failure("SFHS_GRAD_SOURCE_MISSING", selected.root, "The selected source root has no retained inspected files.")]);
+  const output = resolve(destination);
+  if (await stat(output).then(() => true).catch(() => false)) return result([failure("SFHS_GRAD_IO_FAILURE", output, "Selected source extraction never overwrites an existing directory.")]);
+  const staging = join(dirname(output), `.${basename(output)}.selected-source-${randomUUID()}`);
+  try {
+    await mkdir(staging, { recursive: true });
+    for (const file of sourceFiles) {
+      const path = normalizeGraduationArchivePath(file.path.slice(selected.root.length));
+      if (path === undefined) throw new Error("unsafe");
+      const target = resolve(staging, path); if (!inside(staging, target)) throw new Error("unsafe");
+      await mkdir(dirname(target), { recursive: true }); await writeFile(target, file.content!);
+    }
+    await rename(staging, output); return result([], { path: output, files: sourceFiles });
+  } catch {
+    await rm(staging, { recursive: true, force: true }).catch(() => undefined);
+    return result([failure("SFHS_GRAD_IO_FAILURE", output, "Selected source extraction failed transactionally; no destination was created.")]);
   }
 }
 
@@ -194,7 +236,9 @@ export async function inspectGraduationInput(options: { readonly source: string;
     const bytes = new Uint8Array(await readFile(path));
     if (path.toLowerCase().endsWith(".zip")) {
       const inspected = await inspectGraduationZip(bytes, options.limits); findings.push(...inspected.findings);
-      const files = inspected.value ?? []; inputs.push({ kind: "zip", path, bytes: bytes.length, sha256: hash(bytes), files }); allFiles = allFiles.concat(files);
+      const nested = inspected.value === undefined ? undefined : await expandNestedArchiveFiles(inspected.value, options.limits ?? graduationLimits);
+      findings.push(...(nested?.findings ?? []));
+      const files = nested?.value ?? inspected.value ?? []; inputs.push({ kind: "zip", path, bytes: bytes.length, sha256: hash(bytes), files }); allFiles = allFiles.concat(files);
     } else {
       const name = basename(path); const file = { path: name, bytes: bytes.length, sha256: hash(bytes), content: bytes }; inputs.push({ kind: "directory", path, files: [file] }); allFiles.push(file);
     }
@@ -239,6 +283,12 @@ export function createGraduationPlan(intake: GraduationIntake, lineage: SourceLi
   if (inspection.facts.customAnimationLoop === "DETECTED" || inspection.facts.pixiTickerGameplay === "DETECTED") { rewire.push("Gameplay loop ownership"); findings.push(warning("SFHS_GRAD_LOOP_REWIRE_REQUIRED", selected.root, "Custom animation or ticker ownership must be reviewed before canonical runtime integration.")); }
   if (inspection.facts.directEventStateMutation === "DETECTED") { rewire.push("Raw event to semantic action boundary"); findings.push(warning("SFHS_GRAD_INPUT_REWIRE_REQUIRED", selected.root, "Raw input appears to mutate game state directly.")); }
   if (inspection.facts.hardCodedRuntimeUrl === "DETECTED") { rewire.push("Asset manifest ownership"); findings.push(warning("SFHS_GRAD_ASSET_PIPELINE_REWIRE_REQUIRED", selected.root, "Hard-coded external runtime URLs require asset-pipeline migration.")); }
+  const projectManifest = files.find((file) => file.path === `${selected.root}sfhs.project.json`); let viewport: Record<string, unknown> | undefined;
+  if (projectManifest !== undefined) try { viewport = asObject(asObject(JSON.parse(text(projectManifest) ?? "null"))?.viewport); } catch { findings.push(warning("SFHS_GRAD_SOURCE_MANIFEST_INVALID", projectManifest.path, "Project manifest could not be parsed during migration planning.")); }
+  if (typeof viewport?.orientation === "string" && viewport.orientation !== "adaptive") {
+    rewire.push("Current SFHS project manifest orientation contract");
+    findings.push(warning("SFHS_GRAD_PROJECT_CONTRACT_REWIRE_REQUIRED", `${selected.root}sfhs.project.json`, "Legacy viewport orientation must be reconciled with the current SFHS project contract before canonical packing."));
+  }
   if (inspection.facts.candidateTooling === "DETECTED" || intake.candidateArtifacts.length > 0) { historicalOnly.push("Candidate builder and candidate artifact"); findings.push(warning("SFHS_GRAD_CANDIDATE_TOOLING_HISTORICAL_ONLY", selected.root, "Candidate tooling is retained as historical evidence and cannot become canonical.")); }
   if (files.filter((file) => sourceFile.test(file.path)).length === 0) { strategy = "ARCHITECTURE_MISMATCH"; findings.push(failure("SFHS_GRAD_STRATEGY_UNSUPPORTED", selected.root, "The selected source root lacks readable project source files.")); }
   const baselineEntries = [
