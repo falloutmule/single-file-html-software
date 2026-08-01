@@ -1,6 +1,6 @@
 {
   "schema": "sfhs.one-shot-source-pack@1",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "compatibility": { "sfhs": "0.1.0", "node": ">=24.0.0", "adapter": "pixi-v8" },
   "superseded": [],
   "authorityOrder": [
@@ -55,6 +55,24 @@
     { "path": "one-shot/schemas/one-shot-physical-test-seed.schema.json", "authority": "normative", "priority": 40, "required": false },
     { "path": "one-shot/schemas/one-shot-chat-completion.schema.json", "authority": "normative", "priority": 41, "required": false },
     { "path": "one-shot/prompts/freeze-chat-one-shot-v2.md", "authority": "explanatory", "priority": 42, "required": false },
-    { "path": "one-shot/prompts/physical-acceptance-chat-v2.md", "authority": "explanatory", "priority": 43, "required": false }
+    { "path": "one-shot/prompts/physical-acceptance-chat-v2.md", "authority": "explanatory", "priority": 43, "required": false },
+    { "path": "one-shot/instructions/graduation-protocol-v1.md", "authority": "normative", "priority": 44, "required": false },
+    { "path": "one-shot/prompts/inspect-graduation.md", "authority": "explanatory", "priority": 45, "required": false },
+    { "path": "one-shot/prompts/continue-graduation.md", "authority": "explanatory", "priority": 46, "required": false },
+    { "path": "one-shot/prompts/complete-graduation.md", "authority": "explanatory", "priority": 47, "required": false },
+    { "path": "one-shot/prompts/prepare-graduation-physical.md", "authority": "explanatory", "priority": 48, "required": false },
+    { "path": "one-shot/schemas/graduation-intake.schema.json", "authority": "normative", "priority": 49, "required": false },
+    { "path": "one-shot/schemas/source-lineage.schema.json", "authority": "normative", "priority": 50, "required": false },
+    { "path": "one-shot/schemas/graduation-state.schema.json", "authority": "normative", "priority": 51, "required": false },
+    { "path": "one-shot/schemas/migration-plan.schema.json", "authority": "normative", "priority": 52, "required": false },
+    { "path": "one-shot/schemas/graduation-behavior-baseline.schema.json", "authority": "normative", "priority": 53, "required": false },
+    { "path": "one-shot/schemas/graduation-evidence-supersession.schema.json", "authority": "normative", "priority": 54, "required": false },
+    { "path": "one-shot/schemas/graduation-materialization.schema.json", "authority": "normative", "priority": 55, "required": false },
+    { "path": "one-shot/schemas/graduation-report.schema.json", "authority": "normative", "priority": 56, "required": false },
+    { "path": "one-shot/project-files/GRADUATION-INTAKE.template.json", "authority": "explanatory", "priority": 57, "required": false },
+    { "path": "one-shot/project-files/MIGRATION-PLAN.template.json", "authority": "explanatory", "priority": 58, "required": false },
+    { "path": "one-shot/prompts/normalize-legacy-graduation.md", "authority": "explanatory", "priority": 59, "required": false },
+    { "path": "one-shot/prompts/plan-graduation.md", "authority": "explanatory", "priority": 60, "required": false },
+    { "path": "one-shot/prompts/audit-graduated-project.md", "authority": "explanatory", "priority": 61, "required": false }
   ]
 }

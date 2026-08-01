@@ -114,6 +114,18 @@ describe("@sfhs/cli", () => {
     await expect(readdir(projectRoot)).resolves.not.toContain("one-shot");
   });
 
+  it("routes graduation inspection without changing legacy One-Shot commands", async () => {
+    const root = await makeTemporaryRoot();
+    await mkdir(join(root, "src"));
+    await writeFile(join(root, "sfhs.project.json"), "{}\n");
+    await writeFile(join(root, "src", "main.ts"), "export {};\n");
+    const inspected = await runCli(["one-shot", "graduate", "inspect", "--json", "--source", root], { cwd: root });
+    expect(inspected.exitCode).toBe(0);
+    expect(inspected.envelope.command).toBe("one-shot graduate inspect");
+    const invalidLegacy = await runCli(["one-shot", "inspect", "--json", "--source", root], { cwd: root });
+    expect(invalidLegacy.exitCode).toBe(2);
+  });
+
   it("never reports success when the project contract has an error", async () => {
     const invalidProject = {
       ...validProject,

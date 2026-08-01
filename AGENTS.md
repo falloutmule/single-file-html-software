@@ -9,6 +9,7 @@ This repository is for **SFHS — Single-File HTML Software**.
 - Keep readable source as the edit surface; generated artifacts are never hand-edited unless an explicit project contract says otherwise.
 - Keep Codex and Hermes as thin callers of the same SFHS CLI.
 - For complete bounded game or interactive-app requests, start with `one-shot/START-HERE.md`; it coordinates current SFHS rather than adding a parallel framework.
+- For a completed Chat package or legacy source/evidence migration, use the additive Graduation Protocol v1 (`sfhs one-shot graduate inspect`) before source mutation. It does not authorize remote actions or replace core pack/verify/browser evidence.
 
 ## Boundaries
 

@@ -129,6 +129,17 @@ authoritative builder, packer, verifier, and browser runner.
 
 For a deliberate Chat build, opt into Protocol v2 with `pnpm sfhs one-shot init --protocol chat-v2`, then record `pnpm sfhs one-shot preflight --project <project> --json`. It records environment capability, execution mode, resumable run state, and physical-test readiness without promoting a candidate to canonical status.
 
+For a durable migration of a completed Chat package or legacy source/evidence
+collection, use Graduation Protocol v1. It safely inspects ZIP or directory
+inputs, binds source lineage, creates a migration plan before source mutation,
+and materializes an ignored disposable workspace project for the normal SFHS
+toolchain. It never creates repositories, pushes, or promotes candidate output:
+
+```text
+pnpm sfhs one-shot graduate inspect --source <completion-or-source.zip> --evidence <evidence.zip> --json
+pnpm sfhs one-shot graduate plan --source <source> --output <records-root> --json
+```
+
 ```powershell
 pnpm sfhs one-shot kit --output .sfhs-one-shot/sfhs-one-shot-kit.json --json
 ```

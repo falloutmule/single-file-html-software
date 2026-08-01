@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sfhs.migration-plan@1",
+  "type": "object",
+  "required": ["schema", "version", "sourceId", "strategy", "inspection", "remoteAuthorized"],
+  "properties": { "schema": {"const":"sfhs.migration-plan@1"}, "version": {"const":1}, "sourceId": {"type":"string"}, "strategy": {"type":"string"}, "inspection": {"type":"object"}, "remoteAuthorized": {"const":false} }
+}

@@ -1,5 +1,10 @@
 # SFHS One-Shot Factory — Start Here
 
+For durable migration of a completed Chat package or legacy source/evidence bundle,
+read `instructions/graduation-protocol-v1.md` and run `sfhs one-shot graduate
+inspect` before changing source. Graduation is separate from initial Chat creation
+and never creates remotes, canonical artifacts, or releases by itself.
+
 Point an agent at this file (or the `one-shot/` directory) with:
 
 ```text
