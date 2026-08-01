@@ -315,7 +315,15 @@ async function atomicDirectory(destination: string, writer: (staging: string) =>
   const staging = join(dirname(destination), `.${basename(destination)}.graduation-${randomUUID()}`);
   try { await writer(staging); await rename(staging, destination); } catch (error) { await rm(staging, { recursive: true, force: true }).catch(() => undefined); throw error; }
 }
-function authoritativeTreeFiles(files: readonly GraduationFile[]): readonly GraduationFile[] { return files.filter((file) => !historicalDirectoryNames.has(file.path.split("/")[0]!) && file.path !== "MATERIALIZATION.json"); }
+function authoritativeTreeFiles(files: readonly GraduationFile[]): readonly GraduationFile[] {
+  return files.filter((file) => {
+    if (historicalDirectoryNames.has(file.path.split("/")[0]!) || file.path === "MATERIALIZATION.json") return false;
+    // Completion writes these records inside a disposable materialization. They
+    // bind evidence to its source identity; they are not source inputs and must
+    // not make that identity stale merely by recording verification evidence.
+    return file.path !== "one-shot/GRADUATION-STATE.json" && !file.path.startsWith("one-shot/GRADUATION-") && file.path !== "one-shot/canonical-browser.json";
+  });
+}
 function treeIdentity(files: readonly GraduationFile[]): string { return hash(files.map((file) => `${file.path}\0${file.sha256}\0${file.bytes}`).sort().join("\n")); }
 
 export async function importGraduationProject(options: { readonly sourceRoot: string; readonly destination: string; readonly plan: MigrationPlan; readonly revision: string }): Promise<GraduationResult<{ readonly state: GraduationState }>> {
