@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { isAbsolute, join, relative, resolve } from "node:path";
+import { readFile, rm, stat } from "node:fs/promises";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 
@@ -46,6 +46,16 @@ import {
 } from "@sfhs/one-shot";
 import { collectChatPreflight, completeChatOneShot, validateChatRunState, writeChatJson } from "@sfhs/one-shot/chat";
 import {
+  auditGraduationProject,
+  completeGraduationProject,
+  createGraduationPlan,
+  extractGraduationZip,
+  importGraduationProject,
+  inspectGraduationInput,
+  materializeGraduationProject,
+  type GraduationFindingCode
+} from "@sfhs/one-shot/graduation";
+import {
   packIntermediate,
   packProject,
   SfhsPackError,
@@ -80,6 +90,12 @@ export type CliCommand =
   | "one-shot complete"
   | "one-shot run-state inspect"
   | "one-shot run-state validate"
+  | "one-shot graduate inspect"
+  | "one-shot graduate plan"
+  | "one-shot graduate import"
+  | "one-shot graduate materialize"
+  | "one-shot graduate audit"
+  | "one-shot graduate complete"
   | "pack"
   | "release prepare"
   | "test"
@@ -94,6 +110,7 @@ export type CliFindingCode =
   | ArtifactVerificationFindingCode
   | EvidenceErrorCode
   | OneShotFindingCode
+  | GraduationFindingCode
   | "SFHS_ONE_SHOT_RUN_STATE_INVALID"
   | "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID"
   | "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH"
@@ -221,6 +238,9 @@ interface ParsedArguments {
   readonly depthArgument?: "fast" | "deep";
   readonly protocolArgument?: "chat-v2";
   readonly stageArgument?: "chat-build";
+  readonly sourceArgument?: string;
+  readonly reportArgument?: string;
+  readonly candidateArgument?: string;
 }
 
 export interface CliCommandExecution {
@@ -251,7 +271,7 @@ export type CliReleaseBrowserRunner = (
   evidenceDirectory: string
 ) => Promise<CliReleaseBrowserResult>;
 
-const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot complete|one-shot run-state inspect|one-shot run-state validate> [--project <path>] [--brief <path>] [--output <path>] [--lane <id>] [--protocol chat-v2] [--stage chat-build] [--depth <fast|deep>] [--changed <path>]... [--evidence <dir>] [--device-evidence <file>] [--json]";
+const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot complete|one-shot run-state inspect|one-shot run-state validate|one-shot graduate inspect|one-shot graduate plan|one-shot graduate import|one-shot graduate materialize|one-shot graduate audit|one-shot graduate complete> [--project <path>] [--source <path>] [--evidence <path>] [--report <path>] [--candidate <path>] [--output <path>] [--brief <path>] [--lane <id>] [--protocol chat-v2] [--stage chat-build] [--depth <fast|deep>] [--changed <path>]... [--device-evidence <file>] [--json]";
 const execFileAsync = promisify(execFile);
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -300,10 +320,12 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     ? "release prepare"
     : argv[0] === "one-shot" && argv[1] === "run-state" && ["inspect", "validate"].includes(argv[2] ?? "")
       ? `one-shot run-state ${argv[2]!}`
+    : argv[0] === "one-shot" && argv[1] === "graduate" && ["inspect", "plan", "import", "materialize", "audit", "complete"].includes(argv[2] ?? "")
+      ? `one-shot graduate ${argv[2]!}`
     : argv[0] === "one-shot" && ["init", "inspect", "audit", "kit", "preflight", "complete"].includes(argv[1] ?? "")
       ? `one-shot ${argv[1]!}`
       : argv[0]) ?? "";
-  const optionStart = commandCandidate.startsWith("one-shot run-state") ? 3 : commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") ? 2 : 1;
+  const optionStart = commandCandidate.startsWith("one-shot run-state") || commandCandidate.startsWith("one-shot graduate") ? 3 : commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") ? 2 : 1;
   if (
     commandCandidate !== "doctor" &&
     commandCandidate !== "inspect" &&
@@ -315,6 +337,12 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     commandCandidate !== "one-shot complete" &&
     commandCandidate !== "one-shot run-state inspect" &&
     commandCandidate !== "one-shot run-state validate" &&
+    commandCandidate !== "one-shot graduate inspect" &&
+    commandCandidate !== "one-shot graduate plan" &&
+    commandCandidate !== "one-shot graduate import" &&
+    commandCandidate !== "one-shot graduate materialize" &&
+    commandCandidate !== "one-shot graduate audit" &&
+    commandCandidate !== "one-shot graduate complete" &&
     commandCandidate !== "validate" &&
     commandCandidate !== "build" &&
     commandCandidate !== "check" &&
@@ -341,6 +369,9 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   let depthArgument: "fast" | "deep" | undefined;
   let protocolArgument: "chat-v2" | undefined;
   let stageArgument: "chat-build" | undefined;
+  let sourceArgument: string | undefined;
+  let reportArgument: string | undefined;
+  let candidateArgument: string | undefined;
   const changedPaths: string[] = [];
 
   for (let index = optionStart; index < argv.length; index += 1) {
@@ -366,15 +397,18 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
       continue;
     }
 
-    if (argument === "--brief" || argument === "--output" || argument === "--lane") {
+    if (argument === "--brief" || argument === "--output" || argument === "--lane" || argument === "--source" || argument === "--report" || argument === "--candidate") {
       const value = argv[index + 1];
-      const existing = argument === "--brief" ? briefArgument : argument === "--output" ? outputArgument : laneArgument;
+      const existing = argument === "--brief" ? briefArgument : argument === "--output" ? outputArgument : argument === "--lane" ? laneArgument : argument === "--source" ? sourceArgument : argument === "--report" ? reportArgument : candidateArgument;
       if (value === undefined || value.startsWith("--") || value.length === 0 || existing !== undefined) {
         return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
       }
       if (argument === "--brief") briefArgument = value;
       if (argument === "--output") outputArgument = value;
       if (argument === "--lane") laneArgument = value;
+      if (argument === "--source") sourceArgument = value;
+      if (argument === "--report") reportArgument = value;
+      if (argument === "--candidate") candidateArgument = value;
       index += 1;
       continue;
     }
@@ -456,10 +490,11 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
       message: usage
     };
   }
+  const graduate = commandCandidate.startsWith("one-shot graduate");
   if (
     commandCandidate === "release prepare"
       ? evidenceArgument === undefined
-      : evidenceArgument !== undefined || deviceEvidenceArgument !== undefined
+      : !graduate && (evidenceArgument !== undefined || deviceEvidenceArgument !== undefined)
   ) {
     return {
       code: "SFHS_CLI_ARGUMENT_INVALID",
@@ -474,6 +509,12 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   const oneShotPreflight = commandCandidate === "one-shot preflight";
   const oneShotComplete = commandCandidate === "one-shot complete";
   const oneShotRunState = commandCandidate === "one-shot run-state inspect" || commandCandidate === "one-shot run-state validate";
+  const graduateInspect = commandCandidate === "one-shot graduate inspect";
+  const graduatePlan = commandCandidate === "one-shot graduate plan";
+  const graduateImport = commandCandidate === "one-shot graduate import";
+  const graduateMaterialize = commandCandidate === "one-shot graduate materialize";
+  const graduateAudit = commandCandidate === "one-shot graduate audit";
+  const graduateComplete = commandCandidate === "one-shot graduate complete";
   if (
     (oneShotInit && (briefArgument === undefined || outputArgument === undefined || laneArgument === undefined || projectArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
     (oneShotProject && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
@@ -481,7 +522,13 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     (oneShotPreflight && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || stageArgument !== undefined)) ||
     (oneShotComplete && (projectArgument === undefined || outputArgument === undefined || briefArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
     (oneShotRunState && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined || stageArgument !== undefined)) ||
-    (!oneShotInit && !oneShotProject && !oneShotKit && !oneShotPreflight && !oneShotComplete && !oneShotRunState && (briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined || stageArgument !== undefined))
+    (graduateInspect && (sourceArgument === undefined || laneArgument !== undefined || briefArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined || projectArgument !== undefined)) ||
+    (graduatePlan && (sourceArgument === undefined || outputArgument === undefined || projectArgument !== undefined || laneArgument !== undefined || briefArgument !== undefined)) ||
+    (graduateImport && (sourceArgument === undefined || outputArgument === undefined || projectArgument !== undefined || laneArgument !== undefined || briefArgument !== undefined)) ||
+    (graduateMaterialize && (projectArgument === undefined || outputArgument !== undefined || sourceArgument !== undefined)) ||
+    (graduateAudit && (projectArgument === undefined || outputArgument !== undefined || sourceArgument !== undefined)) ||
+    (graduateComplete && (projectArgument === undefined || outputArgument !== undefined || sourceArgument !== undefined)) ||
+    (!oneShotInit && !oneShotProject && !oneShotKit && !oneShotPreflight && !oneShotComplete && !oneShotRunState && !graduate && (briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || depthArgument !== undefined || protocolArgument !== undefined || stageArgument !== undefined || sourceArgument !== undefined || reportArgument !== undefined || candidateArgument !== undefined))
   ) return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
 
   return {
@@ -497,6 +544,9 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     ...(depthArgument === undefined ? {} : { depthArgument }),
     ...(protocolArgument === undefined ? {} : { protocolArgument }),
     ...(stageArgument === undefined ? {} : { stageArgument })
+    , ...(sourceArgument === undefined ? {} : { sourceArgument })
+    , ...(reportArgument === undefined ? {} : { reportArgument })
+    , ...(candidateArgument === undefined ? {} : { candidateArgument })
   };
 }
 
@@ -715,6 +765,72 @@ async function currentRevision(workingDirectory: string, configured: string | un
 
 async function runOneShotCommand(parsed: ParsedArguments, options: CliRunOptions, workingDirectory: string): Promise<CliRunResult> {
   const revision = await currentRevision(options.workspaceRoot ?? workingDirectory, options.sourceRevision);
+  if (parsed.command.startsWith("one-shot graduate")) {
+    if (parsed.command === "one-shot graduate inspect") {
+      const inspected = await inspectGraduationInput({
+        source: resolve(workingDirectory, parsed.sourceArgument!),
+        ...(parsed.evidenceArgument === undefined ? {} : { evidence: resolve(workingDirectory, parsed.evidenceArgument) }),
+        ...(parsed.reportArgument === undefined ? {} : { report: resolve(workingDirectory, parsed.reportArgument) }),
+        ...(parsed.candidateArgument === undefined ? {} : { candidate: resolve(workingDirectory, parsed.candidateArgument) })
+      });
+      return resultFor(oneShotEnvelope(parsed.command, undefined, inspected.findings as readonly CliFinding[]), parsed.json);
+    }
+    if (parsed.command === "one-shot graduate plan") {
+      const output = resolve(workingDirectory, parsed.outputArgument!);
+      const inspected = await inspectGraduationInput({ source: resolve(workingDirectory, parsed.sourceArgument!), ...(parsed.evidenceArgument === undefined ? {} : { evidence: resolve(workingDirectory, parsed.evidenceArgument) }), ...(parsed.reportArgument === undefined ? {} : { report: resolve(workingDirectory, parsed.reportArgument) }), outputPath: output });
+      if (inspected.value === undefined) return resultFor(oneShotEnvelope(parsed.command, undefined, inspected.findings as readonly CliFinding[]), parsed.json);
+      const files = inspected.value.intake.inputs.flatMap((input) => input.files);
+      const planned = createGraduationPlan(inspected.value.intake, inspected.value.lineage, files);
+      if (planned.value !== undefined) {
+        await writeChatJson(join(output, "one-shot", "BEHAVIOR-BASELINE.json"), planned.value.baseline);
+        await writeChatJson(join(output, "one-shot", "MIGRATION-PLAN.json"), planned.value.plan);
+      }
+      return resultFor(oneShotEnvelope(parsed.command, undefined, [...inspected.findings, ...planned.findings] as readonly CliFinding[]), parsed.json);
+    }
+    if (parsed.command === "one-shot graduate import") {
+      const source = resolve(workingDirectory, parsed.sourceArgument!);
+      const inspected = await inspectGraduationInput({ source, ...(parsed.evidenceArgument === undefined ? {} : { evidence: resolve(workingDirectory, parsed.evidenceArgument) }) });
+      if (inspected.value === undefined) return resultFor(oneShotEnvelope(parsed.command, undefined, inspected.findings as readonly CliFinding[]), parsed.json);
+      const planned = createGraduationPlan(inspected.value.intake, inspected.value.lineage, inspected.value.intake.inputs.flatMap((input) => input.files));
+      const sourceIsDirectory = await stat(source).then((entry) => entry.isDirectory()).catch(() => false);
+      let extractionRoot: string | undefined;
+      let importRoot = source;
+      let extractionFindings: readonly CliFinding[] = [];
+      if (!sourceIsDirectory && source.toLowerCase().endsWith(".zip")) {
+        const extractTo = join(dirname(resolve(workingDirectory, parsed.outputArgument!)), `.sfhs-grad-intake-${basename(source, ".zip")}-${Date.now()}`);
+        const extracted = await extractGraduationZip(new Uint8Array(await readFile(source)), extractTo);
+        extractionFindings = extracted.findings as readonly CliFinding[];
+        if (extracted.value !== undefined) {
+          extractionRoot = extracted.value.path;
+          const selected = inspected.value.lineage.revisions.find((entry) => entry.id === inspected.value!.lineage.selectedSourceId);
+          importRoot = selected?.root === undefined || selected.root === "" ? extractionRoot : join(extractionRoot, selected.root);
+        }
+      }
+      const imported = planned.value === undefined || (!sourceIsDirectory && extractionRoot === undefined)
+        ? { findings: [{ code: "SFHS_GRAD_INPUT_INVALID", severity: "error" as const, path: source, message: "Graduation import requires a valid directory or a safely extractable source ZIP with an authoritative root." }] }
+        : await importGraduationProject({ sourceRoot: importRoot, destination: resolve(workingDirectory, parsed.outputArgument!), plan: planned.value.plan, revision });
+      if (extractionRoot !== undefined) await rm(extractionRoot, { recursive: true, force: true });
+      return resultFor(oneShotEnvelope(parsed.command, undefined, [...inspected.findings, ...planned.findings, ...extractionFindings, ...imported.findings] as readonly CliFinding[]), parsed.json);
+    }
+    if (parsed.command === "one-shot graduate materialize") {
+      const project = resolve(workingDirectory, parsed.projectArgument!);
+      const materialized = await materializeGraduationProject({ sourceRoot: project, workspaceRoot: options.workspaceRoot ?? workingDirectory, projectId: basename(project).replace(/[^a-z0-9-]/giu, "-").toLowerCase(), revision });
+      return resultFor(oneShotEnvelope(parsed.command, undefined, materialized.findings as readonly CliFinding[]), parsed.json);
+    }
+    if (parsed.command === "one-shot graduate audit") {
+      const audited = await auditGraduationProject(resolve(workingDirectory, parsed.projectArgument!));
+      return resultFor(oneShotEnvelope(parsed.command, undefined, audited.findings as readonly CliFinding[]), parsed.json);
+    }
+    const project = resolve(workingDirectory, parsed.projectArgument!);
+    const verify = await runCli(["verify", "--project", project, "--json"], options);
+    const artifact = verify.envelope.artifact;
+    const completed = await completeGraduationProject(project, {
+      ...(artifact === undefined ? {} : { canonicalArtifact: { path: artifact.path, sha256: artifact.sha256, bytes: artifact.bytes, buildId: artifact.buildId, verifier: "sfhs verify" } }),
+      ...(parsed.evidenceArgument === undefined ? {} : { browserEvidence: parsed.evidenceArgument }),
+      physical: parsed.deviceEvidenceArgument === undefined ? "UNTESTED" : "REPORTED"
+    });
+    return resultFor(oneShotEnvelope(parsed.command, undefined, [...(verify.envelope.findings as readonly CliFinding[]), ...completed.findings as readonly CliFinding[]]), parsed.json);
+  }
   if (parsed.command === "one-shot preflight") {
     const project = resolve(workingDirectory, parsed.projectArgument!);
     const state = await validateChatRunState(project);

@@ -8,6 +8,7 @@ test-results/
 *.tsbuildinfo
 examples/*/dist/
 examples/*/.candidate/
+examples/.sfhs-grad-*/
 .sfhs-ci/
 .sfhs-ci-download/
 .sfhs-determinism/
