@@ -205,6 +205,10 @@ async function listDirectory(root: string): Promise<readonly GraduationFile[]> {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       const full = join(directory, entry.name); const path = relative(root, full).replaceAll("\\", "/");
       if (entry.isSymbolicLink()) continue;
+      // Installed dependencies and Git metadata are never intake source. Apart
+      // from avoiding unbounded traversal, this prevents a dependency's own
+      // manifest from being mistaken for a competing product source root.
+      if (entry.isDirectory() && (entry.name === ".git" || entry.name === "node_modules")) continue;
       if (entry.isDirectory()) { await visit(full); continue; }
       if (!entry.isFile()) continue;
       const content = new Uint8Array(await readFile(full)); files.push({ path, bytes: content.length, sha256: hash(content), content });

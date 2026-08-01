@@ -61,6 +61,11 @@ describe("graduation archive intake", () => {
     const selected = await extractGraduationSelectedSource(inspected.value!.intake, inspected.value!.lineage, join(root, "selected"));
     expect(selected.valid).toBe(true); expect(await readFile(join(root, "selected", "src", "main.ts"), "utf8")).toBe("export {};");
   });
+  it("does not treat installed dependency manifests as competing standalone source roots", async () => {
+    const root = await temporaryRoot(); await mkdir(join(root, "src"), { recursive: true }); await mkdir(join(root, "node_modules", "nested-project"), { recursive: true });
+    await writeFile(join(root, "sfhs.project.json"), "{}\n"); await writeFile(join(root, "src", "main.ts"), "export {};\n"); await writeFile(join(root, "node_modules", "nested-project", "sfhs.project.json"), "{}\n");
+    const inspected = await inspectGraduationInput({ source: root }); expect(inspected.valid).toBe(true); expect(inspected.value?.lineage.revisions).toHaveLength(1); expect(inspected.value?.lineage.revisions[0]?.root).toBe("");
+  });
   it("inspects one bounded nested source archive from a graduation wrapper", async () => {
     const root = await temporaryRoot(); const wrapper = join(root, "inputs.zip");
     const source = zip([{ path: "cat-air-hockey/", text: "" }, { path: "cat-air-hockey/SOURCE-MANIFEST.json", text: "{}" }, { path: "cat-air-hockey/sfhs.project.json", text: "{}" }, { path: "cat-air-hockey/src/main.ts", text: "export {};" }]);
