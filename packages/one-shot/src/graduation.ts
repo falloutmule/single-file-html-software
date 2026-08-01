@@ -338,7 +338,7 @@ export async function importGraduationProject(options: { readonly sourceRoot: st
       await writeChatJson(join(recordRoot, "BEHAVIOR-BASELINE.json"), { schema: "sfhs.graduation-behavior-baseline@1", version: 1, entries: [{ id: "migration-plan-preservation", description: "Preserve the behavior listed in the validated migration plan.", classification: "PRESERVE", migrationRequirement: "Execute source, canonical browser, and physical evidence required by the plan.", evidence: ["one-shot/MIGRATION-PLAN.json"] }] });
       await writeChatJson(join(recordRoot, "MIGRATION-PLAN.json"), options.plan);
       await writeChatJson(join(recordRoot, "EVIDENCE-SUPERSESSION.json"), { schema: "sfhs.graduation-evidence-supersession@1", records: [] });
-      await writeChatJson(join(recordRoot, "SFHS-PIN.json"), { schema: "sfhs.graduation-sfhs-pin@1", sfhsRepository: "falloutmule/single-file-html-software", sfhsCommit: options.revision, node: ">=24", pnpm: "11.9.0", adapter: "pixi-v8", sourceProductIdentity: sourceHash });
+      await writeChatJson(join(recordRoot, "SFHS-PIN.json"), { schema: "sfhs.graduation-sfhs-pin@1", sfhsRepository: "falloutmule/single-file-html-software", sfhsCommit: options.revision, node: ">=24", pnpm: "11.9.0", adapter: "pixi-v8", sourceProductIdentity: sourceHash, workspacePackages: ["@sfhs/adapter-pixi-v8", "@sfhs/pixi-runtime"] });
       const state: GraduationState = { schema: "sfhs.graduation-state@1", version: 1, stage: "GRADUATION_IMPORTED", sourceId: options.plan.sourceId, projectRoot: ".", strategy: options.plan.strategy, records, productStatus: "PRODUCT_INCOMPLETE", sfhsStatus: "SFHS_SOURCE_ONLY", evidenceStatus: "UNTESTED", physicalStatus: "UNTESTED", requiredRepairs: options.plan.rewire, deferredWork: [], nextAction: "Perform the agent-authored migration plan, then materialize for canonical SFHS verification." };
       await writeChatJson(join(recordRoot, "GRADUATION-STATE.json"), state);
     });
@@ -356,9 +356,11 @@ export async function materializeGraduationProject(options: { readonly sourceRoo
     await atomicDirectory(destination, async (staging) => {
       await cp(sourceRoot, staging, { recursive: true, filter: safeCopyFilter });
       const packageJson = await readJson(join(staging, "package.json")); const dependencies = { ...asObject(packageJson?.dependencies), ...asObject(packageJson?.devDependencies) };
+      const pin = await readJson(join(staging, "one-shot", "SFHS-PIN.json"));
+      const pinnedWorkspacePackages = Array.isArray(pin?.workspacePackages) ? pin.workspacePackages.filter((value): value is string => typeof value === "string" && /^@sfhs\/[a-z0-9-]+$/u.test(value)) : [];
+      const workspacePackages = new Set<string>([...Object.entries(dependencies).filter(([name, specifier]) => name.startsWith("@sfhs/") && specifier === "workspace:*").map(([name]) => name), ...pinnedWorkspacePackages]);
       const linkedPackages: string[] = [];
-      for (const [name, specifier] of Object.entries(dependencies)) {
-        if (!name.startsWith("@sfhs/") || specifier !== "workspace:*") continue;
+      for (const name of workspacePackages) {
         const packagePath = name === "@sfhs/adapter-pixi-v8" ? join(options.workspaceRoot, "adapters", "pixi-v8") : join(options.workspaceRoot, "packages", name.slice("@sfhs/".length));
         if (!(await stat(packagePath).then((entry) => entry.isDirectory()).catch(() => false))) throw new Error("workspace dependency unavailable");
         const target = join(staging, "node_modules", "@sfhs", name.slice("@sfhs/".length)); await mkdir(dirname(target), { recursive: true });

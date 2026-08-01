@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { deflateRawSync } from "node:zlib";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import {
@@ -100,8 +100,8 @@ describe("graduation migration records", () => {
     const imported = await importGraduationProject({ sourceRoot: source, destination, plan: planned.value!.plan, revision: "a".repeat(40) });
     expect(imported.valid).toBe(true); await expect(readFile(join(destination, "candidate", "index.unverified.html"))).rejects.toThrow();
     const second = await importGraduationProject({ sourceRoot: source, destination, plan: planned.value!.plan, revision: "a".repeat(40) }); expect(second.valid).toBe(false);
-    const workspace = join(root, "workspace"); await mkdir(join(workspace, "examples"), { recursive: true }); const materialized = await materializeGraduationProject({ sourceRoot: destination, workspaceRoot: workspace, projectId: "test-product", revision: "a".repeat(40) });
-    expect(materialized.valid).toBe(true); expect(materialized.value?.path).toContain(".sfhs-grad-test-product-");
+    const workspace = join(root, "workspace"); await mkdir(join(workspace, "examples"), { recursive: true }); await mkdir(join(workspace, "adapters", "pixi-v8"), { recursive: true }); await mkdir(join(workspace, "packages", "pixi-runtime"), { recursive: true }); const materialized = await materializeGraduationProject({ sourceRoot: destination, workspaceRoot: workspace, projectId: "test-product", revision: "a".repeat(40) });
+    expect(materialized.valid).toBe(true); expect(materialized.value?.path).toContain(".sfhs-grad-test-product-"); expect((await stat(join(materialized.value!.path, "node_modules", "@sfhs", "adapter-pixi-v8"))).isDirectory()).toBe(true);
   });
   it("binds completion records transactionally and reopens stale record references", async () => {
     const root = await temporaryRoot(); await mkdir(join(root, "one-shot"), { recursive: true }); await mkdir(join(root, "dist"), { recursive: true });
