@@ -219,7 +219,11 @@ async function listDirectory(root: string): Promise<readonly GraduationFile[]> {
 
 function rootsFor(files: readonly GraduationFile[]): readonly string[] {
   const roots = new Set<string>();
-  for (const file of files) if (file.path.endsWith("sfhs.project.json") || file.path === "SOURCE-MANIFEST.json" || file.path.endsWith("/SOURCE-MANIFEST.json")) roots.add(file.path.includes("/") ? file.path.slice(0, file.path.lastIndexOf("/") + 1) : "");
+  for (const file of files) {
+    const sourceRootManifest = file.path === "SOURCE-MANIFEST.json" || file.path.endsWith("/SOURCE-MANIFEST.json");
+    const projectManifest = file.path === "sfhs.project.json" || file.path.endsWith("/sfhs.project.json");
+    if (sourceRootManifest || projectManifest) roots.add(file.path.includes("/") ? file.path.slice(0, file.path.lastIndexOf("/") + 1) : "");
+  }
   return Object.freeze([...roots].sort());
 }
 function text(file: GraduationFile): string | undefined { try { return new TextDecoder("utf-8", { fatal: true }).decode(file.content); } catch { return undefined; } }
@@ -244,7 +248,12 @@ export async function inspectGraduationInput(options: { readonly source: string;
   for (const [role, raw] of Object.entries({ source: options.source, ...(options.evidence === undefined ? {} : { evidence: options.evidence }), ...(options.report === undefined ? {} : { report: options.report }), ...(options.candidate === undefined ? {} : { candidate: options.candidate }) })) {
     const path = resolve(raw); let sourceStat;
     try { sourceStat = await stat(path); } catch { findings.push(failure("SFHS_GRAD_SOURCE_MISSING", path, `Graduation ${role} input does not exist.`)); continue; }
-    if (sourceStat.isDirectory()) { const files = await listDirectory(path); inputs.push({ kind: "directory", path, files }); allFiles = allFiles.concat(files.map((file) => ({ ...file, path: file.path }))); continue; }
+    if (sourceStat.isDirectory()) {
+      let files: readonly GraduationFile[];
+      try { files = await listDirectory(path); }
+      catch { findings.push(failure("SFHS_GRAD_INPUT_INVALID", path, `Graduation ${role} directory could not be read safely.`)); continue; }
+      inputs.push({ kind: "directory", path, files }); allFiles = allFiles.concat(files.map((file) => ({ ...file, path: file.path }))); continue;
+    }
     const bytes = new Uint8Array(await readFile(path));
     if (path.toLowerCase().endsWith(".zip")) {
       const inspected = await inspectGraduationZip(bytes, options.limits); findings.push(...inspected.findings);
