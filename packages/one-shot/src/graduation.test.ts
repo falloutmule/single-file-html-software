@@ -61,6 +61,25 @@ describe("graduation archive intake", () => {
     const selected = await extractGraduationSelectedSource(inspected.value!.intake, inspected.value!.lineage, join(root, "selected"));
     expect(selected.valid).toBe(true); expect(await readFile(join(root, "selected", "src", "main.ts"), "utf8")).toBe("export {};");
   });
+  it("prunes only exact dependency and Git directory segments during directory intake", async () => {
+    const root = await temporaryRoot(); await mkdir(join(root, "src"), { recursive: true }); await mkdir(join(root, "node_modules", "@scope", "nested-project"), { recursive: true }); await mkdir(join(root, "node_modules", "first", "node_modules", "second"), { recursive: true }); await mkdir(join(root, ".git", "objects"), { recursive: true }); await mkdir(join(root, "docs", "migration"), { recursive: true });
+    await writeFile(join(root, "sfhs.project.json"), "{}\n"); await writeFile(join(root, "src", "main.ts"), "export {};\n"); await writeFile(join(root, "node_modules", "@scope", "nested-project", "sfhs.project.json"), "{}\n"); await writeFile(join(root, "node_modules", "first", "node_modules", "second", "sfhs.project.json"), "{}\n"); await writeFile(join(root, ".git", "objects", "sfhs.project.json"), "{}\n"); await writeFile(join(root, "docs", "migration", "LEGACY-SOURCE-MANIFEST.json"), "{}\n");
+    const inspected = await inspectGraduationInput({ source: root }); expect(inspected.valid).toBe(true); expect(inspected.value?.lineage.revisions).toHaveLength(1); expect(inspected.value?.lineage.revisions[0]?.root).toBe("");
+  });
+  it("preserves genuine directory ambiguity and exact manifest-name matching", async () => {
+    for (const directory of ["secondary", "node_modules_backup", ".git-data", "NODE_MODULES"]) {
+      const root = await temporaryRoot(); await mkdir(join(root, directory), { recursive: true }); await writeFile(join(root, "sfhs.project.json"), "{}\n"); await writeFile(join(root, directory, "sfhs.project.json"), "{}\n");
+      const inspected = await inspectGraduationInput({ source: root }); expect(inspected.valid).toBe(false); expect(inspected.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_GRAD_SOURCE_AUTHORITY_AMBIGUOUS" })]));
+    }
+    const exact = await temporaryRoot(); await mkdir(join(exact, "docs", "migration"), { recursive: true }); await writeFile(join(exact, "sfhs.project.json"), "{}\n"); await writeFile(join(exact, "docs", "migration", "foo-sfhs.project.json"), "{}\n"); await writeFile(join(exact, "docs", "migration", "LEGACY-SOURCE-MANIFEST.json"), "{}\n");
+    expect((await inspectGraduationInput({ source: exact })).valid).toBe(true);
+    const fileNamedDependency = await temporaryRoot(); await writeFile(join(fileNamedDependency, "sfhs.project.json"), "{}\n"); await writeFile(join(fileNamedDependency, "node_modules"), "not a directory\n");
+    const fileInspection = await inspectGraduationInput({ source: fileNamedDependency }); expect(fileInspection.valid).toBe(true); expect(fileInspection.value?.intake.inputs[0]?.files.some((file) => file.path === "node_modules")).toBe(true);
+  });
+  it("keeps ZIP intake semantics unchanged for dependency-shaped entries", async () => {
+    const root = await temporaryRoot(); const source = join(root, "source.zip"); await writeFile(source, zip([{ path: "sfhs.project.json", text: "{}" }, { path: "node_modules/dependency/sfhs.project.json", text: "{}" }]));
+    const inspected = await inspectGraduationInput({ source }); expect(inspected.valid).toBe(false); expect(inspected.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "SFHS_GRAD_SOURCE_AUTHORITY_AMBIGUOUS" })]));
+  });
   it("inspects one bounded nested source archive from a graduation wrapper", async () => {
     const root = await temporaryRoot(); const wrapper = join(root, "inputs.zip");
     const source = zip([{ path: "cat-air-hockey/", text: "" }, { path: "cat-air-hockey/SOURCE-MANIFEST.json", text: "{}" }, { path: "cat-air-hockey/sfhs.project.json", text: "{}" }, { path: "cat-air-hockey/src/main.ts", text: "export {};" }]);
