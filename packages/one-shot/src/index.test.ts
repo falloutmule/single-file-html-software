@@ -94,6 +94,7 @@ describe("@sfhs/one-shot", () => {
     expect((await buildOneShotKit(target, { revision: "a".repeat(40), stage: "chat-build" })).valid).toBe(true);
     const kit = JSON.parse(await readFile(target, "utf8"));
     expect(kit).toMatchObject({ stage: "chat-build", candidateRuntime: { path: "sfhs-chat-candidate-runtime.zip", candidateCompiler: "UNAVAILABLE" } });
+    expect(kit).toMatchObject({ version: "0.2.1", repository: { compatibility: { node: ">=22.18.0" } } });
     const runtime = await readFile(join(root, "sfhs-chat-candidate-runtime.zip"));
     expect([...runtime.subarray(0, 4)]).toEqual([80, 75, 3, 4]);
     expect(JSON.parse(await readFile(join(root, "sfhs-chat-candidate-runtime.json"), "utf8"))).toMatchObject({ candidateCompiler: { state: "UNAVAILABLE" } });

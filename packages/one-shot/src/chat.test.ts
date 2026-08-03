@@ -3,14 +3,26 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { completeChatOneShot, selectChatMode, stableJson, validateChatRunState } from "./chat.ts";
+import { completeChatOneShot, isSupportedNodeRuntime, selectChatMode, stableJson, validateChatRunState } from "./chat.ts";
 
 const roots: string[] = [];
 async function root(): Promise<string> { const value = await mkdtemp(join(tmpdir(), "sfhs-chat-")); roots.push(value); return value; }
 afterEach(async () => { await Promise.all(roots.splice(0).map((value) => rm(value, { recursive: true, force: true }))); });
 
 describe("Chat One-Shot protocol v2", () => {
-  it("does not confuse a PATH Node 22 with a candidate-capable environment", () => {
+  it.each([
+    ["v22.18.0", true],
+    ["v22.99.1", true],
+    ["v23.0.0", true],
+    ["v24.0.0", true],
+    ["v22.17.99", false],
+    ["v22.18", false],
+    ["not-a-runtime", false]
+  ])("classifies runtime %s against the current Node 22.18 minimum", (runtime, supported) => {
+    expect(isSupportedNodeRuntime(runtime)).toBe(supported);
+  });
+
+  it("does not confuse an available runtime with a complete candidate environment", () => {
     expect(selectChatMode({ sfhsCheckout: { state: "UNAVAILABLE", detail: "missing" }, pnpm: { state: "UNAVAILABLE", detail: "missing" }, template: { state: "UNAVAILABLE", detail: "missing" }, adapter: { state: "UNAVAILABLE", detail: "missing" }, runtime: { state: "UNAVAILABLE", detail: "missing" }, canonicalCli: { state: "UNAVAILABLE", detail: "missing" }, browserRunner: { state: "UNAVAILABLE", detail: "missing" }, candidateRuntime: { state: "AVAILABLE", detail: "pinned" }, chromium: { state: "AVAILABLE", detail: "available" } }).mode).toBe("CHAT_CANDIDATE_MODE");
   });
 

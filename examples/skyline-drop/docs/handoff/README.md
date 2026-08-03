@@ -43,7 +43,7 @@ node scripts/build-candidate.mjs
 node scripts/verify-candidate.mjs
 ```
 
-The candidate packer exists only because the canonical SFHS repository/CLI and its required Node 24 runtime were unavailable here. The source remains structured for bounded SFHS intake.
+The candidate packer exists only because the canonical SFHS repository/CLI was unavailable and the supplied historical snapshot required Node 24. Current SFHS `main` requires Node 22.18 or newer with pnpm 11.9.0. The source remains structured for bounded SFHS intake.
 
 ## Assets and licenses
 

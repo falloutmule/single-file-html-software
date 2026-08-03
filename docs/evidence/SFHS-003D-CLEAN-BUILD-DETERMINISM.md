@@ -6,6 +6,11 @@
 
 **Base commit:** `a1f7088`
 
+> **Historical runtime note (2026-08-03):** This report honestly records the
+> Node 24 environment and CI baseline used for the original determinism card.
+> It is not current runtime authority. Current SFHS `main` requires Node 22.18
+> or newer with pnpm 11.9.0.
+
 ## WHAT WAS DONE
 
 - Added a repository-owned `sfhs.determinism@1` harness that copies the complete unignored candidate source into two isolated temporary directories.
