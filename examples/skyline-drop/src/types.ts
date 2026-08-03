@@ -5,12 +5,13 @@
   export const FIXED_STEP_MS = 1000 / SIMULATION_HZ;
   export const MAX_FRAME_DELTA_MS = 250;
 
-  export const enum Direction {
-    North = 1,
-    East = 2,
-    South = 4,
-    West = 8
-  }
+  export const Direction = Object.freeze({
+    North: 1,
+    East: 2,
+    South: 4,
+    West: 8
+  } as const);
+  export type Direction = (typeof Direction)[keyof typeof Direction];
 
   export type GamePhase = "title" | "playing" | "upgrade" | "level-complete" | "won" | "lost" | "paused";
   export type ViewLayer = "surface" | "underground";

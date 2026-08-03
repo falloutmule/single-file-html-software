@@ -188,9 +188,13 @@ packed. Always make changes in `src/`, then generate a new HTML file.
 
 Install these before using the repository:
 
-- Node.js 24 or newer.
+- Node.js 22.18 or newer.
 - pnpm 11.9.0.
 - A Chromium-based browser for the automated browser tests.
+
+SFHS runs TypeScript source files directly through Node.js. Keep runtime source
+limited to erasable TypeScript syntax so the same source remains executable on
+Node.js 22.18 and newer releases.
 
 The main runtime target is stable Android Chrome on a physical Samsung Galaxy
 S21 Ultra (`SM-G998*`). Desktop Chromium on a PC is the secondary target.

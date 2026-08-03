@@ -575,18 +575,22 @@ function projectSummary(discovery: DiscoveredProject, manifest: unknown): CliPro
 }
 
 function supportedNodeFinding(nodeVersion: string): CliFinding | undefined {
-  const match = /^v?(\d+)/u.exec(nodeVersion);
-  const majorVersion = match?.[1] === undefined ? undefined : Number(match[1]);
-
-  if (majorVersion !== undefined && Number.isInteger(majorVersion) && majorVersion >= 24) {
-    return undefined;
+  const match = /^v?(\d+)\.(\d+)\.(\d+)$/u.exec(nodeVersion);
+  if (match !== null) {
+    const segments = match.slice(1).map(Number);
+    if (segments.every((segment) => Number.isSafeInteger(segment) && segment >= 0)) {
+      const [majorVersion = 0, minorVersion = 0] = segments;
+      if (majorVersion > 22 || (majorVersion === 22 && minorVersion >= 18)) {
+        return undefined;
+      }
+    }
   }
 
   return {
     code: "SFHS_NODE_VERSION_UNSUPPORTED",
     severity: "error",
     path: "/runtime/node",
-    message: "SFHS requires Node.js 24 or newer."
+    message: "SFHS requires Node.js 22.18 or newer."
   };
 }
 
