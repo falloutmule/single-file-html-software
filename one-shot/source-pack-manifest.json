@@ -1,7 +1,7 @@
 {
   "schema": "sfhs.one-shot-source-pack@1",
-  "version": "0.2.0",
-  "compatibility": { "sfhs": "0.1.0", "node": ">=24.0.0", "adapter": "pixi-v8" },
+  "version": "0.2.1",
+  "compatibility": { "sfhs": "0.1.0", "node": ">=22.18.0", "adapter": "pixi-v8" },
   "superseded": [],
   "authorityOrder": [
     "Current explicit user authorization and task boundary",
@@ -73,6 +73,7 @@
     { "path": "one-shot/project-files/MIGRATION-PLAN.template.json", "authority": "explanatory", "priority": 58, "required": false },
     { "path": "one-shot/prompts/normalize-legacy-graduation.md", "authority": "explanatory", "priority": 59, "required": false },
     { "path": "one-shot/prompts/plan-graduation.md", "authority": "explanatory", "priority": 60, "required": false },
-    { "path": "one-shot/prompts/audit-graduated-project.md", "authority": "explanatory", "priority": 61, "required": false }
+    { "path": "one-shot/prompts/audit-graduated-project.md", "authority": "explanatory", "priority": 61, "required": false },
+    { "path": "one-shot/METADATA-CORRECTION.md", "authority": "explanatory", "priority": 62, "required": true }
   ]
 }

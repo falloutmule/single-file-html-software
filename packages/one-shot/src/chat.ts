@@ -120,12 +120,21 @@ export function selectChatMode(capabilities: Readonly<Record<string, ChatCapabil
   return { mode: "SOURCE_ONLY_MODE", reasons: ["Neither the complete canonical path nor a candidate runtime is available."] };
 }
 
+export function isSupportedNodeRuntime(nodeVersion: string): boolean {
+  const match = /^v?(\d+)\.(\d+)\.(\d+)$/u.exec(nodeVersion);
+  if (match === null) return false;
+  const segments = match.slice(1).map(Number);
+  if (!segments.every((segment) => Number.isSafeInteger(segment) && segment >= 0)) return false;
+  const [majorVersion = 0, minorVersion = 0] = segments;
+  return majorVersion > 22 || (majorVersion === 22 && minorVersion >= 18);
+}
+
 export async function collectChatPreflight(projectRoot: string, options: { readonly depth: "fast" | "deep"; readonly now?: () => Date } = { depth: "fast" }): Promise<ChatPreflight> {
   const cwd = resolve(projectRoot); const repository = await locateSfhsCheckout(cwd);
   const where = process.platform === "win32" ? await command("where.exe", ["node"], cwd) : await command("sh", ["-lc", "command -v node; command -v -a node 2>/dev/null || true"], cwd);
   const paths = [...new Set([process.execPath, ...(where.value?.split(/\r?\n/u).filter(Boolean) ?? []), ...(process.env.SFHS_NODE_PATHS?.split(process.platform === "win32" ? ";" : ":").filter(Boolean) ?? [])].map((path) => resolve(path)))];
   const runtimes = await Promise.all(paths.map(async (path) => command(path, ["--version"], cwd)));
-  const selected = runtimes.find((entry) => entry.state === "AVAILABLE" && /^v(?:2[4-9]|[3-9]\d)\./u.test(entry.value ?? "")) ?? { state: "UNAVAILABLE" as const, detail: "No supported Node >=24 runtime discovered." };
+  const selected = runtimes.find((entry) => entry.state === "AVAILABLE" && isSupportedNodeRuntime(entry.value ?? "")) ?? { state: "UNAVAILABLE" as const, detail: "No supported Node >=22.18 runtime discovered." };
   const capabilities: Record<string, ChatCapability> = {
     pnpm: await command("pnpm", ["--version"], cwd), corepack: await command("corepack", ["--version"], cwd),
     sfhsCheckout: repository === undefined ? { state: "UNAVAILABLE", detail: "No bounded ancestor SFHS checkout found." } : await exists(join(repository, "package.json"), "SFHS repository package.json"),
@@ -138,7 +147,7 @@ export async function collectChatPreflight(projectRoot: string, options: { reado
     chromium: await command(process.platform === "win32" ? "where.exe" : "sh", process.platform === "win32" ? ["chrome.exe"] : ["-lc", "command -v chromium || command -v google-chrome"], cwd),
     playwright: { state: "UNTESTED", detail: "Deep probe not run." }, headlessWebgl: { state: "UNTESTED", detail: "Deep probe not run." }, headfulWebgl: { state: "UNTESTED", detail: "Deep probe not run." }, urlNavigation: { state: "UNTESTED", detail: "Deep probe not run." }, fileProtocol: { state: "UNTESTED", detail: "Deep probe not run." }
   };
-  capabilities.runtimeCompatible = selected.state === "AVAILABLE" ? { state: "AVAILABLE", detail: "A Node.js 24+ runtime was discovered.", ...(selected.value === undefined ? {} : { value: selected.value }) } : selected;
+  capabilities.runtimeCompatible = selected.state === "AVAILABLE" ? { state: "AVAILABLE", detail: "A Node.js 22.18+ runtime was discovered.", ...(selected.value === undefined ? {} : { value: selected.value }) } : selected;
   const descriptorPath = join(cwd, ".sfhs-one-shot", "sfhs-chat-candidate-runtime.json");
   try {
     const descriptor = record(JSON.parse(await readFile(descriptorPath, "utf8")));

@@ -20,7 +20,7 @@ Canonical SFHS pack/verify: NOT RUN
 
 - The canonical SFHS repository and CLI were not mounted in this runtime.
 - `pnpm` was unavailable.
-- The available Node runtime was v22.16.0; the supplied SFHS snapshot requires Node 24 or newer.
+- The available Node runtime was v22.16.0; the supplied historical SFHS snapshot required Node 24 or newer. Current SFHS `main` instead requires Node 22.18 or newer with pnpm 11.9.0.
 - Direct `file://` navigation was blocked by Chromium policy with `ERR_BLOCKED_BY_ADMINISTRATOR` before the artifact loaded.
 - Physical Samsung Galaxy S21 Ultra acceptance was not run.
 
@@ -42,7 +42,7 @@ Canonical SFHS pack/verify: NOT RUN
 
 ## Next action
 
-Run the canonical SFHS `inspect`, `validate`, proportional `check`, `pack`, `verify`, and browser proof commands under Node 24 and pnpm 11.9.0.
+Run the canonical SFHS `inspect`, `validate`, proportional `check`, `pack`, `verify`, and browser proof commands under Node 22.18 or newer and pnpm 11.9.0.
 
 ## Latest bounded repair — invalid-placement feedback
 

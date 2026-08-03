@@ -4,6 +4,10 @@
 **Status:** PASS  
 **Autonomy used:** bounded local CLI, test, Node-ESM compatibility, dependency-link, and documentation changes
 
+> **Historical runtime note (2026-08-03):** Node 24 references below describe
+> the baseline verified by this 2026-07-20 card. They are not current runtime
+> authority. Current SFHS `main` requires Node 22.18 or newer with pnpm 11.9.0.
+
 ## Goal
 
 Expose the existing contracts and core utilities through the first stable, read-only SFHS CLI commands: `doctor`, `inspect`, and `validate`.

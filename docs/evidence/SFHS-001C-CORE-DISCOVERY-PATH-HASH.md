@@ -4,6 +4,10 @@
 **Status:** PASS  
 **Autonomy used:** bounded local core, test, dependency-lock, and documentation changes
 
+> **Historical runtime note (2026-08-03):** This report preserves the Node 24
+> dependency baseline used by the 2026-07-20 card. It is not current runtime
+> authority. Current SFHS `main` requires Node 22.18 or newer with pnpm 11.9.0.
+
 ## Goal
 
 Provide host-neutral primitives for deterministic project discovery, safe project-contained file paths, and byte-accurate SHA-256 identity.
