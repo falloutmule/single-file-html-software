@@ -10,6 +10,10 @@ permissions:
 
 jobs:
   quality:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22.18.0, 24]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -18,7 +22,7 @@ jobs:
           version: 11.9.0
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --dir packages/browser-runner exec playwright install --with-deps chromium
@@ -31,7 +35,7 @@ jobs:
           SFHS_BROWSER_EVIDENCE: .sfhs-browser/ci
       - uses: actions/upload-artifact@v7
         with:
-          name: sfhs-browser-evidence-Linux
+          name: sfhs-browser-evidence-Linux-node-${{ matrix.node-version }}
           path: .sfhs-browser/ci
           if-no-files-found: error
           retention-days: 7
@@ -42,6 +46,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        node-version: [22.18.0, 24]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
@@ -50,29 +55,33 @@ jobs:
           version: 11.9.0
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: ${{ matrix.node-version }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Prove isolated same-platform determinism
         run: pnpm run determinism -- --artifact-file .sfhs-ci/${{ runner.os }}/index.html --report-file .sfhs-ci/${{ runner.os }}/report.json
       - uses: actions/upload-artifact@v7
         with:
-          name: sfhs-determinism-${{ runner.os }}
+          name: sfhs-determinism-${{ runner.os }}-node-${{ matrix.node-version }}
           path: .sfhs-ci/${{ runner.os }}
           if-no-files-found: error
           retention-days: 7
 
   cross-platform-determinism:
     needs: determinism
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22.18.0, 24]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: ${{ matrix.node-version }}
       - uses: actions/download-artifact@v8
         with:
-          pattern: sfhs-determinism-*
+          pattern: sfhs-determinism-*-node-${{ matrix.node-version }}
           path: .sfhs-ci-download
       - name: Compare Windows and Ubuntu artifact bytes
-        run: node tools/compare-artifacts.mjs .sfhs-ci-download/sfhs-determinism-Windows/index.html .sfhs-ci-download/sfhs-determinism-Linux/index.html
+        run: node tools/compare-artifacts.mjs ".sfhs-ci-download/sfhs-determinism-Windows-node-${{ matrix.node-version }}/index.html" ".sfhs-ci-download/sfhs-determinism-Linux-node-${{ matrix.node-version }}/index.html"

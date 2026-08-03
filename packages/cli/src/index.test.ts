@@ -190,17 +190,51 @@ describe("@sfhs/cli", () => {
     expect(cliVerify.envelope.artifact?.sha256).toBe(directVerification.artifact.sha256);
   });
 
-  it("reports a missing manifest and unsupported doctor runtime with stable codes", async () => {
+  it("reports a missing manifest with a stable code", async () => {
     const missingManifest = await runCli(["inspect", "--json"], { cwd: await makeTemporaryRoot() });
-    const oldRuntime = await runCli(["doctor", "--json"], {
-      cwd: await makeTemporaryProject(),
-      nodeVersion: "v20.0.0"
-    });
 
     expect(JSON.parse(missingManifest.stdout).findings).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: "SFHS_PROJECT_MANIFEST_NOT_FOUND", severity: "error" })
     ]));
-    expect(JSON.parse(oldRuntime.stdout).findings).toEqual(expect.arrayContaining([
+  });
+
+  it.each(["v22.18.0", "v23.1.0", "v24.0.0"])("doctor accepts supported runtime %s", async (nodeVersion) => {
+    const result = await runCli(["doctor", "--json"], {
+      cwd: await makeTemporaryProject(),
+      nodeVersion
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({ ok: true, findings: [] });
+  });
+
+  it.each(["v22.17.99", "not-a-runtime", "v22.18", "v22.18.0-extra"])(
+    "doctor rejects unsupported or malformed runtime %s with a stable code",
+    async (nodeVersion) => {
+      const result = await runCli(["doctor", "--json"], {
+        cwd: await makeTemporaryProject(),
+        nodeVersion
+      });
+
+      expect(result.exitCode).toBe(1);
+      expect(JSON.parse(result.stdout).findings).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          code: "SFHS_NODE_VERSION_UNSUPPORTED",
+          severity: "error",
+          message: "SFHS requires Node.js 22.18 or newer."
+        })
+      ]));
+    }
+  );
+
+  it("keeps rejecting older Node major versions", async () => {
+    const result = await runCli(["doctor", "--json"], {
+      cwd: await makeTemporaryProject(),
+      nodeVersion: "v20.0.0"
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(JSON.parse(result.stdout).findings).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: "SFHS_NODE_VERSION_UNSUPPORTED", severity: "error" })
     ]));
   });
