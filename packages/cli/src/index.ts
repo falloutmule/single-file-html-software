@@ -250,7 +250,7 @@ export interface CliCommandExecution {
 
 export type CliCommandExecutor = (
   step: TestStepDefinition,
-  workspaceRoot: string
+  projectRoot: string
 ) => Promise<CliCommandExecution>;
 
 export interface CliReleaseBrowserScreenshot {
@@ -922,14 +922,14 @@ function findingsFromArtifactVerification(
   }));
 }
 
-const defaultCommandExecutor: CliCommandExecutor = async (step, workspaceRoot) => new Promise((resolvePromise) => {
+const defaultCommandExecutor: CliCommandExecutor = async (step, projectRoot) => new Promise((resolvePromise) => {
   const pnpmEntry = process.env.npm_execpath;
   const useNodeEntry = process.platform === "win32" && pnpmEntry !== undefined;
   const executable = useNodeEntry ? process.execPath : step.executable;
   const arguments_ = useNodeEntry ? [pnpmEntry, ...step.arguments] : [...step.arguments];
   try {
     const child = spawn(executable, arguments_, {
-      cwd: workspaceRoot,
+      cwd: projectRoot,
       env: process.env,
       shell: false,
       stdio: "ignore"
@@ -943,7 +943,7 @@ const defaultCommandExecutor: CliCommandExecutor = async (step, workspaceRoot) =
 
 async function executeTestPlan(
   plan: ProportionalTestPlan,
-  workspaceRoot: string,
+  projectRoot: string,
   executor: CliCommandExecutor
 ): Promise<readonly CliTestStepResult[]> {
   const results: CliTestStepResult[] = [];
@@ -953,7 +953,7 @@ async function executeTestPlan(
       results.push({ id: step.id, command: step.command, exitCode: -1, status: "skipped" });
       continue;
     }
-    const execution = await executor(step, workspaceRoot);
+    const execution = await executor(step, projectRoot);
     const status = execution.exitCode === 0 ? "passed" : "failed";
     results.push({ id: step.id, command: step.command, exitCode: execution.exitCode, status });
     failed = status === "failed";
@@ -1102,7 +1102,7 @@ async function prepareRelease(
     changedPaths: Object.freeze([]),
     steps: releaseSteps,
     reviewRequired: false
-  }, options.workspaceRoot ?? workingDirectory, options.commandExecutor ?? defaultCommandExecutor);
+  }, discovery.projectRoot, options.commandExecutor ?? defaultCommandExecutor);
   commands.push(...stepResults);
   const failedStep = stepResults.find((step) => step.status === "failed");
   if (failedStep !== undefined) {
@@ -1392,7 +1392,7 @@ export async function runCli(argv: readonly string[], options: CliRunOptions = {
     const selected = selectProportionalTestPlan(parsed.changedPaths, parsed.command);
     const stepResults = await executeTestPlan(
       selected,
-      options.workspaceRoot ?? workingDirectory,
+      discovery.projectRoot,
       options.commandExecutor ?? defaultCommandExecutor
     );
     if (selected.reviewRequired) {
