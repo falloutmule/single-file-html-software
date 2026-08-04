@@ -19,6 +19,7 @@ import {
 const temporaryRoots: string[] = [];
 const pixiFixtureRoot = fileURLToPath(new URL("../../../examples/pixi-minimal/", import.meta.url));
 const pixiAdapterRoot = fileURLToPath(new URL("../../../adapters/pixi-v8/", import.meta.url));
+const sfhsWorkspaceRoot = fileURLToPath(new URL("../../../", import.meta.url));
 
 async function makeTemporaryRoot(): Promise<string> {
   const projectRoot = await mkdtemp(join(tmpdir(), "sfhs-cli-"));
@@ -30,6 +31,26 @@ async function makeTemporaryProject(manifest: unknown = validProject): Promise<s
   const projectRoot = await makeTemporaryRoot();
   await writeFile(join(projectRoot, "sfhs.project.json"), `${JSON.stringify(manifest)}\n`);
   return projectRoot;
+}
+
+async function makeExternalScriptProject(): Promise<{ readonly root: string; readonly commandLog: string }> {
+  const root = await makeTemporaryProject();
+  const commandLog = join(root, "command-cwds.log");
+  await writeFile(join(root, "record-command.mjs"), [
+    'import { appendFileSync } from "node:fs";',
+    'appendFileSync("command-cwds.log", `${process.argv[2]}:${process.cwd()}\\n`);'
+  ].join("\n"));
+  await writeFile(join(root, "package.json"), `${JSON.stringify({
+    name: "external-sfhs-check-fixture",
+    private: true,
+    scripts: {
+      lint: "node record-command.mjs lint",
+      typecheck: "node record-command.mjs typecheck",
+      test: "node record-command.mjs test",
+      "browser-smoke": "node record-command.mjs browser-smoke"
+    }
+  })}\n`);
+  return { root, commandLog };
 }
 
 async function copyPixiFixture(): Promise<string> {
@@ -265,6 +286,52 @@ describe("@sfhs/cli", () => {
     ]);
   });
 
+  it("runs external-project check commands from the discovered project root", async () => {
+    const external = await makeExternalScriptProject();
+    const result = await runCli(["check", "--json", "--project", external.root], {
+      cwd: sfhsWorkspaceRoot
+    });
+
+    expect(result.exitCode).toBe(0);
+    const commandRoots = (await readFile(external.commandLog, "utf8")).trim().split("\n").map((line) => line.slice(line.indexOf(":") + 1));
+    expect(commandRoots).toEqual([external.root, external.root, external.root, external.root]);
+    expect(result.envelope.testPlan?.steps.map((step) => step.id)).toEqual([
+      "lint", "typecheck", "unit-all", "browser-smoke"
+    ]);
+  });
+
+  it("keeps explicit in-workspace project checks rooted at the discovered project", async () => {
+    const projectRoot = await makeTemporaryProject();
+    const commandRoots: string[] = [];
+    const result = await runCli(["check", "--json", "--project", projectRoot], {
+      cwd: sfhsWorkspaceRoot,
+      workspaceRoot: sfhsWorkspaceRoot,
+      commandExecutor: async (_step, commandRoot) => {
+        commandRoots.push(commandRoot);
+        return { exitCode: 0 };
+      }
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(commandRoots).toEqual([projectRoot, projectRoot, projectRoot, projectRoot]);
+  });
+
+  it("keeps explicit in-workspace project tests rooted at the discovered project", async () => {
+    const projectRoot = await makeTemporaryProject();
+    const commandRoots: string[] = [];
+    const result = await runCli(["test", "--json", "--project", projectRoot], {
+      cwd: sfhsWorkspaceRoot,
+      workspaceRoot: sfhsWorkspaceRoot,
+      commandExecutor: async (_step, commandRoot) => {
+        commandRoots.push(commandRoot);
+        return { exitCode: 0 };
+      }
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(commandRoots).toEqual([projectRoot]);
+  });
+
   it("stops a failed check plan and never reports success", async () => {
     const projectRoot = await makeTemporaryProject();
     const result = await runCli(["check", "--json"], {
@@ -283,14 +350,18 @@ describe("@sfhs/cli", () => {
 
   it("writes blocked run-contained release evidence when physical device proof is absent", async () => {
     const projectRoot = await copyPixiFixture();
+    const commandRoots: string[] = [];
     const result = await runCli([
       "release", "prepare", "--json", "--evidence", ".sfhs-evidence/blocked"
     ], {
       cwd: projectRoot,
-      workspaceRoot: projectRoot,
+      workspaceRoot: sfhsWorkspaceRoot,
       runId: "release-blocked-test",
       now: () => new Date("2026-07-20T22:00:00Z"),
-      commandExecutor: async () => ({ exitCode: 0 }),
+      commandExecutor: async (_step, commandRoot) => {
+        commandRoots.push(commandRoot);
+        return { exitCode: 0 };
+      },
       releaseBrowserRunner: fakeReleaseBrowserRunner
     });
 
@@ -309,6 +380,7 @@ describe("@sfhs/cli", () => {
       });
     }
     await expect(readFile(join(projectRoot, "dist", "index.html"))).resolves.toBeInstanceOf(Buffer);
+    expect(commandRoots).toEqual([projectRoot, projectRoot, projectRoot, projectRoot]);
   });
 
   it("prepares but never publishes when exact physical-device evidence is supplied", async () => {
