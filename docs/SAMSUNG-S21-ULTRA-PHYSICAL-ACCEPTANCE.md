@@ -11,11 +11,13 @@ This run is the primary SFHS runtime acceptance gate. Browser emulation, respons
 
 ## Required run
 
-In both portrait and landscape:
+In both portrait and landscape, run the adapter-owned product checklist and:
 
-1. Open the exact artifact and confirm WebGL capability succeeds.
-2. Start the fixture through a user gesture and confirm audio becomes `ready`.
-3. Confirm ticks advance, keyboard input where available does not break the page, touch direction controls move the player, and tapping the target increments activation count.
+1. Open the exact artifact. Confirm WebGL capability for `pixi-v8`; record
+   WebGL as `not-required` for `dom-canvas-fabric`.
+2. Exercise the smallest meaningful user-gesture interaction.
+3. Confirm the adapter-owned runtime or editor diagnostics reach their ready
+   state and that primary touch interactions work.
 4. Rotate or resize and confirm the canvas, HUD, and touch controls remain usable without overlap or horizontal overflow.
 5. Confirm there is no unexpected runtime network request, page error, or console error.
 6. Record `window.innerWidth`, `window.innerHeight`, and `window.devicePixelRatio` and save one semantically reviewable screenshot.
@@ -30,11 +32,16 @@ The record must contain:
 - `physical: true`;
 - exact `SM-G998*` model identifier;
 - Android and Chrome versions;
-- WebGL capability result and renderer string when available;
+- WebGL capability result and renderer string when required; use
+  `not-required` for Canvas 2D projects;
 - portrait and landscape viewport width, height, DPR, screenshot path, and status;
 - one final verdict.
 
-The validator fails emulation with `SFHS_DEVICE_NOT_PHYSICAL`, the wrong model with `SFHS_DEVICE_MODEL_UNSUPPORTED`, missing WebGL with `SFHS_DEVICE_WEBGL_UNSUPPORTED`, and any nonpassing orientation/verdict with `SFHS_DEVICE_ACCEPTANCE_FAILED`.
+The validator fails emulation with `SFHS_DEVICE_NOT_PHYSICAL`, the wrong model
+with `SFHS_DEVICE_MODEL_UNSUPPORTED`, explicitly unsupported WebGL with
+`SFHS_DEVICE_WEBGL_UNSUPPORTED`, and any nonpassing orientation/verdict with
+`SFHS_DEVICE_ACCEPTANCE_FAILED`. Release preparation additionally requires
+`supported` WebGL when the selected adapter is `pixi-v8`.
 
 ## Current state
 

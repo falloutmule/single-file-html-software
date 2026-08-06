@@ -8,9 +8,10 @@
 > workflows may change. It is not a stable SDK, npm package, or production
 > support promise.
 
-PixiJS v8 is the active development lane, not the permanent definition of
-SFHS. Canvas 2D, DOM/CSS, raycasting, and future application lanes remain in
-scope when working projects justify them.
+SFHS supports the original PixiJS v8/WebGL lane and a bounded
+`dom-canvas-fabric` lane for offline DOM applications with a Canvas 2D editing
+surface. Raycasting and other future lanes still require separate contracts
+and evidence.
 
 - Project version: 0.1.0
 - Primary target: stable Android Chrome on Samsung Galaxy S21 Ultra
@@ -37,6 +38,11 @@ Here is what that includes:
   foundation, a working example, and a reusable adapter boundary. A creator can
   begin with game rules and presentation instead of rebuilding basic PixiJS
   startup and lifecycle plumbing for every project.
+
+- **A DOM/Canvas Fabric application lane.** Offline editors can declare Canvas
+  2D rendering, DOM UI, optional local storage, and no simulation loop while
+  retaining the same single-file packing, exact-byte verification, browser
+  evidence, deterministic output, and physical-device requirements.
 
 - **A fixed-step game loop.** Simulation advances at a predictable rate instead
   of tying game rules directly to an inconsistent display frame rate. This makes

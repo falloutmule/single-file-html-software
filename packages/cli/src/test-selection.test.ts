@@ -13,6 +13,12 @@ describe("proportional SFHS test selection", () => {
     ]);
   });
 
+  it("selects the reusable DOM/Canvas adapter and runner checks", () => {
+    expect(ids(["adapters/dom-canvas-fabric/src/index.ts"], "check")).toEqual([
+      "lint", "typecheck", "dom-canvas-fabric", "runner"
+    ]);
+  });
+
   it("selects Skyline simulation plus a freshly packed exact-artifact browser test without review warning", () => {
     const plan = selectProportionalTestPlan(["examples\\skyline-drop"], "check");
 

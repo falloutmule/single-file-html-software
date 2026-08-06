@@ -5,15 +5,19 @@
 
 This repository contains the working SFHS development system: contracts,
 single-file build and pack tooling, verifier, browser runner, evidence tools,
-renderer classifier, Canvas import analysis, Pixi v8 adapter, bounded
+renderer classifier, Canvas import analysis, Pixi v8 adapter, DOM/Canvas
+Fabric adapter, bounded
 Canvas-to-Pixi compatibility work, local Codex/Hermes plugins, fixtures, and
 existing tests.
 
 ## WIP boundary
 
-- **PixiJS** is the active development lane.
-- **Canvas 2D**, **DOM/CSS**, **raycasting**, and future lanes remain possible;
-  SFHS is not Pixi-only.
+- **PixiJS v8/WebGL** and **DOM/Canvas Fabric** are validated adapter lanes.
+- The Canvas lane supports DOM UI, Canvas 2D, optional local storage, and no
+  simulation loop; it does not weaken packing, network, evidence, or physical
+  acceptance requirements.
+- **Raycasting** and other future lanes remain possible; SFHS is not tied to a
+  single renderer.
 - Current interfaces are implementation interfaces, not stable public APIs.
 - No npm package, stable SDK, marketplace, or production-support claim is made.
 - Automated checks and physical Samsung acceptance are separate evidence gates.
