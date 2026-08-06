@@ -5,6 +5,7 @@ export type TestStepId =
   | "browser-smoke"
   | "build-pack-verify"
   | "contracts-core"
+  | "dom-canvas-fabric"
   | "determinism"
   | "lint"
   | "pixi-runtime"
@@ -39,6 +40,9 @@ const definitions: Readonly<Record<TestStepId, TestStepDefinition>> = Object.fre
   ]),
   "contracts-core": step("contracts-core", [
     "run", "test", "packages/contracts/src", "packages/core/src"
+  ]),
+  "dom-canvas-fabric": step("dom-canvas-fabric", [
+    "run", "test", "adapters/dom-canvas-fabric/src"
   ]),
   determinism: step("determinism", ["determinism"]),
   lint: step("lint", ["run", "lint"]),
@@ -128,6 +132,11 @@ export function selectProportionalTestPlan(
       }
       continue;
     }
+    if (path.startsWith("adapters/dom-canvas-fabric/")) {
+      add(selected, "dom-canvas-fabric");
+      if (mode === "check") add(selected, "runner");
+      continue;
+    }
     if (path === "examples/skyline-drop" || path.startsWith("examples/skyline-drop/")) {
       add(selected, "skyline-simulation");
       if (mode === "check") {
@@ -173,6 +182,7 @@ export function selectProportionalTestPlan(
     "typecheck",
     "contracts-core",
     "build-pack-verify",
+    "dom-canvas-fabric",
     "pixi-runtime",
     "runner",
     "skyline-simulation",

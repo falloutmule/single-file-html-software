@@ -34,7 +34,11 @@ export interface ManifestValidationResult {
   readonly findings: readonly ValidationFinding[];
 }
 
-const knownAdapterIds = new Set(["pixi-v8"]);
+const requiredRendererByAdapter = new Map([
+  ["pixi-v8", "webgl"],
+  ["dom-canvas-fabric", "canvas2d"]
+]);
+const knownAdapterIds = new Set(requiredRendererByAdapter.keys());
 const sourcePathForbiddenSegments = new Set([".git", "dist", "evidence", "node_modules"]);
 
 const ajv = new Ajv2020({
@@ -164,6 +168,16 @@ function validateProjectSemantics(value: unknown): readonly ValidationFinding[] 
       message: `Unknown SFHS adapter: ${adapter.id}.`
     });
   }
+  const renderer = asRecord(adapter?.renderer);
+  const requiredRenderer = typeof adapter?.id === "string" ? requiredRendererByAdapter.get(adapter.id) : undefined;
+  if (requiredRenderer !== undefined && renderer?.required !== requiredRenderer) {
+    findings.push({
+      code: "SFHS_SCHEMA_INVALID",
+      severity: "error",
+      path: "/adapter/renderer/required",
+      message: `Adapter ${String(adapter?.id)} requires renderer ${requiredRenderer}.`
+    });
+  }
 
   for (const [key, path] of [
     ["html", "/source/html"],
@@ -259,7 +273,7 @@ function validatePhysicalDeviceSemantics(value: unknown): readonly ValidationFin
       message: "Device model must be an exact Samsung Galaxy S21 Ultra SM-G998* identifier."
     });
   }
-  if (webgl?.result !== "supported") {
+  if (webgl?.result === "unsupported") {
     findings.push({
       code: "SFHS_DEVICE_WEBGL_UNSUPPORTED",
       severity: "error",

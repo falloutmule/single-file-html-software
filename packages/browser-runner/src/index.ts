@@ -422,6 +422,12 @@ export async function runExactArtifactBrowserSmoke(
 }
 
 export {
+  runDomCanvasFabricArtifactScenarios,
+  type DomCanvasFabricScenarioOptions,
+  type DomCanvasFabricScenarioReport
+} from "./dom-canvas-fabric-scenarios.ts";
+
+export {
   runPixiArtifactScenarios,
   samsungGalaxyS21UltraProfiles,
   type PixiScenarioId,
