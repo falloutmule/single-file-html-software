@@ -1,6 +1,6 @@
 # SFHS Mobile Controls v1 — frozen local handoff
 
-**Status:** automated acceptance passed; physical Samsung acceptance not yet tested  
+**Status:** ACCEPTED — automated and physical Samsung acceptance passed
 **SFHS base:** `4248c67021e930b7fb4a882f73dfd8ab87df0ee7`  
 **Local branch:** `feature/sfhs-mobile-controls-v1`  
 **Remote action:** none
@@ -11,6 +11,15 @@ SFHS now has one renderer-neutral DOM input package, one declarative control
 model, one normalized output surface, one versioned profile, and one explicit
 consumer flush boundary. A neutral single-file Mobile Controls Lab exercises
 the package without Pixi, Canvas, Doom, SNC state, or any game mechanic.
+
+Final acceptance recorded on 2026-08-07:
+
+- Automated verification: **PASS**
+- Exact single-file artifact: **PASS**
+- Samsung emulation: **PASS**
+- Physical Samsung Chrome: **PASS**
+- Mobile Controls v1 overall acceptance: **PASS**
+- Frozen implementation: **ACCEPTED**
 
 The donor extraction is recorded separately in
 `SFHS-MOBILE-CONTROLS-V1-EXTRACTION.md`. The implementation uses SNC's accepted
@@ -159,6 +168,7 @@ All commands ran from the isolated SFHS worktree.
 | Lab inspect / validate / pack / verify | PASS — no findings |
 | Lab exact-artifact proof | PASS — deterministic double pack and all focused browser assertions |
 | Visual screenshot review | PASS — portrait and landscape controls contained and readable |
+| Physical Samsung Chrome | PASS — user-reported real-device acceptance on 2026-08-07 |
 
 The lab proof covers capability route exclusivity; Touch fallback; normalized
 MOVE/dead-zone/release; fractional, coalesced, full-width normalized LOOK;
@@ -181,11 +191,11 @@ file protocol; no external requests; and the public self-check.
 
 ## Physical Samsung status
 
-**NOT YET TESTED.** Desktop automation and mobile emulation are not physical
-feel acceptance. The one remaining bounded gate is to open the exact artifact
-in Samsung Chrome and test MOVE, LOOK, PRIMARY, INTERACT, triple touch,
-cancellation/re-touch, orientation, background/restore, editing, and saved
-layout reload.
+**PASS.** On 2026-08-07 the user reported that the real-device result completed
+the missing physical gate and accepted Mobile Controls v1. This verdict applies
+to the frozen exact artifact identified above and upgrades the implementation
+from automated/emulated proof to accepted Samsung Chrome use. The supplied
+verdict is recorded in `SFHS-MOBILE-CONTROLS-V1-SAMSUNG-ACCEPTANCE.md`.
 
 ## Failures encountered
 
@@ -204,7 +214,8 @@ No product failure remains in automated verification. During verification:
 
 ## Known limitations
 
-- Physical Samsung feel and browser chrome behavior remain unverified.
+- Physical acceptance covers the reported Samsung Chrome device; it is not a
+  claim of certification across every Android browser or hardware class.
 - v1 has no generic legacy-profile migration because no earlier generic schema
   exists. Unknown schemas fail soft.
 - Safe-area CSS values depend on browser support; normalized clamping and
@@ -240,6 +251,6 @@ No product failure remains in automated verification. During verification:
 
 ## Next action
 
-Run the bounded physical Samsung Chrome checklist against the frozen lab
-artifact and return PASS/FAIL plus any precise feel observation. Do not begin
-Doom integration until that verdict is recorded.
+Return to the existing SFHS Doom product thread and plan the downstream adapter
+against this accepted frozen module. Keep Doom integration, engine events, and
+product gain outside the shared package.
