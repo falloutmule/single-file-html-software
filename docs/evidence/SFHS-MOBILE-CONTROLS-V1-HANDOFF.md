@@ -180,9 +180,9 @@ file protocol; no external requests; and the public self-check.
 ## Neutral lab artifact
 
 - Path: `examples/mobile-controls-lab/dist/index.html`
-- Bytes: `31,218`
-- SHA-256: `d12ed344823610cc636cd01561629443b7b434f8d97b6cff35d39d39457b1e33`
-- BUILD_ID: `mobile-controls-lab-9a565838dc8e`
+- Bytes: `31,225`
+- SHA-256: `bb33ab5a91ea6512e832320fa69d340d04d8c86dc5c414b03b665c7a84e23fe6`
+- BUILD_ID: `mobile-controls-lab-ef1d80311b03`
 - Browser result: PASS in Chromium 149 for desktop, Samsung S21 Ultra portrait
   emulation, Samsung S21 Ultra landscape emulation, exact HTTP bytes, and
   `file://` smoke.
@@ -191,11 +191,13 @@ file protocol; no external requests; and the public self-check.
 
 ## Physical Samsung status
 
-**PASS.** On 2026-08-07 the user reported that the real-device result completed
-the missing physical gate and accepted Mobile Controls v1. This verdict applies
-to the frozen exact artifact identified above and upgrades the implementation
-from automated/emulated proof to accepted Samsung Chrome use. The supplied
-verdict is recorded in `SFHS-MOBILE-CONTROLS-V1-SAMSUNG-ACCEPTANCE.md`.
+**PASS — user-reported.** On 2026-08-07 the user reported that the real-device
+result completed the missing physical gate and accepted Mobile Controls v1. That
+physical verdict is preserved against the original 31,218-byte frozen artifact
+in `SFHS-MOBILE-CONTROLS-V1-SAMSUNG-ACCEPTANCE.md`. Final review subsequently
+repaired only the zero-dead-zone stick recenter edge case; the resulting
+31,225-byte artifact passed all automated and exact-artifact browser gates. No
+additional individual physical observation is claimed for that narrow repair.
 
 ## Failures encountered
 
@@ -211,11 +213,18 @@ No product failure remains in automated verification. During verification:
 - the lab package lacked forwarding scripts required by the CLI's project-root
   proportional executor; scoped forwarding scripts were added and the lane
   passed.
+- final review found that a configured zero movement dead zone could retain a
+  nonzero stick value when an active contact returned exactly to centre. The
+  runtime now explicitly settles zero-distance movement and the browser proof
+  covers that regression.
 
 ## Known limitations
 
 - Physical acceptance covers the reported Samsung Chrome device; it is not a
   claim of certification across every Android browser or hardware class.
+- The physical verdict names the original frozen artifact. The final
+  zero-dead-zone-only repair has automated exact-artifact coverage but no new
+  separately reported Samsung observation.
 - v1 has no generic legacy-profile migration because no earlier generic schema
   exists. Unknown schemas fail soft.
 - Safe-area CSS values depend on browser support; normalized clamping and

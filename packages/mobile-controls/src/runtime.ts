@@ -394,7 +394,7 @@ export function createMobileControlsRuntime(options: CreateMobileControlsOptions
         const dy = clientY - owner.startY;
         const distance = Math.hypot(dx, dy);
         const magnitude = Math.min(1, distance / radius);
-        if (magnitude < profile.settings.stickDeadZone) {
+        if (distance === 0 || magnitude < profile.settings.stickDeadZone) {
           output.x = 0; output.y = 0; output.magnitude = 0;
         } else if (distance > 0) {
           output.x = (dx / distance) * magnitude;

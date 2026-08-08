@@ -145,6 +145,13 @@ try {
   state = await page.evaluate(() => window.CR.getController()?.read());
   assert.deepEqual({ x: state.controls.move.x, y: state.controls.move.y, magnitude: state.controls.move.magnitude, active: state.controls.move.active }, { x: 0, y: 0, magnitude: 0, active: false });
 
+  await page.evaluate(() => window.CR.getController()?.updateConfig({ stickDeadZone: 0 }));
+  await dispatchPointer(page, "move", "pointerdown", 12, moveX, moveY);
+  await dispatchPointer(page, "move", "pointermove", 12, moveX, moveY - Math.min(move.width, move.height) * 0.35);
+  state = await dispatchPointer(page, "move", "pointermove", 12, moveX, moveY);
+  assert.deepEqual({ x: state.controls.move.x, y: state.controls.move.y, magnitude: state.controls.move.magnitude, active: state.controls.move.active }, { x: 0, y: 0, magnitude: 0, active: true }, "zero dead zone must still settle an active stick at its centre");
+  await dispatchPointer(page, "move", "pointerup", 12, moveX, moveY);
+
   const look = await controlBox(page, "look");
   const lookY = look.y + look.height / 2;
   await dispatchPointer(page, "look", "pointerdown", 21, look.x, lookY);
