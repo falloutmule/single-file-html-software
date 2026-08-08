@@ -57,6 +57,20 @@ Profiles contain no runtime action state or timestamps. Unknown versions,
 unknown control IDs, corrupt storage, unavailable storage, and failed writes do
 not prevent the controller from mounting.
 
+## Geometry and resize limits
+
+Control rectangles are normalized to the mounted control surface. A declaration
+may provide `minWidth` and `minHeight`; when omitted, each currently resolves to
+the package's generic `0.08` default. The editor clamps drag-resize geometry
+against those resolved minima before applying or persisting a layout.
+
+Products may explicitly choose smaller or larger per-control minima. Those are
+consumer configuration, not shared control semantics: each consumer is
+responsible for selecting touch-target sizes appropriate to its product and
+devices. Product CSS may also present a visual smaller or differently shaped
+element inside the underlying control rectangle; that visual choice does not
+change the package-owned input geometry.
+
 ## Styling
 
 The runtime creates elements marked with `data-sfhs-control-id` and

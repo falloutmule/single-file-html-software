@@ -1,5 +1,23 @@
 # SFHS Mobile Controls v1 — frozen local handoff
 
+## Post-merge status — 2026-08-08
+
+This document preserves the pre-merge handoff below. Its historical local
+branch and “Remote action: none” fields are not the current repository state.
+
+- PR [#16](https://github.com/falloutmule/single-file-html-software/pull/16)
+  merged Mobile Controls v1 into SFHS.
+- Current merge/main authority: `1d1362a8d024670fbd594071bfd079fd8113352f`.
+- Accepted implementation head: `12be23bcd38c7748764a084a9813b47112559446`.
+- PR source CI run #42 passed; post-merge main CI run #43 passed.
+- The package source now exists canonically on `main`; no Mobile Controls merge
+  remains pending.
+- The package remains renderer-neutral. Downstream consumers own product
+  semantics, input conversion, gain, layout, styling, and persistence choices.
+
+Downstream adoption in `sfhs-doom` has validated that boundary without moving
+Doom engine behavior or product semantics into this package.
+
 **Status:** ACCEPTED — automated and physical Samsung acceptance passed
 **SFHS base:** `4248c67021e930b7fb4a882f73dfd8ab87df0ee7`
 **Local branch:** `feature/sfhs-mobile-controls-v1`
@@ -142,7 +160,8 @@ not hardcoded mechanics.
   documentation, and focused unit tests.
 - `adapters/dom-interactive/`: renderer-none SFHS adapter descriptor and test.
 - `examples/mobile-controls-lab/`: canonical source, styles, manifest, package,
-  exact-artifact browser proof, and generated `dist/index.html`.
+  and exact-artifact browser proof. Its generated `dist/index.html` is governed
+  by the normal ignored-artifact policy rather than committed as source.
 - `packages/contracts/`: `dom-interactive` / renderer `none` schema, types,
   validation, and tests.
 - `packages/browser-runner/`: renderer-neutral desktop and Samsung-emulation
@@ -177,7 +196,7 @@ blur/hidden/pagehide cleanup; touch-action/no-scroll; edit drag/resize/cancel;
 profile mirror/reload/export/import/reset/corrupt-storage; orientation bounds;
 file protocol; no external requests; and the public self-check.
 
-## Neutral lab artifact
+## Neutral lab artifact — generated and verified, not tracked source
 
 - Path: `examples/mobile-controls-lab/dist/index.html`
 - Bytes: `31,225`
@@ -234,7 +253,12 @@ No product failure remains in automated verification. During verification:
 - Editing is rectangle drag/resize only; there is no speculative snapping,
   grouping, or layout solver.
 
-## Future Doom adapter recipe (not implemented)
+## Historical pre-integration Doom adapter recipe
+
+This recipe was the pre-merge design rationale. Downstream adoption now exists
+separately in `sfhs-doom`, where Doom retains engine input conversion, gain,
+product layout, styling, and persistence outside the shared package. The recipe
+remains here as historical guidance, not pending Mobile Controls work.
 
 1. Declare generic IDs such as `move`, `look`, `primary`, `interact`, and
    `modifier`; do not expose SDL or Doom event names to the package.
