@@ -11,6 +11,7 @@ import {
 } from "@sfhs/builder";
 import {
   runDomCanvasFabricArtifactScenarios,
+  runDomInteractiveArtifactScenarios,
   runPixiArtifactScenarios
 } from "@sfhs/browser-runner";
 import {
@@ -971,6 +972,17 @@ const defaultReleaseBrowserRunner: CliReleaseBrowserRunner = async (
 ) => {
   if (adapterId === "dom-canvas-fabric") {
     const report = await runDomCanvasFabricArtifactScenarios(bytes, descriptor, {
+      browserChannel: process.env.SFHS_BROWSER_CHANNEL === "chrome" ? "chrome" : "chromium",
+      evidenceDirectory: join(evidenceDirectory, "screenshots")
+    });
+    return Object.freeze({
+      valid: report.valid,
+      browserVersion: report.browserVersion,
+      screenshots: report.screenshots
+    });
+  }
+  if (adapterId === "dom-interactive") {
+    const report = await runDomInteractiveArtifactScenarios(bytes, descriptor, {
       browserChannel: process.env.SFHS_BROWSER_CHANNEL === "chrome" ? "chrome" : "chromium",
       evidenceDirectory: join(evidenceDirectory, "screenshots")
     });

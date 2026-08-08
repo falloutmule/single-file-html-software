@@ -1,0 +1,20 @@
+{
+  "name": "@sfhs/example-mobile-controls-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "browser-proof": "node tools/run-browser-proof.mjs",
+    "lint": "pnpm --workspace-root run lint",
+    "test": "pnpm --workspace-root run test",
+    "typecheck": "pnpm --workspace-root run typecheck"
+  },
+  "dependencies": {
+    "@sfhs/mobile-controls": "workspace:*"
+  },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1"
+  }
+}

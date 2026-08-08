@@ -42,7 +42,7 @@
           "additionalProperties": false,
           "required": ["required", "webgpu", "unsupportedBehavior"],
           "properties": {
-            "required": { "enum": ["webgl", "canvas2d"] },
+            "required": { "enum": ["webgl", "canvas2d", "none"] },
             "webgpu": { "const": "disabled" },
             "unsupportedBehavior": { "const": "show-capability-page" }
           }

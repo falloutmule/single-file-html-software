@@ -53,7 +53,10 @@ export interface SfhsProjectManifest {
   };
 }
 
-export type SfhsProjectAdapter = SfhsPixiV8ProjectAdapter | SfhsDomCanvasFabricProjectAdapter;
+export type SfhsProjectAdapter =
+  | SfhsPixiV8ProjectAdapter
+  | SfhsDomCanvasFabricProjectAdapter
+  | SfhsDomInteractiveProjectAdapter;
 
 export interface SfhsPixiV8ProjectAdapter {
   readonly id: "pixi-v8";
@@ -70,6 +73,16 @@ export interface SfhsDomCanvasFabricProjectAdapter {
   readonly versionRange: string;
   readonly renderer: {
     readonly required: "canvas2d";
+    readonly webgpu: "disabled";
+    readonly unsupportedBehavior: "show-capability-page";
+  };
+}
+
+export interface SfhsDomInteractiveProjectAdapter {
+  readonly id: "dom-interactive";
+  readonly versionRange: string;
+  readonly renderer: {
+    readonly required: "none";
     readonly webgpu: "disabled";
     readonly unsupportedBehavior: "show-capability-page";
   };
