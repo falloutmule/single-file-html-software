@@ -53,6 +53,19 @@ describe("@sfhs/contracts", () => {
     }, { mode: "release" })).toEqual({ valid: true, findings: [] });
   });
 
+  it("accepts the renderer-neutral DOM interactive adapter contract", () => {
+    expect(validateProjectManifest({
+      ...validProject,
+      adapter: {
+        id: "dom-interactive",
+        versionRange: "^0.1.0",
+        renderer: { required: "none", webgpu: "disabled", unsupportedBehavior: "show-capability-page" }
+      },
+      viewport: { ...validProject.viewport, mode: "adaptive" },
+      runtime: { ...validProject.runtime, simulationHz: 60, domOverlay: true }
+    }, { mode: "release" })).toEqual({ valid: true, findings: [] });
+  });
+
   it("rejects an adapter paired with the wrong renderer", () => {
     expect(validateProjectManifest({
       ...validProject,
@@ -60,6 +73,19 @@ describe("@sfhs/contracts", () => {
         id: "dom-canvas-fabric",
         versionRange: "^0.1.0",
         renderer: { required: "webgl", webgpu: "disabled", unsupportedBehavior: "show-capability-page" }
+      }
+    }, { mode: "release" }).findings).toEqual([
+      expect.objectContaining({ code: "SFHS_SCHEMA_INVALID", path: "/adapter/renderer/required" })
+    ]);
+  });
+
+  it("rejects renderer behavior in the DOM interactive lane", () => {
+    expect(validateProjectManifest({
+      ...validProject,
+      adapter: {
+        id: "dom-interactive",
+        versionRange: "^0.1.0",
+        renderer: { required: "canvas2d", webgpu: "disabled", unsupportedBehavior: "show-capability-page" }
       }
     }, { mode: "release" }).findings).toEqual([
       expect.objectContaining({ code: "SFHS_SCHEMA_INVALID", path: "/adapter/renderer/required" })

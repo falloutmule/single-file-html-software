@@ -19,6 +19,15 @@ describe("proportional SFHS test selection", () => {
     ]);
   });
 
+  it("selects the DOM interactive controls lane and runner checks", () => {
+    expect(ids(["packages/mobile-controls/src/index.ts"], "check")).toEqual([
+      "lint", "typecheck", "dom-interactive", "runner"
+    ]);
+    expect(ids(["examples/mobile-controls-lab/src/main.ts"], "check")).toEqual([
+      "lint", "typecheck", "dom-interactive", "runner"
+    ]);
+  });
+
   it("selects Skyline simulation plus a freshly packed exact-artifact browser test without review warning", () => {
     const plan = selectProportionalTestPlan(["examples\\skyline-drop"], "check");
 

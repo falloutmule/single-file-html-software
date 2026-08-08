@@ -36,7 +36,8 @@ export interface ManifestValidationResult {
 
 const requiredRendererByAdapter = new Map([
   ["pixi-v8", "webgl"],
-  ["dom-canvas-fabric", "canvas2d"]
+  ["dom-canvas-fabric", "canvas2d"],
+  ["dom-interactive", "none"]
 ]);
 const knownAdapterIds = new Set(requiredRendererByAdapter.keys());
 const sourcePathForbiddenSegments = new Set([".git", "dist", "evidence", "node_modules"]);

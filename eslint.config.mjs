@@ -31,5 +31,27 @@ export default tseslint.config(
         process: "readonly"
       }
     }
+  },
+  {
+    files: ["examples/mobile-controls-lab/tools/*.mjs"],
+    languageOptions: {
+      globals: {
+        Buffer: "readonly",
+        Event: "readonly",
+        EventTarget: "readonly",
+        HTMLElement: "readonly",
+        PageTransitionEvent: "readonly",
+        PointerEvent: "readonly",
+        dispatchEvent: "readonly",
+        document: "readonly",
+        getComputedStyle: "readonly",
+        innerHeight: "readonly",
+        innerWidth: "readonly",
+        localStorage: "readonly",
+        scrollTo: "readonly",
+        scrollY: "readonly",
+        window: "readonly"
+      }
+    }
   }
 );

@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, join } from "node:path";
 
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright";
 
@@ -82,6 +82,21 @@ export interface BrowserSmokeReport {
   readonly requests: readonly BrowserRequestRecord[];
   readonly console: readonly BrowserConsoleRecord[];
   readonly findings: readonly BrowserFinding[];
+}
+
+export interface DomInteractiveScenarioOptions {
+  readonly browserChannel?: "chrome" | "chromium";
+  readonly evidenceDirectory?: string;
+  readonly headless?: boolean;
+  readonly timeoutMs?: number;
+}
+
+export interface DomInteractiveScenarioReport {
+  readonly schema: "sfhs.dom-interactive-browser-scenarios@1";
+  readonly valid: boolean;
+  readonly browserVersion: string;
+  readonly screenshots: readonly { readonly id: string; readonly path: string; readonly width: number; readonly height: number }[];
+  readonly findings: readonly string[];
 }
 
 export interface ExactArtifactServer {
@@ -418,6 +433,41 @@ export async function runExactArtifactBrowserSmoke(
     requests: Object.freeze(requests),
     console: Object.freeze(consoleRecords),
     findings: sorted
+  });
+}
+
+export async function runDomInteractiveArtifactScenarios(
+  bytes: Uint8Array,
+  descriptor: SfhsArtifactManifest,
+  options: DomInteractiveScenarioOptions = {}
+): Promise<DomInteractiveScenarioReport> {
+  const profiles: readonly BrowserViewportProfile[] = Object.freeze([
+    Object.freeze({ id: "desktop", width: 1280, height: 800, deviceScaleFactor: 1 }),
+    Object.freeze({ id: "samsung-s21-ultra-portrait-emulation", width: 384, height: 854, deviceScaleFactor: 3.75, isMobile: true, hasTouch: true }),
+    Object.freeze({ id: "samsung-s21-ultra-landscape-emulation", width: 854, height: 384, deviceScaleFactor: 3.75, isMobile: true, hasTouch: true })
+  ]);
+  const reports: BrowserSmokeReport[] = [];
+  const screenshots: { id: string; path: string; width: number; height: number }[] = [];
+  for (const profile of profiles) {
+    const screenshotPath = options.evidenceDirectory === undefined
+      ? undefined
+      : join(options.evidenceDirectory, `${profile.id}.png`);
+    reports.push(await runExactArtifactBrowserSmoke(bytes, descriptor, {
+      ...(options.browserChannel === undefined ? {} : { browserChannel: options.browserChannel }),
+      ...(options.headless === undefined ? {} : { headless: options.headless }),
+      ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
+      ...(screenshotPath === undefined ? {} : { screenshotPath }),
+      viewport: profile
+    }));
+    if (screenshotPath !== undefined) screenshots.push({ id: profile.id, path: screenshotPath, width: profile.width, height: profile.height });
+  }
+  const findings = reports.flatMap((report) => report.findings.map((entry) => `${report.browser.profile.id}: ${entry.code}${entry.detail === undefined ? "" : ` ${entry.detail}`}`));
+  return Object.freeze({
+    schema: "sfhs.dom-interactive-browser-scenarios@1",
+    valid: reports.every((report) => report.valid),
+    browserVersion: reports.find((report) => report.browser.version !== "unavailable")?.browser.version ?? "unavailable",
+    screenshots: Object.freeze(screenshots.map((entry) => Object.freeze(entry))),
+    findings: Object.freeze(findings)
   });
 }
 

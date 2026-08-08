@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+    <title>SFHS Mobile Controls Lab</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main id="fixture-shell" class="lab" data-phase="ready" aria-labelledby="fixture-title">
+      <section id="start-panel" class="start-panel">
+        <p class="eyebrow">SFHS / renderer-neutral input</p>
+        <h1 id="fixture-title">Mobile Controls Lab</h1>
+        <p>Test normalized touch controls before connecting them to a game.</p>
+        <button id="fixture-start" class="start-button" type="button">Start controls lab</button>
+      </section>
+
+      <section id="diagnostics" class="diagnostics" aria-label="Live control diagnostics">
+        <div class="title-row"><strong>Mobile Controls Lab</strong><span id="lifecycle">ready</span></div>
+        <div class="readouts">
+          <div><span>MOVE</span><output id="move-output">0.000 / 0.000 / 0.000</output></div>
+          <div><span>LOOK raw / applied</span><output id="look-output">0.0000 / 0.0000</output></div>
+          <div><span>LOOK accumulated</span><output id="look-total">0.0000</output></div>
+          <div><span>PRIMARY</span><output id="primary-output">released</output></div>
+          <div><span>INTERACT pulses</span><output id="pulse-output">0</output></div>
+          <div><span>Pointer IDs</span><output id="pointer-output">none</output></div>
+          <div><span>Route / view</span><output id="route-output">none / portrait</output></div>
+          <div><span>Persistence</span><output id="persistence-output">disabled</output></div>
+        </div>
+        <div class="dial" aria-label="Orientation dial"><span id="dial-needle"></span><b id="dial-angle">0°</b></div>
+      </section>
+
+      <section id="toolbar" class="toolbar" aria-label="Control profile tools">
+        <button id="edit-start" type="button">Edit</button>
+        <button id="edit-save" type="button" disabled>Save edit</button>
+        <button id="edit-cancel" type="button" disabled>Cancel</button>
+        <button id="right-handed" type="button">Right</button>
+        <button id="left-handed" type="button">Left</button>
+        <button id="profile-reset" type="button">Reset</button>
+        <label>Opacity <input id="opacity" type="range" min="0.1" max="1" step="0.05" value="0.6"></label>
+        <label>Dead zone <input id="dead-zone" type="range" min="0" max="0.5" step="0.01" value="0.08"></label>
+        <label>Sensitivity
+          <select id="sensitivity">
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1.0×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2.0×</option>
+          </select>
+        </label>
+        <button id="profile-export" type="button">Export</button>
+        <button id="profile-import" type="button">Import</button>
+        <textarea id="profile-json" spellcheck="false" aria-label="Profile JSON" placeholder="Exported profile JSON appears here. Paste JSON here to import."></textarea>
+        <output id="profile-status" aria-live="polite">Ready.</output>
+      </section>
+
+      <div id="control-surface" aria-label="Mobile control surface"></div>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
