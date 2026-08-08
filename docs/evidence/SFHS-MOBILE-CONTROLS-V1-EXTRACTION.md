@@ -1,9 +1,9 @@
 # SFHS Mobile Controls v1 — SNC extraction audit
 
-**Status:** read-only donor audit complete; no SNC source was changed  
-**SFHS base:** `4248c67021e930b7fb4a882f73dfd8ab87df0ee7`  
-**SNC donor:** `ae0cba08b647ebff5db533f1dedff1b46f789412`  
-**Primary source:** `src/js/game-06-section-2b-mobile-touch-input.js`  
+**Status:** read-only donor audit complete; no SNC source was changed
+**SFHS base:** `4248c67021e930b7fb4a882f73dfd8ab87df0ee7`
+**SNC donor:** `ae0cba08b647ebff5db533f1dedff1b46f789412`
+**Primary source:** `src/js/game-06-section-2b-mobile-touch-input.js`
 **Source identity:** 65,347 bytes; Git blob `f50ef5e957a4fb7a5cf2e9b1a01bb061276b169b`
 
 ## Authority and method

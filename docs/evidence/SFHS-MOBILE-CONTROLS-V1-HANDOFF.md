@@ -1,8 +1,8 @@
 # SFHS Mobile Controls v1 — frozen local handoff
 
 **Status:** ACCEPTED — automated and physical Samsung acceptance passed
-**SFHS base:** `4248c67021e930b7fb4a882f73dfd8ab87df0ee7`  
-**Local branch:** `feature/sfhs-mobile-controls-v1`  
+**SFHS base:** `4248c67021e930b7fb4a882f73dfd8ab87df0ee7`
+**Local branch:** `feature/sfhs-mobile-controls-v1`
 **Remote action:** none
 
 ## Outcome

@@ -1,8 +1,8 @@
 # SFHS Mobile Controls v1 — physical Samsung acceptance
 
-**Verdict date:** 2026-08-07  
-**Evidence source:** user-reported real-device result  
-**Target:** frozen SFHS Mobile Controls Lab artifact  
+**Verdict date:** 2026-08-07
+**Evidence source:** user-reported real-device result
+**Target:** frozen SFHS Mobile Controls Lab artifact
 **Status:** PASS
 
 ## Accepted result
