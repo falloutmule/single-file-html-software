@@ -1,0 +1,6 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background: #07111f; color: #eaf2ff; }
+body { min-block-size: 100dvh; margin: 0; display: grid; place-items: center; }
+main { display: grid; gap: 1rem; min-inline-size: min(28rem, calc(100% - 2rem)); padding: 2rem; border: 1px solid #315071; border-radius: 1rem; background: #0d1a2b; }
+h1 { margin: 0; }
+button { min-block-size: 2.75rem; font: inherit; }
+output { font: 700 1.5rem/1.2 ui-monospace, monospace; }

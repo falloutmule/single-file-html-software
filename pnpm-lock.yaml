@@ -118,6 +118,19 @@ importers:
         specifier: 1.61.1
         version: 1.61.1
 
+  examples/wasm-minimal:
+    dependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../../packages/packer
+    devDependencies:
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+
   packages/browser-runner:
     dependencies:
       '@sfhs/contracts':

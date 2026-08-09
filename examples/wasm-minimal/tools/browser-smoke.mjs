@@ -1,0 +1,33 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { runExactArtifactBrowserSmoke } from "@sfhs/browser-runner";
+import { packProject } from "@sfhs/packer";
+import { chromium } from "playwright";
+
+const projectRoot = resolve(fileURLToPath(new URL("../", import.meta.url)));
+const repositoryRoot = resolve(projectRoot, "..", "..");
+const evidenceRoot = resolve(repositoryRoot, ".sfhs-evidence", "wasm-packaging");
+const packed = await packProject(projectRoot, { sourceRevision: process.env.SFHS_SOURCE_REVISION ?? "local" });
+const http = await runExactArtifactBrowserSmoke(packed.bytes, packed.descriptor);
+const browser = await chromium.launch({ headless: true });
+const context = await browser.newContext({ serviceWorkers: "block" });
+const page = await context.newPage();
+const fileRequests = [];
+const fileErrors = [];
+page.on("request", (request) => fileRequests.push(request.url()));
+page.on("pageerror", (error) => fileErrors.push(error.message));
+page.on("console", (message) => { if (message.type() === "error") fileErrors.push(message.text()); });
+await page.goto(pathToFileURL(resolve(projectRoot, "dist", "index.html")).href, { waitUntil: "load" });
+await page.locator("#fixture-start").click();
+await page.waitForFunction(() => globalThis.document.querySelector("#fixture-shell")?.getAttribute("data-phase") !== "ready");
+const fileResult = await page.locator("#fixture-result").textContent();
+const filePhase = await page.locator("#fixture-shell").getAttribute("data-phase");
+await context.close(); await browser.close();
+const externalRequests = [...http.requests.map((request) => request.url).filter((url) => !url.startsWith("http://127.0.0.1:")), ...fileRequests.filter((url) => !url.startsWith("file:") && !url.startsWith("data:"))];
+const wasmRequests = [...http.requests.map((request) => request.url), ...fileRequests].filter((url) => /\.wasm(?:$|[?#])/iu.test(url));
+const report = { schema: "sfhs.wasm-browser-proof@1", http: { valid: http.valid, phase: http.runtime.phase, result: (http.runtime.snapshot)?.add === 42 && (http.runtime.snapshot)?.multiply === 42 }, file: { valid: filePhase === "running" && fileResult === "42 / 42", phase: filePhase, result: fileResult }, externalRequests, wasmRequests, errors: [...http.findings, ...fileErrors] };
+await mkdir(evidenceRoot, { recursive: true }); await writeFile(resolve(evidenceRoot, "browser-report.json"), `${JSON.stringify(report, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+if (!report.http.valid || !report.http.result || !report.file.valid || externalRequests.length || wasmRequests.length || report.errors.length) process.exitCode = 1;
