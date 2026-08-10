@@ -62,6 +62,34 @@ importers:
         specifier: 1.61.1
         version: 1.61.1
 
+  examples/control-feedback-pixi-proof:
+    dependencies:
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-contract
+      '@sfhs/control-feedback-dom':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-dom
+      '@sfhs/control-feedback-pixi-v8':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-pixi-v8
+      '@sfhs/control-feedback-runtime':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-runtime
+      pixi.js:
+        specifier: 8.19.0
+        version: 8.19.0
+    devDependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../../packages/packer
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+
   examples/hermes-minimal-import:
     dependencies:
       '@sfhs/adapter-pixi-v8':
@@ -246,6 +274,18 @@ importers:
       '@sfhs/control-feedback-runtime':
         specifier: workspace:*
         version: link:../control-feedback-runtime
+
+  packages/control-feedback-pixi-v8:
+    dependencies:
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../control-feedback-contract
+      '@sfhs/control-feedback-runtime':
+        specifier: workspace:*
+        version: link:../control-feedback-runtime
+      pixi.js:
+        specifier: 8.19.0
+        version: 8.19.0
 
   packages/control-feedback-runtime:
     dependencies:

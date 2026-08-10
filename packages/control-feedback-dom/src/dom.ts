@@ -4,6 +4,7 @@ import {
   type ControlFeedbackCancelReason,
   type ControlFeedbackDispatchResult,
   type ControlFeedbackOrigin,
+  type ControlFeedbackSignal,
   type ControlFeedbackSnapshot
 } from "@sfhs/control-feedback-runtime";
 
@@ -160,6 +161,39 @@ export function mountDomControl(options: MountDomControlOptions): DomControlCont
       setLayerStyles(layerElement, layer);
       elements.layers.append(layerElement);
     }
+    if (snapshot.presentation.toggleVisual !== undefined) {
+      const trackKey = "toggle-track:0";
+      activeLayerKeys.add(trackKey);
+      let trackElement = layerElements.get(trackKey);
+      if (trackElement === undefined) {
+        trackElement = options.container.ownerDocument.createElement("span");
+        layerElements.set(trackKey, trackElement);
+      }
+      setLayerStyles(trackElement, snapshot.presentation.toggleVisual.track);
+      elements.layers.append(trackElement);
+
+      const thumbKey = "toggle-thumb:0";
+      activeLayerKeys.add(thumbKey);
+      let thumbElement = layerElements.get(thumbKey);
+      if (thumbElement === undefined) {
+        thumbElement = options.container.ownerDocument.createElement("span");
+        layerElements.set(thumbKey, thumbElement);
+      }
+      setLayerStyles(thumbElement, snapshot.presentation.toggleVisual.thumb);
+      const thumbTransform = snapshot.model.selected
+        ? snapshot.presentation.toggleVisual.selectedThumbTransform
+        : snapshot.presentation.toggleVisual.thumb.transform;
+      const translateX = thumbTransform?.translateX;
+      const leftOffset = translateX === undefined
+        ? "0%"
+        : translateX.unit === "ratio"
+          ? `${translateX.value * 57}%`
+          : `${translateX.value}px`;
+      thumbElement.style.width = "35%";
+      thumbElement.style.height = "70%";
+      thumbElement.style.inset = `15% auto auto calc(8% + ${leftOffset})`;
+      elements.layers.append(thumbElement);
+    }
     for (const [key, element] of layerElements) {
       if (activeLayerKeys.has(key)) continue;
       element.remove();
@@ -213,7 +247,12 @@ export function mountDomControl(options: MountDomControlOptions): DomControlCont
     options.onDispatch?.(result);
   };
 
-  const dispatch = (signal: Parameters<typeof runtime.dispatch>[0]): void => handleResult(runtime.dispatch(signal));
+  const dispatchResult = (signal: Parameters<typeof runtime.dispatch>[0]): ControlFeedbackDispatchResult => {
+    const result = runtime.dispatch(signal);
+    handleResult(result);
+    return result;
+  };
+  const dispatch = (signal: Parameters<typeof runtime.dispatch>[0]): void => { dispatchResult(signal); };
   const pointerSourceId = (event: PointerEvent): string => `pointer:${event.pointerId}`;
   const keyboardSourceId = (event: KeyboardEvent): string => `key:${event.code}`;
   const suppressImminentClick = (): void => {
@@ -297,6 +336,10 @@ export function mountDomControl(options: MountDomControlOptions): DomControlCont
     root: elements.root,
     interactive: elements.interactive,
     read: runtime.read,
+    dispatchNormalized(signal: ControlFeedbackSignal) {
+      if (destroyed) throw new Error("DOM control is destroyed.");
+      return dispatchResult(signal);
+    },
     setModel(update: DomControlModelUpdate): ControlFeedbackSnapshot {
       if (destroyed) throw new Error("DOM control is destroyed.");
       const result = runtime.dispatch({ kind: "model-set", ...update, atMs: now() });
