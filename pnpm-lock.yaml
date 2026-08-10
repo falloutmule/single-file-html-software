@@ -216,6 +216,12 @@ importers:
         specifier: workspace:*
         version: link:../contracts
 
+  packages/control-feedback-runtime:
+    dependencies:
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../control-feedback-contract
+
   packages/core: {}
 
   packages/evidence:
