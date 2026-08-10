@@ -1,0 +1,38 @@
+export const packageIdentity = "@sfhs/control-feedback-runtime" as const;
+
+export { createControlFeedbackRuntime } from "./runtime.ts";
+export {
+  controlFeedbackEventSchema,
+  controlFeedbackStateSchema,
+  type ChoiceActivationProposal,
+  type ContactBeginSignal,
+  type ContactCancelSignal,
+  type ContactEndSignal,
+  type ContactUpdateSignal,
+  type ControlFeedbackActivationProposal,
+  type ControlFeedbackCancelReason,
+  type ControlFeedbackCueRole,
+  type ControlFeedbackDispatchResult,
+  type ControlFeedbackEvent,
+  type ControlFeedbackEventKind,
+  type ControlFeedbackFieldRipple,
+  type ControlFeedbackListener,
+  type ControlFeedbackModel,
+  type ControlFeedbackOrigin,
+  type ControlFeedbackOwner,
+  type ControlFeedbackPresentation,
+  type ControlFeedbackRippleInstance,
+  type ControlFeedbackRuntime,
+  type ControlFeedbackSignal,
+  type ControlFeedbackSnapshot,
+  type ControlFeedbackSource,
+  type ControlFeedbackTransitionTarget,
+  type CreateControlFeedbackRuntimeOptions,
+  type FocusSetSignal,
+  type HoverSetSignal,
+  type ModelSetSignal,
+  type MomentaryActivationProposal,
+  type ReducedMotionSetSignal,
+  type TickSignal,
+  type ToggleActivationProposal
+} from "./types.ts";
