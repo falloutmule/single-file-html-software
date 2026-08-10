@@ -1,0 +1,17 @@
+{
+  "name": "@sfhs/example-mobile-controls-feedback-proof",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "browser-proof": "node tools/run-browser-proof.mjs" },
+  "dependencies": {
+    "@sfhs/control-feedback-mobile-controls-dom": "workspace:*",
+    "@sfhs/control-feedback-presets": "workspace:*",
+    "@sfhs/mobile-controls": "workspace:*"
+  },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1"
+  }
+}

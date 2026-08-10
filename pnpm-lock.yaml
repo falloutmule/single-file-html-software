@@ -193,6 +193,28 @@ importers:
         specifier: 1.61.1
         version: 1.61.1
 
+  examples/mobile-controls-feedback-proof:
+    dependencies:
+      '@sfhs/control-feedback-mobile-controls-dom':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-mobile-controls-dom
+      '@sfhs/control-feedback-presets':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-presets
+      '@sfhs/mobile-controls':
+        specifier: workspace:*
+        version: link:../../packages/mobile-controls
+    devDependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../../packages/packer
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+
   examples/mobile-controls-lab:
     dependencies:
       '@sfhs/mobile-controls':
@@ -392,6 +414,18 @@ importers:
       '@sfhs/control-feedback-runtime':
         specifier: workspace:*
         version: link:../control-feedback-runtime
+
+  packages/control-feedback-mobile-controls-dom:
+    dependencies:
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../control-feedback-contract
+      '@sfhs/control-feedback-dom':
+        specifier: workspace:*
+        version: link:../control-feedback-dom
+      '@sfhs/mobile-controls':
+        specifier: workspace:*
+        version: link:../mobile-controls
 
   packages/control-feedback-notices:
     dependencies:

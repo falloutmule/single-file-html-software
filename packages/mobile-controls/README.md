@@ -84,3 +84,7 @@ CSS variables without changing semantics:
 
 The package has no Pixi, Fabric, Canvas, Babylon, SDL, Emscripten, Doom, or game
 state dependency.
+
+## Optional Control Feedback presentation
+
+`@sfhs/control-feedback-mobile-controls-dom` can attach portable Control Feedback presets to mounted `hold`, `pulse`, and `toggle` elements. The bridge is presentation-only: this package continues to own contacts, normalized outputs, and layout, while toggle selection is applied to feedback from this package's authoritative snapshot.
