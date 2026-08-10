@@ -17,3 +17,9 @@ export {
   type ArtifactVerificationFindingCode,
   type ArtifactVerificationReport
 } from "./artifact-verifier.ts";
+
+export {
+  verifyHtmlArtifactBytes,
+  type HtmlArtifactVerificationOptions,
+  type HtmlArtifactVerificationReport
+} from "./html-artifact-verifier.ts";

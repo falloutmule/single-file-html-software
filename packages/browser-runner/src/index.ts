@@ -1,4 +1,3 @@
-import { createServer } from "node:http";
 import { mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
@@ -7,6 +6,7 @@ import { chromium, type Browser, type BrowserContext, type Page } from "playwrig
 import type { SfhsArtifactManifest } from "@sfhs/contracts";
 import { sha256Bytes } from "@sfhs/core";
 import { verifyArtifactBytes } from "@sfhs/verifier";
+import { startExactArtifactServer } from "./exact-artifact-server.ts";
 
 export const packageIdentity = "@sfhs/browser-runner" as const;
 
@@ -99,12 +99,6 @@ export interface DomInteractiveScenarioReport {
   readonly findings: readonly string[];
 }
 
-export interface ExactArtifactServer {
-  readonly url: string;
-  readonly servedRequestCount: () => number;
-  close(): Promise<void>;
-}
-
 const desktopProfile: BrowserViewportProfile = Object.freeze({
   id: "desktop-chromium",
   width: 1440,
@@ -139,45 +133,6 @@ function addFinding(
 
 function isKnownBrowserEnvironmentWarning(text: string): boolean {
   return /GL Driver Message.*GPU stall due to ReadPixels|^WebGL: CONTEXT_LOST_WEBGL: loseContext: context lost$/iu.test(text);
-}
-
-export async function startExactArtifactServer(bytes: Uint8Array): Promise<ExactArtifactServer> {
-  const body = Buffer.from(bytes);
-  let servedRequests = 0;
-  const server = createServer((request, response) => {
-    const method = request.method ?? "GET";
-    const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
-    if (requestUrl.pathname !== "/index.html" || (method !== "GET" && method !== "HEAD")) {
-      response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
-      response.end("Not found");
-      return;
-    }
-    servedRequests += 1;
-    response.writeHead(200, {
-      "cache-control": "no-store",
-      "content-length": String(body.byteLength),
-      "content-type": "text/html; charset=utf-8",
-      "x-content-type-options": "nosniff"
-    });
-    response.end(method === "HEAD" ? undefined : body);
-  });
-
-  await new Promise<void>((resolvePromise, reject) => {
-    server.once("error", reject);
-    server.listen(0, "127.0.0.1", () => resolvePromise());
-  });
-  const address = server.address();
-  if (address === null || typeof address === "string") {
-    server.close();
-    throw new Error("Exact artifact server did not receive a TCP address.");
-  }
-  return Object.freeze({
-    url: `http://127.0.0.1:${address.port}/index.html`,
-    servedRequestCount: () => servedRequests,
-    close: () => new Promise<void>((resolvePromise, reject) => {
-      server.close((error) => error === undefined ? resolvePromise() : reject(error));
-    })
-  });
 }
 
 async function closeQuietly(page: Page | undefined, context: BrowserContext | undefined, browser: Browser | undefined): Promise<void> {
@@ -470,6 +425,24 @@ export async function runDomInteractiveArtifactScenarios(
     findings: Object.freeze(findings)
   });
 }
+
+export {
+  startExactArtifactServer,
+  type ExactArtifactServer
+} from "./exact-artifact-server.ts";
+
+export {
+  runHtmlArtifactBrowserSmoke,
+  type HtmlArtifactBrowserConsoleRecord,
+  type HtmlArtifactBrowserDialogRecord,
+  type HtmlArtifactBrowserRequestRecord,
+  type HtmlArtifactBrowserResponseFailureRecord,
+  type HtmlArtifactBrowserSmokeDependencies,
+  type HtmlArtifactBrowserSmokeFinding,
+  type HtmlArtifactBrowserSmokeFindingCode,
+  type HtmlArtifactBrowserSmokeOptions,
+  type HtmlArtifactBrowserSmokeReport
+} from "./html-artifact-smoke.ts";
 
 export {
   runDomCanvasFabricArtifactScenarios,

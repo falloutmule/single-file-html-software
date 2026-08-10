@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Producer-neutral HTML artifact</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; }
+    button { padding: 0.5rem 0.75rem; }
+  </style>
+  <style>
+    #status { color: #14532d; }
+    [hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Producer-neutral artifact</h1>
+    <button id="increment" type="button">Increment</button>
+    <output id="status">0</output>
+  </main>
+  <script>
+    globalThis.neutralArtifactScripts = 1;
+    globalThis.neutralArtifactCount = 0;
+  </script>
+  <script>
+    if (globalThis.neutralArtifactScripts !== 1) {
+      throw new Error("The first inline script did not execute.");
+    }
+    globalThis.neutralArtifactScripts += 1;
+    const button = document.querySelector("#increment");
+    const status = document.querySelector("#status");
+    button.addEventListener("click", () => {
+      globalThis.neutralArtifactCount += 1;
+      status.value = String(globalThis.neutralArtifactCount);
+    });
+    setTimeout(() => {
+      const ready = document.createElement("p");
+      ready.id = "artifact-ready";
+      ready.textContent = `ready:${globalThis.neutralArtifactScripts}`;
+      document.querySelector("main").append(ready);
+    }, 0);
+  </script>
+</body>
+</html>
