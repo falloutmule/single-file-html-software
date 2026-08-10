@@ -46,6 +46,31 @@ assert.deepEqual(semantics.momentary, "BUTTON");
 assert.deepEqual(semantics.toggle, { tag: "INPUT", type: "checkbox", role: "switch" });
 assert.deepEqual(semantics.choice, { tag: "INPUT", type: "radio", name: "tool-mode" });
 
+const longPressProtection = await page.evaluate(() => {
+  const controller = window.CF.controllers.momentary;
+  const event = new globalThis.MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+  const dispatchAllowed = controller.interactive.dispatchEvent(event);
+  const ordinaryInput = document.createElement("input");
+  ordinaryInput.value = "Selectable text";
+  document.body.append(ordinaryInput);
+  const ordinaryEvent = new globalThis.MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+  const ordinaryDispatchAllowed = ordinaryInput.dispatchEvent(ordinaryEvent);
+  const ordinaryUserSelect = getComputedStyle(ordinaryInput).userSelect;
+  ordinaryInput.remove();
+  const styleText = document.querySelector("style[data-sfhs-control-feedback-dom]")?.textContent ?? "";
+  return {
+    dispatchAllowed,
+    defaultPrevented: event.defaultPrevented,
+    userSelect: getComputedStyle(controller.root).userSelect,
+    ordinaryDispatchAllowed,
+    ordinaryDefaultPrevented: ordinaryEvent.defaultPrevented,
+    ordinaryUserSelect,
+    webkitUserSelect: styleText.includes("-webkit-user-select:none"),
+    touchCallout: styleText.includes("-webkit-touch-callout:none")
+  };
+});
+assert.deepEqual(longPressProtection, { dispatchAllowed: false, defaultPrevented: true, userSelect: "none", ordinaryDispatchAllowed: true, ordinaryDefaultPrevented: false, ordinaryUserSelect: "auto", webkitUserSelect: true, touchCallout: true });
+
 await page.locator("#momentary .sfhs-cf-interactive").click();
 assert.equal(await page.evaluate(() => window.CF.activations.filter((entry) => entry.id === "momentary").length), 1);
 await page.locator("#toggle .sfhs-cf-interactive").click();
@@ -112,7 +137,7 @@ const report = {
   artifact: first.descriptor.artifact,
   determinism: { identical: true, sha256: first.descriptor.artifact.sha256 },
   semantics,
-  http: { releaseOutside: "pass", concurrentOwnership: "pass", keyboard: "pass", reducedMotion: "pass", rippleCap: 4 },
+  http: { releaseOutside: "pass", concurrentOwnership: "pass", keyboard: "pass", reducedMotion: "pass", longPressSelection: "suppressed", rippleCap: 4 },
   fileProtocol: { pass: true },
   observers: { unexpectedRequests, consoleErrors, pageErrors }
 };

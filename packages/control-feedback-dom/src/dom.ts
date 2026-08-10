@@ -294,6 +294,7 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
     if (runtime.read().owner !== undefined) dispatch({ kind: "contact-cancel", reason, atMs: now() });
   };
 
+  listen(elements.root, "contextmenu", (event) => event.preventDefault());
   listen(elements.interactive, "pointerdown", (rawEvent) => {
     const event = rawEvent as PointerEvent;
     if (!runtime.read().model.enabled || event.button !== 0) return;

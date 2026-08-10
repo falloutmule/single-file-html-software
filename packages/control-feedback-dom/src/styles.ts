@@ -1,9 +1,9 @@
 import type { ControlGradient, ControlLayerStyle, ControlLength, ControlShadow, ControlTransform } from "@sfhs/control-feedback-contract";
 
 export const domControlStyleText = `
-.sfhs-cf-root{position:relative;display:inline-grid;isolation:isolate;box-sizing:border-box;min-width:44px;min-height:44px;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;cursor:pointer}
+.sfhs-cf-root{position:relative;display:inline-grid;isolation:isolate;box-sizing:border-box;min-width:44px;min-height:44px;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:pointer}
 .sfhs-cf-root[data-disabled="true"]{cursor:not-allowed}
-.sfhs-cf-interactive{position:absolute;inset:0;z-index:20;width:100%;height:100%;margin:0;border:0;padding:0;opacity:.001;cursor:inherit;touch-action:none}
+.sfhs-cf-interactive{position:absolute;inset:0;z-index:20;width:100%;height:100%;margin:0;border:0;padding:0;opacity:.001;cursor:inherit;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 button.sfhs-cf-interactive{appearance:none;background:transparent;color:transparent}
 .sfhs-cf-visual{position:absolute;z-index:1;pointer-events:none;overflow:visible}
 .sfhs-cf-layers,.sfhs-cf-effects{position:absolute;inset:0;pointer-events:none}
