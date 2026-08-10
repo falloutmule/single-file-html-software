@@ -39,7 +39,8 @@ export default tseslint.config(
       "examples/control-feedback-cue-proof/tools/*.mjs",
       "examples/control-feedback-editor/tools/*.mjs",
       "examples/control-feedback-library-proof/tools/*.mjs",
-      "examples/control-feedback-pixi-proof/tools/*.mjs"
+      "examples/control-feedback-pixi-proof/tools/*.mjs",
+      "examples/mobile-controls-feedback-proof/tools/*.mjs"
     ],
     languageOptions: {
       globals: {
