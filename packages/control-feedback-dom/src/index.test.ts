@@ -35,12 +35,14 @@ describe("control feedback DOM adapter", () => {
     });
   });
 
-  it("ships focus, effects, reduced-motion, and separate hit-target CSS", () => {
+  it("ships focus, effects, reduced-motion, separate hit-target, and long-press protection CSS", () => {
     expect(packageIdentity).toBe("@sfhs/control-feedback-dom");
     expect(domControlStyleText).toContain(".sfhs-cf-interactive");
     expect(domControlStyleText).toContain("data-focus-visible");
     expect(domControlStyleText).toContain("prefers-reduced-motion");
     expect(domControlStyleText).toContain("sfhs-cf-ripple");
+    expect(domControlStyleText).toContain("-webkit-user-select:none");
+    expect(domControlStyleText).toContain("-webkit-touch-callout:none");
     expect(domControlStyleText).not.toMatch(/https?:\/\//u);
   });
 });

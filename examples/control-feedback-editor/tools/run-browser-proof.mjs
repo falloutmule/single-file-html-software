@@ -40,6 +40,32 @@ assert.equal(await page.evaluate(() => document.body.dataset.phase), "ready");
 const selfCheck = await page.evaluate(() => window.CFEDITOR.selfCheck());
 assert.equal(selfCheck.pass, true);
 assert.equal(selfCheck.offlineDemo, true);
+const editorSelectionBoundary = await page.evaluate(() => {
+  const runAll = document.querySelector("#runAll");
+  const fileAction = document.querySelector(".file-action");
+  const labelInput = document.querySelector("#label");
+  const exportText = document.querySelector("#exportText");
+  if (!(runAll instanceof globalThis.HTMLElement) || !(fileAction instanceof globalThis.HTMLElement) || !(labelInput instanceof globalThis.HTMLInputElement) || !(exportText instanceof globalThis.HTMLTextAreaElement)) throw new Error("Editor selection-boundary elements are missing.");
+  const checkContextMenu = (target) => {
+    const event = new globalThis.MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    return { dispatchAllowed: target.dispatchEvent(event), defaultPrevented: event.defaultPrevented };
+  };
+  const styleText = [...document.querySelectorAll("style")].map((style) => style.textContent ?? "").join("\n");
+  return {
+    runAll: { userSelect: getComputedStyle(runAll).userSelect, touchAction: getComputedStyle(runAll).touchAction },
+    fileAction: { userSelect: getComputedStyle(fileAction).userSelect, touchAction: getComputedStyle(fileAction).touchAction },
+    labelInput: { userSelect: getComputedStyle(labelInput).userSelect, contextMenu: checkContextMenu(labelInput) },
+    exportText: { userSelect: getComputedStyle(exportText).userSelect, contextMenu: checkContextMenu(exportText) },
+    touchCalloutRule: styleText.includes("-webkit-touch-callout:none")
+  };
+});
+assert.deepEqual(editorSelectionBoundary, {
+  runAll: { userSelect: "none", touchAction: "manipulation" },
+  fileAction: { userSelect: "none", touchAction: "manipulation" },
+  labelInput: { userSelect: "auto", contextMenu: { dispatchAllowed: true, defaultPrevented: false } },
+  exportText: { userSelect: "auto", contextMenu: { dispatchAllowed: true, defaultPrevented: false } },
+  touchCalloutRule: true
+});
 
 await page.locator("#template").selectOption("uv-plastic-inset-press");
 await page.locator("#presetId").fill("editor-derived-plastic");
@@ -172,6 +198,15 @@ const mobilePage = await mobileContext.newPage();
 await mobilePage.goto(server.url, { waitUntil: "load" });
 assert.equal(await mobilePage.evaluate(() => window.CFEDITOR.selfCheck().pass), true);
 assert.equal(await mobilePage.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+const mobileLongPressProtection = await mobilePage.evaluate(() => {
+  const root = document.querySelector("#previewMount .sfhs-cf-root");
+  const interactive = document.querySelector("#previewMount .sfhs-cf-interactive");
+  if (!(root instanceof HTMLElement) || !(interactive instanceof HTMLElement)) throw new Error("Preview control is missing.");
+  const event = new globalThis.MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+  const dispatchAllowed = interactive.dispatchEvent(event);
+  return { dispatchAllowed, defaultPrevented: event.defaultPrevented, userSelect: getComputedStyle(root).userSelect };
+});
+assert.deepEqual(mobileLongPressProtection, { dispatchAllowed: false, defaultPrevented: true, userSelect: "none" });
 await mobilePage.screenshot({ path: join(evidenceRoot, "editor-samsung-emulation.png"), fullPage: true });
 await mobileContext.close();
 
@@ -194,10 +229,10 @@ assert.deepEqual(fileErrors, []);
 const report = {
   schema: "sfhs.control-feedback-editor-browser-proof@0", pass: true,
   artifact: first.descriptor.artifact, determinism: { identical: true, sha256: first.descriptor.artifact.sha256 },
-  editor: { design: true, liveDomRuntime: true, statePreviewCount: 9, tortureCases: torture.length, torturePass: torture.every((result) => result.pass), exactTwoPresetPackRoundTrip: roundTrip.exact, topologyPreservedAfterEdit: true, multiPresetMemberSelection: true, donorAttributionPreservedOnRename: true },
+  editor: { design: true, liveDomRuntime: true, statePreviewCount: 9, tortureCases: torture.length, torturePass: torture.every((result) => result.pass), exactTwoPresetPackRoundTrip: roundTrip.exact, topologyPreservedAfterEdit: true, multiPresetMemberSelection: true, donorAttributionPreservedOnRename: true, selectionBoundary: "control-actions-only" },
   export: { presetJson: true, packJson: true, domConfig: true, pixiV8Config: true, usedPresetNotices: true, donorDemoNotices: true, standaloneDemo: true, standaloneDemoUsesMinimalProductionRuntime: true, unusedPresetInventoryEmbedded: false, semanticVariants: ["momentary", "toggle", "choice"], standaloneDemoFileProtocol: true },
   cues: { audioAutomation: "API/configuration only; no physical latency claim", mute: true, haptics: "best-effort support surfaced" },
-  mobile: { profile: "Samsung S21 Ultra emulation only", horizontalOverflow: false },
+  mobile: { profile: "Samsung S21 Ultra emulation only", horizontalOverflow: false, longPressSelection: "suppressed" },
   fileProtocol: { editor: true, exportedDemo: true }, observers: { unexpectedRequests, consoleErrors, pageErrors, demoErrors, fileErrors }
 };
 await writeFile(join(evidenceRoot, "browser-proof.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
