@@ -1,0 +1,16 @@
+{
+  "name": "@sfhs/control-feedback-exporter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@sfhs/control-feedback-contract": "workspace:*",
+    "@sfhs/control-feedback-notices": "workspace:*"
+  },
+  "devDependencies": {
+    "@sfhs/packer": "workspace:*",
+    "@sfhs/control-feedback-presets": "workspace:*",
+    "vitest": "4.1.10"
+  }
+}

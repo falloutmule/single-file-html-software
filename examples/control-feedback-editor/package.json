@@ -1,0 +1,20 @@
+{
+  "name": "@sfhs/example-control-feedback-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "browser-proof": "node tools/run-browser-proof.mjs" },
+  "dependencies": {
+    "@sfhs/control-feedback-audio-web": "workspace:*",
+    "@sfhs/control-feedback-contract": "workspace:*",
+    "@sfhs/control-feedback-dom": "workspace:*",
+    "@sfhs/control-feedback-exporter": "workspace:*",
+    "@sfhs/control-feedback-haptics-web": "workspace:*",
+    "@sfhs/control-feedback-presets": "workspace:*"
+  },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1"
+  }
+}

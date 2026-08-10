@@ -65,6 +65,15 @@ importers:
         specifier: 1.61.1
         version: 1.61.1
 
+  examples/control-feedback-demo-shell:
+    dependencies:
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-contract
+      '@sfhs/control-feedback-dom':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-dom
+
   examples/control-feedback-dom-proof:
     dependencies:
       '@sfhs/control-feedback-contract':
@@ -76,6 +85,37 @@ importers:
       '@sfhs/control-feedback-runtime':
         specifier: workspace:*
         version: link:../../packages/control-feedback-runtime
+    devDependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../../packages/packer
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+
+  examples/control-feedback-editor:
+    dependencies:
+      '@sfhs/control-feedback-audio-web':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-audio-web
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-contract
+      '@sfhs/control-feedback-dom':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-dom
+      '@sfhs/control-feedback-exporter':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-exporter
+      '@sfhs/control-feedback-haptics-web':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-haptics-web
+      '@sfhs/control-feedback-presets':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-presets
     devDependencies:
       '@sfhs/browser-runner':
         specifier: workspace:*
@@ -327,6 +367,25 @@ importers:
       '@sfhs/control-feedback-runtime':
         specifier: workspace:*
         version: link:../control-feedback-runtime
+
+  packages/control-feedback-exporter:
+    dependencies:
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../control-feedback-contract
+      '@sfhs/control-feedback-notices':
+        specifier: workspace:*
+        version: link:../control-feedback-notices
+    devDependencies:
+      '@sfhs/control-feedback-presets':
+        specifier: workspace:*
+        version: link:../control-feedback-presets
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../packer
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@22.20.1)(vite@8.1.5(@types/node@22.20.1)(esbuild@0.28.1))
 
   packages/control-feedback-haptics-web:
     dependencies:

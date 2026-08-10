@@ -1,12 +1,12 @@
 import type { ControlLayerStyle } from "@sfhs/control-feedback-contract";
-import {
-  createControlFeedbackRuntime,
-  type ControlFeedbackCancelReason,
-  type ControlFeedbackDispatchResult,
-  type ControlFeedbackOrigin,
-  type ControlFeedbackSignal,
-  type ControlFeedbackSnapshot
+import type {
+  ControlFeedbackCancelReason,
+  ControlFeedbackDispatchResult,
+  ControlFeedbackOrigin,
+  ControlFeedbackSignal,
+  ControlFeedbackSnapshot
 } from "@sfhs/control-feedback-runtime";
+import { createControlFeedbackRuntime as createTrustedControlFeedbackRuntime } from "@sfhs/control-feedback-runtime/trusted";
 
 import { applyStyle, ensureDomControlStyles, layerStyleToCss } from "./styles.ts";
 import {
@@ -47,6 +47,7 @@ function createInteractive(options: MountDomControlOptions): {
   status: HTMLSpanElement;
 } {
   const documentValue = options.container.ownerDocument;
+  const accessibleLabel = options.label ?? options.preset.content?.label ?? options.preset.title;
   const semantic = semanticElementForPreset(options.preset);
   const root = documentValue.createElement(semantic === "button" ? "span" : "label");
   root.className = "sfhs-cf-root";
@@ -55,7 +56,7 @@ function createInteractive(options: MountDomControlOptions): {
 
   const interactive = documentValue.createElement(semantic === "button" ? "button" : "input");
   interactive.className = "sfhs-cf-interactive";
-  interactive.setAttribute("aria-label", options.label);
+  interactive.setAttribute("aria-label", accessibleLabel);
   if (interactive instanceof HTMLButtonElement) interactive.type = "button";
   else if (semantic === "checkbox-switch") {
     interactive.type = "checkbox";
@@ -80,7 +81,20 @@ function createInteractive(options: MountDomControlOptions): {
   visual.append(layers, effects);
   const content = documentValue.createElement("span");
   content.className = "sfhs-cf-content";
-  content.textContent = options.visualLabel ?? options.label;
+  const contentValue = options.preset.content;
+  const visualLabel = options.visualLabel ?? contentValue?.label ?? accessibleLabel;
+  content.textContent = contentValue?.icon === undefined
+    ? visualLabel
+    : contentValue.iconSlot === "trailing"
+      ? `${visualLabel} ${contentValue.icon}`
+      : `${contentValue.icon} ${visualLabel}`;
+  if (contentValue !== undefined) {
+    content.style.fontFamily = contentValue.fontFamily;
+    content.style.fontSize = `${contentValue.fontSizePx}px`;
+    content.style.fontWeight = String(contentValue.fontWeight);
+    content.style.letterSpacing = `${contentValue.letterSpacingPx}px`;
+    content.style.color = contentValue.textColor;
+  }
   const status = documentValue.createElement("span");
   status.className = "sfhs-cf-status";
   status.setAttribute("role", "status");
@@ -96,12 +110,27 @@ function setLayerStyles(element: HTMLElement, layer: ControlLayerStyle): void {
   if (layer.contentSlot !== undefined) element.dataset.contentSlot = layer.contentSlot;
 }
 
-export function mountDomControl(options: MountDomControlOptions): DomControlController {
+export function mountDomControlUnchecked(options: MountDomControlOptions): DomControlController {
   if (options.container.ownerDocument.defaultView === null) throw new Error("DOM control requires a live Window.");
   ensureDomControlStyles(options.container.ownerDocument);
   const view = options.container.ownerDocument.defaultView;
   const elements = createInteractive(options);
-  const runtime = createControlFeedbackRuntime({
+  const geometry = options.preset.geometry;
+  if (geometry !== undefined) {
+    const hitWidth = Math.max(geometry.widthPx, geometry.minimumHitTargetPx ?? 0);
+    const hitHeight = Math.max(geometry.heightPx, geometry.minimumHitTargetPx ?? 0);
+    elements.root.style.width = `${hitWidth}px`;
+    elements.root.style.height = `${hitHeight}px`;
+    for (const element of [elements.visual, elements.content]) {
+      element.style.inset = "auto";
+      element.style.left = "50%";
+      element.style.top = "50%";
+      element.style.width = `${geometry.widthPx}px`;
+      element.style.height = `${geometry.heightPx}px`;
+      element.style.transform = "translate(-50%,-50%)";
+    }
+  }
+  const runtime = createTrustedControlFeedbackRuntime({
     controlId: options.controlId,
     preset: options.preset,
     initialModel: {

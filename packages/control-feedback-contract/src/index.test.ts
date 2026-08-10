@@ -68,6 +68,24 @@ describe("control feedback contract", () => {
     const disguisedDonor = structuredClone(p0ControlPresets[0]) as unknown as Record<string, unknown>;
     disguisedDonor.provenance = { origin: "sfhs-original" };
     expect(validateControlPreset(disguisedDonor).findings.some((finding) => finding.code === "SFHS_CONTROL_PROVENANCE_MISMATCH" && finding.path === "/provenance/origin")).toBe(true);
+
+    const attributedDerivative = structuredClone(p0ControlPresets[0]) as unknown as Record<string, unknown>;
+    attributedDerivative.id = "editor-derived-plastic";
+    expect(validateControlPreset(attributedDerivative)).toEqual({ valid: true, findings: [] });
+  });
+
+  it("validates portable editor geometry and text content", () => {
+    const original = structuredClone(p0ControlPresets[0]) as unknown as Record<string, unknown>;
+    original.id = "editor-portable-control";
+    original.provenance = { origin: "sfhs-original" };
+    original.geometry = { widthPx: 192, heightPx: 64, minimumHitTargetPx: 44 };
+    original.content = { label: "Launch", icon: "◆", iconSlot: "leading", fontFamily: "system-ui", fontSizePx: 16, fontWeight: 700, letterSpacingPx: 0, textColor: "#FFFFFFFF" };
+    expect(validateControlPreset(original)).toEqual({ valid: true, findings: [] });
+    (original.geometry as { widthPx: number }).widthPx = 0;
+    expect(validateControlPreset(original).findings.some((finding) => finding.path === "/geometry/widthPx" && finding.code === "SFHS_CONTROL_RATIO_INVALID")).toBe(true);
+    (original.geometry as { widthPx: number }).widthPx = 192;
+    (original.content as { fontWeight: number }).fontWeight = 650;
+    expect(validateControlPreset(original).findings.some((finding) => finding.path === "/content/fontWeight" && finding.code === "SFHS_CONTROL_RATIO_INVALID")).toBe(true);
   });
 
   it("validates renderer-neutral gradients and rejects unordered stops", () => {

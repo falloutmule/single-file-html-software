@@ -94,9 +94,7 @@ export function validateFrozenProvenance(provenance: ControlDonorProvenance, pat
   }
   if (presetId !== undefined) {
     const expectedKeys = frozenPresetSourceKeys[presetId];
-    if (expectedKeys === undefined) {
-      findings.push(sourceFinding(path, `Preset ${presetId} is not in the frozen donor provenance register.`));
-    } else {
+    if (expectedKeys !== undefined) {
       const actualKeys = provenance.sources.map((source) => key(source.repository, source.path)).sort();
       const expectedSorted = [...expectedKeys].sort();
       if (actualKeys.length !== expectedSorted.length || actualKeys.some((value, index) => value !== expectedSorted[index])) findings.push(sourceFinding(`${path}/sources`, `Preset ${presetId} does not use its exact frozen source set.`));

@@ -31,6 +31,7 @@ export interface ControlTransition {
   readonly durationMs: number;
   readonly delayMs?: number;
   readonly easing: ControlEasing;
+  readonly overshoot?: number;
 }
 
 export interface ControlBorder {
@@ -123,6 +124,23 @@ export interface ControlCueMap {
   readonly error?: string;
 }
 
+export interface ControlGeometry {
+  readonly widthPx: number;
+  readonly heightPx: number;
+  readonly minimumHitTargetPx?: number;
+}
+
+export interface ControlContent {
+  readonly label: string;
+  readonly icon?: string;
+  readonly iconSlot?: "leading" | "trailing";
+  readonly fontFamily: "system-ui" | "serif" | "monospace";
+  readonly fontSizePx: number;
+  readonly fontWeight: number;
+  readonly letterSpacingPx: number;
+  readonly textColor: string;
+}
+
 export interface MomentarySemantic {
   readonly kind: "momentary";
 }
@@ -165,6 +183,8 @@ export interface ControlPreset {
   readonly id: string;
   readonly title: string;
   readonly semantic: ControlSemantic;
+  readonly geometry?: ControlGeometry;
+  readonly content?: ControlContent;
   readonly visuals: ControlVisualStates;
   readonly toggleVisual?: ToggleVisual;
   readonly cues?: ControlCueMap;

@@ -44,6 +44,13 @@ describe("PixiJS v8 control feedback adapter", () => {
     control.destroy();
   });
 
+  it("uses portable preset geometry and content when adapter overrides are absent", () => {
+    const preset: ControlPreset = { ...p0ControlPresets[0], id: "portable-pixi-control", provenance: { origin: "sfhs-original" }, geometry: { widthPx: 24, heightPx: 24, minimumHitTargetPx: 44 }, content: { label: "Launch", icon: "◆", iconSlot: "leading", fontFamily: "system-ui", fontSizePx: 17, fontWeight: 700, letterSpacingPx: 1, textColor: "#FFFFFFFF" } };
+    const control = createPixiV8Control({ parent: new Container(), controlId: "portable", preset });
+    expect(control.root.hitArea).toEqual(new Rectangle(-10, -10, 44, 44));
+    expect((control.root.children[2] as { text?: string }).text).toBe("◆ Launch");
+  });
+
   it("retains external state authority and bounded ripple instances", () => {
     let time = 0;
     const activations: unknown[] = [];
