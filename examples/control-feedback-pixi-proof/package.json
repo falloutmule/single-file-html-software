@@ -1,0 +1,19 @@
+{
+  "name": "@sfhs/example-control-feedback-pixi-proof",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "browser-proof": "node tools/run-browser-proof.mjs" },
+  "dependencies": {
+    "@sfhs/control-feedback-contract": "workspace:*",
+    "@sfhs/control-feedback-dom": "workspace:*",
+    "@sfhs/control-feedback-pixi-v8": "workspace:*",
+    "@sfhs/control-feedback-runtime": "workspace:*",
+    "pixi.js": "8.19.0"
+  },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1"
+  }
+}

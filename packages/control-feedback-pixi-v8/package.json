@@ -1,0 +1,14 @@
+{
+  "name": "@sfhs/control-feedback-pixi-v8",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@sfhs/control-feedback-contract": "workspace:*",
+    "@sfhs/control-feedback-runtime": "workspace:*",
+    "pixi.js": "8.19.0"
+  }
+}

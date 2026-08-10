@@ -55,7 +55,7 @@ export function layerStyleToCss(layer: ControlLayerStyle): Readonly<Record<strin
   const transform = transformCss(layer.transform);
   if (transform !== undefined) style.transform = transform;
   if (layer.transition !== undefined) {
-    style.transition = `transform ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms, box-shadow ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms, opacity ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms, background ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms`;
+    style.transition = `transform ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms, left ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms, box-shadow ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms, opacity ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms, background ${layer.transition.durationMs}ms ${layer.transition.easing} ${layer.transition.delayMs ?? 0}ms`;
   }
   return Object.freeze(style);
 }
