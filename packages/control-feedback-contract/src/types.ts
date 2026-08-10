@@ -1,6 +1,8 @@
 export const controlPresetSchema = "sfhs.control-preset@0" as const;
+export const controlPackSchema = "sfhs.control-pack@0" as const;
 
 export type ControlPresetSchema = typeof controlPresetSchema;
+export type ControlPackSchema = typeof controlPackSchema;
 export type ControlSemanticKind = "momentary" | "toggle" | "choice";
 export type ControlStatus = "idle" | "loading" | "success" | "error";
 export type ControlInteractionState = "rest" | "pressed-inside" | "pressed-outside";
@@ -37,6 +39,17 @@ export interface ControlBorder {
   readonly radius: ControlLength;
 }
 
+export interface ControlGradientStop {
+  readonly offset: number;
+  readonly color: string;
+}
+
+export interface ControlGradient {
+  readonly kind: "linear" | "radial" | "conic";
+  readonly angleDeg?: number;
+  readonly stops: readonly ControlGradientStop[];
+}
+
 export interface ControlShadow {
   readonly x: ControlLength;
   readonly y: ControlLength;
@@ -50,6 +63,7 @@ export interface ControlLayerStyle {
   readonly role: ControlLayerRole;
   readonly shape: ControlShape;
   readonly fill?: string;
+  readonly gradient?: ControlGradient;
   readonly opacity?: number;
   readonly border?: ControlBorder;
   readonly shadows?: readonly ControlShadow[];
@@ -115,6 +129,7 @@ export interface MomentarySemantic {
 
 export interface ToggleSemantic {
   readonly kind: "toggle";
+  readonly variant?: "switch" | "checkbox";
 }
 
 export interface ChoiceSemantic {
@@ -132,12 +147,18 @@ export interface ControlDonorSource {
   readonly blobSha: string;
 }
 
-export interface ControlProvenance {
+export interface ControlDonorProvenance {
   readonly donor: ControlDonor;
   readonly license: "MIT";
   readonly modified: true;
   readonly sources: readonly ControlDonorSource[];
 }
+
+export interface ControlOriginalProvenance {
+  readonly origin: "sfhs-original";
+}
+
+export type ControlProvenance = ControlDonorProvenance | ControlOriginalProvenance;
 
 export interface ControlPreset {
   readonly schema: ControlPresetSchema;
@@ -148,6 +169,13 @@ export interface ControlPreset {
   readonly toggleVisual?: ToggleVisual;
   readonly cues?: ControlCueMap;
   readonly provenance: ControlProvenance;
+}
+
+export interface ControlPack {
+  readonly schema: ControlPackSchema;
+  readonly id: string;
+  readonly title: string;
+  readonly presets: readonly ControlPreset[];
 }
 
 export type ControlValidationCode =

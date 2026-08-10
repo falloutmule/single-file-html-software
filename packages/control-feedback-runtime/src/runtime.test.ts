@@ -23,6 +23,30 @@ function activation(events: readonly ControlFeedbackEvent[]): ControlFeedbackEve
 }
 
 describe("control feedback runtime", () => {
+  it("merges repeated layer roles by stable occurrence instead of collapsing them", () => {
+    const twoContentLayers: ControlPreset = {
+      schema: "sfhs.control-preset@0",
+      id: "occurrence-merge-test",
+      title: "Occurrence Merge Test",
+      semantic: { kind: "momentary" },
+      visuals: {
+        base: { layers: [
+          { role: "content", shape: "rect", opacity: 1, transform: { translateY: { value: 0, unit: "px" } } },
+          { role: "content", shape: "rect", opacity: 0, transform: { translateY: { value: 10, unit: "px" } } }
+        ] },
+        hover: { layers: [
+          { role: "content", shape: "rect", opacity: 0, transform: { translateY: { value: 20, unit: "px" } } },
+          { role: "content", shape: "rect", opacity: 1, transform: { translateY: { value: 30, unit: "px" } } }
+        ] }
+      },
+      provenance: { origin: "sfhs-original" }
+    };
+    const control = createControlFeedbackRuntime({ controlId: "occurrence", preset: twoContentLayers });
+    const hovered = control.dispatch({ kind: "hover-set", hovered: true, atMs: 1 }).snapshot.presentation.layers;
+    expect(hovered).toHaveLength(2);
+    expect(hovered.map((layer) => [layer.opacity, layer.transform?.translateY?.value])).toEqual([[0, 20], [1, 30]]);
+  });
+
   it("activates once for press and release inside and rebounds to rest", () => {
     const control = runtime();
     const down = control.dispatch({ kind: "contact-begin", source: "pointer", sourceId: "7", origin: { x: 0.2, y: 0.8 }, atMs: 1 });

@@ -106,7 +106,7 @@ const api = Object.freeze({
     return {
       pass: application.canvas instanceof HTMLCanvasElement
         && controllers.press?.root.hitArea !== null
-        && pixiV8ControlApproximations.length === 3
+        && pixiV8ControlApproximations.length === 4
         && document.querySelectorAll("script[src^='http'],link[href^='http'],img[src^='http']").length === 0,
       frame
     };

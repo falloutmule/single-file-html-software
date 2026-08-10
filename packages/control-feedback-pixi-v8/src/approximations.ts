@@ -2,6 +2,12 @@ import type { PixiControlApproximation } from "./types.ts";
 
 export const pixiV8ControlApproximations = Object.freeze([
   {
+    id: "gradient-fill",
+    contractPrimitive: "ControlGradient",
+    pixiV8Strategy: "Representative middle gradient stop rendered as a Graphics fill",
+    limitation: "DOM preserves declared linear, radial, and conic gradients; the initial Pixi v8 adapter explicitly flattens them while preserving geometry, opacity, state, and interaction semantics. Hosts may supply a shader-backed enhancement."
+  },
+  {
     id: "layer-shadow",
     contractPrimitive: "ControlShadow",
     pixiV8Strategy: "Additional Graphics shape at the declared offset",
