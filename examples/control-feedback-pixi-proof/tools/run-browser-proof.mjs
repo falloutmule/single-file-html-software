@@ -82,7 +82,7 @@ const fileContext = await browser.newContext({ viewport: { width: 720, height: 5
 const filePage = await fileContext.newPage();
 await filePage.goto(pathToFileURL(artifactPath).href, { waitUntil: "load" });
 await filePage.waitForFunction(() => window.CFPIXI?.selfCheck().pass === true);
-assert.equal(await filePage.evaluate(() => window.CFPIXI.approximations.length), 3);
+assert.equal(await filePage.evaluate(() => window.CFPIXI.approximations.length), 4);
 await fileContext.close();
 await browser.close();
 await server.close();
@@ -99,7 +99,7 @@ const report = {
   pointer: { releaseInside: "pass", releaseOutside: "pass", rippleCap: 4 },
   keyboard: { pass: true },
   reducedMotion: { pass: true },
-  approximations: { count: 3, explicit: true },
+  approximations: { count: 4, explicit: true },
   visualProbe,
   fileProtocol: { pass: true },
   browserLaunch: { angle: "swiftshader", unsafeSwiftshaderEnabledForAutomation: true },

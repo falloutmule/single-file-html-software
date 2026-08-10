@@ -1,4 +1,4 @@
-import type { ControlLayerStyle, ControlLength, ControlShadow, ControlTransform } from "@sfhs/control-feedback-contract";
+import type { ControlGradient, ControlLayerStyle, ControlLength, ControlShadow, ControlTransform } from "@sfhs/control-feedback-contract";
 
 export const domControlStyleText = `
 .sfhs-cf-root{position:relative;display:inline-grid;isolation:isolate;box-sizing:border-box;min-width:44px;min-height:44px;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;cursor:pointer}
@@ -40,9 +40,17 @@ function shadowCss(shadow: ControlShadow): string {
   return `${shadow.inset ? "inset " : ""}${controlLengthCss(shadow.x)} ${controlLengthCss(shadow.y)} ${controlLengthCss(shadow.blur)} ${controlLengthCss(shadow.spread)} ${shadow.color}`;
 }
 
+function gradientCss(gradient: ControlGradient): string {
+  const stops = gradient.stops.map((stop) => `${stop.color} ${stop.offset * 100}%`).join(", ");
+  if (gradient.kind === "radial") return `radial-gradient(circle, ${stops})`;
+  if (gradient.kind === "conic") return `conic-gradient(from ${gradient.angleDeg ?? 0}deg, ${stops})`;
+  return `linear-gradient(${gradient.angleDeg ?? 180}deg, ${stops})`;
+}
+
 export function layerStyleToCss(layer: ControlLayerStyle): Readonly<Record<string, string>> {
   const style: Record<string, string> = {};
   if (layer.fill !== undefined) style.background = layer.fill;
+  if (layer.gradient !== undefined) style.background = gradientCss(layer.gradient);
   if (layer.opacity !== undefined) style.opacity = String(layer.opacity);
   if (layer.shape === "circle") style.borderRadius = "50%";
   if (layer.shape === "capsule") style.borderRadius = "999px";

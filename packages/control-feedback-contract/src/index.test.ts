@@ -1,11 +1,18 @@
+import { createHash } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
 
 import {
+  canonicalControlPackJson,
   canonicalControlPresetSetJson,
+  controlPackSchema,
   controlPresetSchema,
+  frozenDonorSources,
   frozenP0DonorSources,
+  frozenPresetSourceKeys,
   p0ControlPresetIds,
   p0ControlPresets,
+  validateControlPack,
   validateControlPreset,
   validateControlPresets
 } from "./index.ts";
@@ -33,6 +40,52 @@ describe("control feedback contract", () => {
       expect(source.blobSha).toMatch(/^[0-9a-f]{40}$/u);
       expect(source.license).toBe("MIT");
     }
+  });
+
+  it("registers all 25 vetted presets against 26 frozen source blobs", () => {
+    expect(Object.keys(frozenPresetSourceKeys)).toHaveLength(25);
+    expect(frozenDonorSources).toHaveLength(26);
+    expect(new Set(frozenDonorSources.map((source) => source.commit))).toEqual(new Set([
+      "adbd2adde0a299a3956ea288fb444ec01891ca41",
+      "de9aabb0eed14e0db944bb07720961ddc450c672",
+      "0bd8b9fe0e15c4697c8d22dee1d35d88b5152c25"
+    ]));
+    const fingerprint = createHash("sha256").update(frozenDonorSources.map((source) => `${source.donor}|${source.license}|${source.repository}|${source.commit}|${source.path}|${source.blobSha}`).join("\n")).digest("hex");
+    expect(fingerprint).toBe("d6869a5d5090f2ce8ddbd32742cc4154dd3c93ff08a9be05a56938827486f5ea");
+  });
+
+  it("accepts strict original provenance and checkbox-style toggles", () => {
+    const original = structuredClone(p0ControlPresets[0]) as unknown as Record<string, unknown>;
+    original.id = "original-control";
+    original.provenance = { origin: "sfhs-original" };
+    expect(validateControlPreset(original)).toEqual({ valid: true, findings: [] });
+
+    const checkbox = structuredClone(original) as Record<string, unknown>;
+    checkbox.semantic = { kind: "toggle", variant: "checkbox" };
+    delete checkbox.toggleVisual;
+    expect(validateControlPreset(checkbox)).toEqual({ valid: true, findings: [] });
+
+    const disguisedDonor = structuredClone(p0ControlPresets[0]) as unknown as Record<string, unknown>;
+    disguisedDonor.provenance = { origin: "sfhs-original" };
+    expect(validateControlPreset(disguisedDonor).findings.some((finding) => finding.code === "SFHS_CONTROL_PROVENANCE_MISMATCH" && finding.path === "/provenance/origin")).toBe(true);
+  });
+
+  it("validates renderer-neutral gradients and rejects unordered stops", () => {
+    const preset = structuredClone(p0ControlPresets[0]) as unknown as { visuals: { base: { layers: Array<Record<string, unknown>> } } };
+    const layer = preset.visuals.base.layers[0];
+    if (layer === undefined) throw new Error("Missing gradient test layer.");
+    delete layer.fill;
+    layer.gradient = { kind: "linear", angleDeg: 45, stops: [{ offset: 0, color: "#000000FF" }, { offset: 1, color: "#FFFFFFFF" }] };
+    expect(validateControlPreset(preset)).toEqual({ valid: true, findings: [] });
+    (layer.gradient as { stops: { offset: number }[] }).stops[1]!.offset = -1;
+    expect(validateControlPreset(preset).findings.some((finding) => finding.code === "SFHS_CONTROL_RATIO_INVALID")).toBe(true);
+  });
+
+  it("validates and canonicalizes deterministic portable packs", () => {
+    const pack = { schema: controlPackSchema, id: "p0-controls", title: "P0 Controls", presets: p0ControlPresets };
+    expect(validateControlPack(pack)).toEqual({ valid: true, findings: [] });
+    expect(canonicalControlPackJson(pack)).toContain('"schema":"sfhs.control-pack@0"');
+    expect(validateControlPack({ ...pack, presets: [] }).valid).toBe(false);
   });
 
   it("rejects duplicate preset IDs", () => {

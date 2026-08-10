@@ -1,11 +1,14 @@
-import { validateFrozenProvenance } from "./provenance.ts";
+import { frozenPresetSourceKeys, validateFrozenProvenance } from "./provenance.ts";
 import {
+  controlPackSchema,
   controlPresetSchema,
   type ControlBorder,
+  type ControlDonorProvenance,
   type ControlEffect,
+  type ControlGradient,
   type ControlLayerStyle,
   type ControlLength,
-  type ControlPreset,
+  type ControlPack,
   type ControlSemantic,
   type ControlShadow,
   type ControlTransition,
@@ -29,6 +32,7 @@ const knownStatuses = new Set(["idle", "loading", "success", "error"]);
 const knownEffectKinds = new Set(["field-ripple", "activation-ripple"]);
 const knownSemanticKinds = new Set(["momentary", "toggle", "choice"]);
 const knownDonors = new Set(["uiverse", "animata", "magicui"]);
+const knownGradientKinds = new Set(["linear", "radial", "conic"]);
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   if (value === null || Array.isArray(value) || typeof value !== "object") return undefined;
@@ -86,6 +90,35 @@ function validateColor(value: unknown, path: string, findings: ControlValidation
   if (typeof value !== "string" || !colorPattern.test(value)) {
     add(findings, "SFHS_CONTROL_COLOR_INVALID", path, "Color must be sRGB #RRGGBBAA.");
   }
+}
+
+function validateGradient(value: unknown, path: string, findings: ControlValidationFinding[]): value is ControlGradient {
+  const record = asRecord(value);
+  if (record === undefined) {
+    add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", path, "Gradient must be an object.");
+    return false;
+  }
+  rejectUnknownFields(record, ["kind", "angleDeg", "stops"], path, findings);
+  if (typeof record.kind !== "string" || !knownGradientKinds.has(record.kind)) add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/kind`, "Unsupported gradient kind.");
+  if (record.angleDeg !== undefined) validateFinite(record.angleDeg, `${path}/angleDeg`, findings);
+  if (!Array.isArray(record.stops) || record.stops.length < 2) {
+    add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/stops`, "Gradient requires at least two ordered stops.");
+    return true;
+  }
+  let previous = -1;
+  for (const [index, value] of record.stops.entries()) {
+    const stop = asRecord(value);
+    const stopPath = `${path}/stops/${index}`;
+    if (stop === undefined) { add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", stopPath, "Gradient stop must be an object."); continue; }
+    rejectUnknownFields(stop, ["offset", "color"], stopPath, findings);
+    if (validateFinite(stop.offset, `${stopPath}/offset`, findings)) {
+      const offset = stop.offset as number;
+      if (offset < 0 || offset > 1 || offset < previous) add(findings, "SFHS_CONTROL_RATIO_INVALID", `${stopPath}/offset`, "Gradient offsets must be ordered within 0..1.");
+      previous = offset;
+    }
+    validateColor(stop.color, `${stopPath}/color`, findings);
+  }
+  return true;
 }
 
 function validateTransition(value: unknown, path: string, findings: ControlValidationFinding[]): value is ControlTransition {
@@ -158,7 +191,7 @@ function validateLayer(value: unknown, path: string, findings: ControlValidation
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", path, "Layer must be an object.");
     return false;
   }
-  rejectUnknownFields(record, ["role", "shape", "fill", "opacity", "border", "shadows", "transform", "transition", "contentSlot"], path, findings);
+  rejectUnknownFields(record, ["role", "shape", "fill", "gradient", "opacity", "border", "shadows", "transform", "transition", "contentSlot"], path, findings);
   if (typeof record.role !== "string" || !knownLayerRoles.has(record.role)) {
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/role`, "Unsupported layer role.");
   }
@@ -166,6 +199,8 @@ function validateLayer(value: unknown, path: string, findings: ControlValidation
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/shape`, "Unsupported shape.");
   }
   if (record.fill !== undefined) validateColor(record.fill, `${path}/fill`, findings);
+  if (record.gradient !== undefined) validateGradient(record.gradient, `${path}/gradient`, findings);
+  if (record.fill !== undefined && record.gradient !== undefined) add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", path, "Layer cannot declare both fill and gradient.");
   if (record.opacity !== undefined) {
     if (validateFinite(record.opacity, `${path}/opacity`, findings) && ((record.opacity as number) < 0 || (record.opacity as number) > 1)) {
       add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/opacity`, "Opacity must be within 0..1.");
@@ -281,6 +316,9 @@ function validateSemantic(value: unknown, path: string, findings: ControlValidat
     if (typeof record.groupId !== "string" || !idPattern.test(record.groupId) || typeof record.value !== "string" || record.value.length === 0) {
       add(findings, "SFHS_CONTROL_CHOICE_INVALID", path, "Choice requires a valid groupId and non-empty value.");
     }
+  } else if (record.kind === "toggle") {
+    rejectUnknownFields(record, ["kind", "variant"], path, findings);
+    if (record.variant !== undefined && record.variant !== "switch" && record.variant !== "checkbox") add(findings, "SFHS_CONTROL_SEMANTIC_INVALID", `${path}/variant`, "Toggle variant must be switch or checkbox.");
   } else {
     rejectUnknownFields(record, ["kind"], path, findings);
   }
@@ -306,6 +344,12 @@ function validateProvenance(value: unknown, path: string, findings: ControlValid
     add(findings, "SFHS_CONTROL_PROVENANCE_MISSING", path, "Provenance is required.");
     return;
   }
+  if (record.origin !== undefined) {
+    rejectUnknownFields(record, ["origin"], path, findings);
+    if (record.origin !== "sfhs-original") add(findings, "SFHS_CONTROL_PROVENANCE_MISSING", `${path}/origin`, "Original provenance must be sfhs-original.");
+    if (presetId !== undefined && frozenPresetSourceKeys[presetId] !== undefined) add(findings, "SFHS_CONTROL_PROVENANCE_MISMATCH", `${path}/origin`, `Reserved donor preset ${presetId} cannot use original provenance.`);
+    return;
+  }
   rejectUnknownFields(record, ["donor", "license", "modified", "sources"], path, findings);
   if (typeof record.donor !== "string" || !knownDonors.has(record.donor) || record.license !== "MIT" || record.modified !== true || !Array.isArray(record.sources)) {
     add(findings, "SFHS_CONTROL_PROVENANCE_MISSING", path, "Invalid donor provenance header.");
@@ -324,7 +368,7 @@ function validateProvenance(value: unknown, path: string, findings: ControlValid
     }
   }
   if (findings.every((finding) => !finding.path.startsWith(path) || finding.code !== "SFHS_CONTROL_PROVENANCE_MISSING")) {
-    findings.push(...validateFrozenProvenance(record as unknown as ControlPreset["provenance"], path, presetId));
+    findings.push(...validateFrozenProvenance(record as unknown as ControlDonorProvenance, path, presetId));
   }
 }
 
@@ -402,7 +446,7 @@ export function validateControlPreset(value: unknown): ControlValidationResult {
   const semanticValid = validateSemantic(record.semantic, "/semantic", findings);
   validateVisuals(record.visuals, "/visuals", findings);
   if (record.toggleVisual !== undefined) validateToggleVisual(record.toggleVisual, "/toggleVisual", findings);
-  if (semanticValid && (record.semantic as ControlSemantic).kind === "toggle" && record.toggleVisual === undefined) {
+  if (semanticValid && (record.semantic as ControlSemantic).kind === "toggle" && (record.semantic as ControlSemantic & { variant?: string }).variant !== "checkbox" && record.toggleVisual === undefined) {
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", "/toggleVisual", "Toggle presets require track/thumb visual data.");
   }
   if (record.cues !== undefined) {
@@ -445,4 +489,27 @@ export function validateControlPresets(values: readonly unknown[]): ControlValid
   }
   const sorted = sortFindings(findings);
   return { valid: sorted.length === 0, findings: sorted };
+}
+
+export function validateControlPack(value: unknown): ControlValidationResult {
+  const findings: ControlValidationFinding[] = [];
+  const record = asRecord(value);
+  if (record === undefined) return { valid: false, findings: [{ code: "SFHS_CONTROL_SCHEMA_INVALID", path: "/", message: "Pack must be an object." }] };
+  scanJsonDomain(record, "", findings);
+  rejectUnknownFields(record, ["schema", "id", "title", "presets"], "", findings);
+  if (record.schema !== controlPackSchema) add(findings, "SFHS_CONTROL_SCHEMA_INVALID", "/schema", `Schema must be ${controlPackSchema}.`);
+  if (typeof record.id !== "string" || !idPattern.test(record.id)) add(findings, "SFHS_CONTROL_ID_INVALID", "/id", "Pack id must be lowercase kebab-case.");
+  if (typeof record.title !== "string" || record.title.trim().length === 0) add(findings, "SFHS_CONTROL_SCHEMA_INVALID", "/title", "Pack title is required.");
+  if (!Array.isArray(record.presets) || record.presets.length === 0) {
+    add(findings, "SFHS_CONTROL_SCHEMA_INVALID", "/presets", "Pack requires at least one preset.");
+  } else {
+    const presetResult = validateControlPresets(record.presets);
+    findings.push(...presetResult.findings.map((finding) => ({ ...finding, path: `/presets${finding.path}` })));
+  }
+  const sorted = sortFindings(findings);
+  return { valid: sorted.length === 0, findings: sorted };
+}
+
+export function isControlPack(value: unknown): value is ControlPack {
+  return validateControlPack(value).valid;
 }

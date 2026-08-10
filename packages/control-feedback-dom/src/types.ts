@@ -18,6 +18,7 @@ export interface MountDomControlOptions {
   readonly controlId: string;
   readonly preset: ControlPreset;
   readonly label: string;
+  readonly visualLabel?: string;
   readonly enabled?: boolean;
   readonly selected?: boolean;
   readonly status?: ControlStatus;
@@ -45,10 +46,10 @@ export interface DomControlController {
   destroy(): void;
 }
 
-export type DomControlSemanticElement = "button" | "checkbox-switch" | "radio";
+export type DomControlSemanticElement = "button" | "checkbox" | "checkbox-switch" | "radio";
 
 export function semanticElementForPreset(preset: ControlPreset): DomControlSemanticElement {
-  if (preset.semantic.kind === "toggle") return "checkbox-switch";
+  if (preset.semantic.kind === "toggle") return preset.semantic.variant === "checkbox" ? "checkbox" : "checkbox-switch";
   if (preset.semantic.kind === "choice") return "radio";
   return "button";
 }

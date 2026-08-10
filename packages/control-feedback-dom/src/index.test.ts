@@ -8,6 +8,14 @@ describe("control feedback DOM adapter", () => {
     expect(semanticElementForPreset(p0ControlPresets[0])).toBe("button");
     expect(semanticElementForPreset(p0ControlPresets[3])).toBe("checkbox-switch");
     expect(semanticElementForPreset(p0ControlPresets[4])).toBe("radio");
+    expect(semanticElementForPreset({ ...p0ControlPresets[0], semantic: { kind: "toggle", variant: "checkbox" } })).toBe("checkbox");
+  });
+
+  it("renders renderer-neutral gradients through native CSS", () => {
+    expect(layerStyleToCss({ role: "surface", shape: "capsule", gradient: { kind: "linear", angleDeg: 45, stops: [{ offset: 0, color: "#000000FF" }, { offset: 1, color: "#FFFFFFFF" }] } })).toMatchObject({
+      background: "linear-gradient(45deg, #000000FF 0%, #FFFFFFFF 100%)",
+      borderRadius: "999px"
+    });
   });
 
   it("translates renderer-neutral lengths and tactile layer styles", () => {

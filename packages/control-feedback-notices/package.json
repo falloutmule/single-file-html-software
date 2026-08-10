@@ -1,0 +1,12 @@
+{
+  "name": "@sfhs/control-feedback-notices",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@sfhs/contracts": "workspace:*",
+    "@sfhs/control-feedback-contract": "workspace:*"
+  },
+  "devDependencies": { "@sfhs/control-feedback-presets": "workspace:*" }
+}

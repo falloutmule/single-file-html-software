@@ -2,6 +2,10 @@
 
 Native DOM rendering and input normalization for SFHS control feedback.
 
+The adapter renders renderer-neutral solid and linear/radial/conic gradient
+paints as native CSS, distinguishes checkbox-style toggles from switches, and
+allows a visual label distinct from the accessible name for icon controls.
+
 - Momentary presets use a real `button`.
 - Toggle presets use a native checkbox with switch semantics.
 - Choice presets use native radio inputs with contract group/value data.

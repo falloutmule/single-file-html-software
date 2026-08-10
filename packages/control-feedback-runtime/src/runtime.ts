@@ -69,10 +69,21 @@ function validateTime(atMs: number, lastAtMs: number): void {
 
 function mergeLayers(base: readonly ControlLayerStyle[], overlay: readonly ControlLayerStyle[] | undefined): readonly ControlLayerStyle[] {
   if (overlay === undefined) return base;
-  const byRole = new Map(overlay.map((layer) => [layer.role, layer]));
-  const merged = base.map((layer) => byRole.get(layer.role) ?? layer);
-  for (const layer of overlay) {
-    if (!base.some((candidate) => candidate.role === layer.role)) merged.push(layer);
+  const keyedByOccurrence = (layers: readonly ControlLayerStyle[]): readonly { readonly key: string; readonly layer: ControlLayerStyle }[] => {
+    const counts = new Map<string, number>();
+    return layers.map((layer) => {
+      const occurrence = counts.get(layer.role) ?? 0;
+      counts.set(layer.role, occurrence + 1);
+      return { key: `${layer.role}:${occurrence}`, layer };
+    });
+  };
+  const baseEntries = keyedByOccurrence(base);
+  const overlayEntries = keyedByOccurrence(overlay);
+  const byIdentity = new Map(overlayEntries.map((entry) => [entry.key, entry.layer]));
+  const baseIdentity = new Set(baseEntries.map((entry) => entry.key));
+  const merged = baseEntries.map((entry) => byIdentity.get(entry.key) ?? entry.layer);
+  for (const entry of overlayEntries) {
+    if (!baseIdentity.has(entry.key)) merged.push(entry.layer);
   }
   return Object.freeze(merged);
 }

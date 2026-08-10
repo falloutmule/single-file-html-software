@@ -60,6 +60,8 @@ function createInteractive(options: MountDomControlOptions): {
   else if (semantic === "checkbox-switch") {
     interactive.type = "checkbox";
     interactive.setAttribute("role", "switch");
+  } else if (semantic === "checkbox") {
+    interactive.type = "checkbox";
   } else {
     interactive.type = "radio";
     if (options.preset.semantic.kind !== "choice") throw new Error("Choice semantic mismatch.");
@@ -78,7 +80,7 @@ function createInteractive(options: MountDomControlOptions): {
   visual.append(layers, effects);
   const content = documentValue.createElement("span");
   content.className = "sfhs-cf-content";
-  content.textContent = options.label;
+  content.textContent = options.visualLabel ?? options.label;
   const status = documentValue.createElement("span");
   status.className = "sfhs-cf-status";
   status.setAttribute("role", "status");

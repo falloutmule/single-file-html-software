@@ -145,6 +145,13 @@ function redrawLayer(graphic: Graphics, layer: ControlLayerStyle, geometry: Pixi
     const fill = rgba(layer.fill);
     drawShape(graphic, layer, geometry).fill({ color: fill.color, alpha: fill.alpha * opacity });
   }
+  if (layer.gradient !== undefined) {
+    const representative = layer.gradient.stops[Math.floor(layer.gradient.stops.length / 2)];
+    if (representative !== undefined) {
+      const fill = rgba(representative.color);
+      drawShape(graphic, layer, geometry).fill({ color: fill.color, alpha: fill.alpha * opacity });
+    }
+  }
   if (layer.border !== undefined) {
     const border = rgba(layer.border.color);
     drawShape(graphic, layer, geometry).stroke({

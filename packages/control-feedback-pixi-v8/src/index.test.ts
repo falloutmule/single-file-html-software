@@ -1,4 +1,4 @@
-import { p0ControlPresets } from "@sfhs/control-feedback-contract";
+import { p0ControlPresets, type ControlPreset } from "@sfhs/control-feedback-contract";
 import type { ControlFeedbackSignal } from "@sfhs/control-feedback-runtime";
 import { Container, Rectangle } from "pixi.js";
 import { describe, expect, it } from "vitest";
@@ -6,6 +6,22 @@ import { describe, expect, it } from "vitest";
 import { createPixiV8Control, packageIdentity, pixiV8ControlApproximations } from "./index.ts";
 
 describe("PixiJS v8 control feedback adapter", () => {
+  it("keeps repeated-role layer occurrences distinct across state changes", () => {
+    const repeated: ControlPreset = {
+      schema: "sfhs.control-preset@0", id: "pixi-occurrence-test", title: "Pixi Occurrence Test", semantic: { kind: "momentary" },
+      visuals: {
+        base: { layers: [{ role: "content", shape: "rect", transform: { translateX: { value: 0, unit: "px" } } }, { role: "content", shape: "rect", transform: { translateX: { value: 10, unit: "px" } } }] },
+        hover: { layers: [{ role: "content", shape: "rect", transform: { translateX: { value: 20, unit: "px" } } }, { role: "content", shape: "rect", transform: { translateX: { value: 30, unit: "px" } } }] }
+      },
+      provenance: { origin: "sfhs-original" }
+    };
+    const control = createPixiV8Control({ parent: new Container(), controlId: "occurrence", preset: repeated, label: "Test", geometry: { x: 0, y: 0, width: 100, height: 40 }, clock: () => 1 });
+    control.dispatchNormalized({ kind: "hover-set", hovered: true, atMs: 1 });
+    const layerRoot = control.root.children[0] as Container;
+    expect(layerRoot.children).toHaveLength(2);
+    expect(layerRoot.children.map((child) => child.position.x)).toEqual([20, 30]);
+  });
+
   it("mounts deterministic Graphics/Text state and hit geometry", () => {
     let time = 0;
     const parent = new Container();
@@ -61,7 +77,7 @@ describe("PixiJS v8 control feedback adapter", () => {
   });
 
   it("publishes explicit renderer approximations", () => {
-    expect(pixiV8ControlApproximations.map((entry) => entry.id)).toEqual(["layer-shadow", "content-slot", "focus-accessibility"]);
+    expect(pixiV8ControlApproximations.map((entry) => entry.id)).toEqual(["gradient-fill", "layer-shadow", "content-slot", "focus-accessibility"]);
     expect(JSON.stringify(pixiV8ControlApproximations)).not.toContain("silent");
   });
 });
