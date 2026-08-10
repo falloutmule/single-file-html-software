@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b1020">
+  <title>SFHS Control Editor</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div><span class="eyebrow">SFHS / portable control system</span><h1>Control Editor</h1></div>
+    <div class="top-actions">
+      <label class="file-action">Load JSON<input id="importFile" type="file" accept="application/json,.json"></label>
+      <button id="savePack" type="button">Save pack</button>
+      <button id="exportDemo" class="primary" type="button">Export demo</button>
+    </div>
+  </header>
+  <main class="workspace">
+    <aside class="inspector" aria-label="Control design inspector">
+      <nav class="tabs" aria-label="Editor sections">
+        <button class="tab active" data-tab="appearance" type="button">Appearance</button>
+        <button class="tab" data-tab="motion" type="button">Motion</button>
+        <button class="tab" data-tab="cues" type="button">Cues</button>
+        <button class="tab" data-tab="export" type="button">Export</button>
+      </nav>
+      <section class="panel active" data-panel="appearance">
+        <h2>Appearance</h2>
+        <div class="grid two">
+          <label>Template<select id="template"></select></label>
+          <label>Pack member<select id="packPreset" disabled><option value="editor-tactile-control">Current control</option></select></label>
+          <label>Semantic<select id="semantic"><option value="momentary">Momentary</option><option value="toggle">Toggle / switch</option><option value="choice">Choice / radio</option></select></label>
+          <label>ID<input id="presetId" value="editor-tactile-control" pattern="[a-z0-9-]+"></label>
+          <label>Label<input id="label" value="Launch"></label>
+          <label>Width <output data-for="width"></output><input id="width" type="range" min="64" max="320" value="184"></label>
+          <label>Height <output data-for="height"></output><input id="height" type="range" min="36" max="144" value="60"></label>
+          <label>Shape<select id="shape"><option value="round-rect">Rounded rectangle</option><option value="capsule">Capsule</option><option value="rect">Rectangle</option><option value="circle">Circle</option></select></label>
+          <label>Radius <output data-for="radius"></output><input id="radius" type="range" min="0" max="72" value="16"></label>
+          <label>Fill<input id="fill" type="color" value="#5b5cf0"></label>
+          <label>Gradient end<input id="fillEnd" type="color" value="#8b5cf6"></label>
+          <label>Gradient<select id="gradient"><option value="linear">Linear</option><option value="radial">Radial</option><option value="conic">Conic</option><option value="none">None</option></select></label>
+          <label>Angle <output data-for="angle"></output><input id="angle" type="range" min="0" max="360" value="135"></label>
+          <label>Border width <output data-for="borderWidth"></output><input id="borderWidth" type="range" min="0" max="8" value="1"></label>
+          <label>Border color<input id="borderColor" type="color" value="#a5b4fc"></label>
+          <label>Shadow depth <output data-for="depth"></output><input id="depth" type="range" min="0" max="18" value="8"></label>
+          <label>Shadow blur <output data-for="shadowBlur"></output><input id="shadowBlur" type="range" min="0" max="36" value="18"></label>
+          <label>Text color<input id="textColor" type="color" value="#ffffff"></label>
+          <label>Font<select id="font"><option value="system-ui">System UI</option><option value="serif">Serif</option><option value="monospace">Monospace</option></select></label>
+          <label>Font size <output data-for="fontSize"></output><input id="fontSize" type="range" min="10" max="32" value="16"></label>
+          <label>Weight <output data-for="fontWeight"></output><input id="fontWeight" type="range" min="100" max="900" step="100" value="700"></label>
+          <label>Icon<input id="icon" maxlength="8" value="◆"></label>
+          <label>Icon slot<select id="iconSlot"><option value="leading">Leading</option><option value="trailing">Trailing</option></select></label>
+          <label>Selected fill<input id="selectedFill" type="color" value="#14b8a6"></label>
+          <label>Focus color<input id="focusColor" type="color" value="#f8fafc"></label>
+          <label>Loading fill<input id="loadingFill" type="color" value="#f59e0b"></label>
+          <label>Success fill<input id="successFill" type="color" value="#22c55e"></label>
+          <label>Error fill<input id="errorFill" type="color" value="#ef4444"></label>
+          <label>Disabled opacity <output data-for="disabledOpacity"></output><input id="disabledOpacity" type="range" min="10" max="90" value="45"></label>
+        </div>
+      </section>
+      <section class="panel" data-panel="motion">
+        <h2>Motion & effects</h2>
+        <div class="grid two">
+          <label>Press travel <output data-for="pressTravel"></output><input id="pressTravel" type="range" min="0" max="16" value="5"></label>
+          <label>Press scale <output data-for="pressScale"></output><input id="pressScale" type="range" min="85" max="100" value="97"></label>
+          <label>Squash Y <output data-for="squash"></output><input id="squash" type="range" min="85" max="110" value="96"></label>
+          <label>Rebound <output data-for="duration"></output><input id="duration" type="range" min="0" max="800" step="10" value="160"></label>
+          <label>Overshoot <output data-for="overshoot"></output><input id="overshoot" type="range" min="0" max="50" value="12"></label>
+          <label>Easing<select id="easing"><option value="ease-out">Ease out</option><option value="ease-in-out">Ease in/out</option><option value="linear">Linear</option><option value="ease-in">Ease in</option></select></label>
+          <label>Ripple<select id="ripple"><option value="activation-ripple">Activation ripple</option><option value="field-ripple">Field ripple</option><option value="none">None</option></select></label>
+          <label>Ripple cap <output data-for="rippleCap"></output><input id="rippleCap" type="range" min="1" max="12" value="5"></label>
+          <label>Effect duration <output data-for="effectDuration"></output><input id="effectDuration" type="range" min="80" max="1200" step="20" value="420"></label>
+          <label class="check"><input id="shine" type="checkbox"> Shine sweep</label>
+          <label class="check"><input id="glow" type="checkbox" checked> Hover glow</label>
+          <label class="check"><input id="reducedMotion" type="checkbox"> Reduced motion preview</label>
+          <label class="check"><input id="slowFrame" type="checkbox"> Simulate slow frame</label>
+        </div>
+      </section>
+      <section class="panel" data-panel="cues">
+        <h2>Sound & haptics</h2>
+        <div class="grid two">
+          <label>Cue<select id="cueFamily"><option value="soft-click">Soft click</option><option value="plastic-click">Plastic click</option><option value="heavy-click">Heavy click</option><option value="toggle-on">Toggle on</option><option value="toggle-off">Toggle off</option><option value="success">Success</option><option value="error">Error</option></select></label>
+          <button id="previewSound" type="button">Preview sound</button>
+          <label>Volume <output data-for="volume"></output><input id="volume" type="range" min="0" max="100" value="55"></label>
+          <label>Pitch variance <output data-for="pitch"></output><input id="pitch" type="range" min="0" max="240" value="30"></label>
+          <label>Voice limit <output data-for="voices"></output><input id="voices" type="range" min="1" max="16" value="6"></label>
+          <label class="check"><input id="mute" type="checkbox"> Mute</label>
+          <label class="check"><input id="haptics" type="checkbox"> Haptics</label>
+        </div>
+        <p id="cueSupport" class="support"></p>
+      </section>
+      <section class="panel" data-panel="export">
+        <h2>Portable output</h2>
+        <div class="export-actions">
+          <button data-export="preset" type="button">Preset JSON</button><button data-export="pack" type="button">Pack JSON</button>
+          <button data-export="dom" type="button">DOM config</button><button data-export="pixi" type="button">Pixi v8 config</button>
+          <button data-export="notices" type="button">Third-party notices</button>
+        </div>
+        <textarea id="exportText" rows="14" spellcheck="false" aria-label="Export output"></textarea>
+        <button id="copyExport" type="button">Copy output</button><span id="copyState" role="status"></span>
+      </section>
+    </aside>
+    <section class="stage" aria-label="Live control preview">
+      <div class="stage-head"><div><span class="eyebrow">Live product runtime</span><h2 id="previewTitle">Launch</h2></div><div id="runtimeState" class="badge">rest</div></div>
+      <div id="previewMount" class="preview-mount"></div>
+      <div class="state-strip" aria-label="State preview">
+        <button data-state="idle" type="button">Idle</button><button data-state="hover" type="button">Hover</button><button data-state="pressed" type="button">Pressed</button><button data-state="focused" type="button">Focused</button><button data-state="selected" type="button">Selected</button><button data-state="disabled" type="button">Disabled</button><button data-state="loading" type="button">Loading</button><button data-state="success" type="button">Success</button><button data-state="error" type="button">Error</button>
+      </div>
+      <section class="torture">
+        <div class="torture-head"><div><span class="eyebrow">Interaction acceptance</span><h2>Torture test</h2></div><button id="runAll" class="primary" type="button">Run all</button></div>
+        <div class="torture-grid">
+          <button data-torture="rapid" type="button">Rapid taps</button><button data-torture="outside" type="button">Release outside</button><button data-torture="drag" type="button">Drag away / re-enter</button><button data-torture="cancel" type="button">Pointer cancel</button><button data-torture="concurrent" type="button">Two fingers</button><button data-torture="keyboard" type="button">Keyboard</button><button data-torture="toggle" type="button">Repeated toggle</button><button data-torture="disable" type="button">Disable pressed</button><button data-torture="focus" type="button">Focus loss</button><button data-torture="mute" type="button">Mute</button><button data-torture="reduced" type="button">Reduced motion</button><button data-torture="slow" type="button">Slow frame</button>
+        </div>
+        <ol id="tortureLog" class="torture-log" aria-live="polite"></ol>
+      </section>
+      <footer><span id="activationCount">0 activations</span><span>Offline · DOM/Pixi portable · external state authority</span></footer>
+    </section>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

@@ -17,7 +17,7 @@ export interface MountDomControlOptions {
   readonly container: HTMLElement;
   readonly controlId: string;
   readonly preset: ControlPreset;
-  readonly label: string;
+  readonly label?: string;
   readonly visualLabel?: string;
   readonly enabled?: boolean;
   readonly selected?: boolean;

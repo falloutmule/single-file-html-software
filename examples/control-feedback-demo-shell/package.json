@@ -1,0 +1,10 @@
+{
+  "name": "@sfhs/example-control-feedback-demo-shell",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sfhs/control-feedback-contract": "workspace:*",
+    "@sfhs/control-feedback-dom": "workspace:*"
+  }
+}

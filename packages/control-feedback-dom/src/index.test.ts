@@ -18,6 +18,10 @@ describe("control feedback DOM adapter", () => {
     });
   });
 
+  it("renders portable overshoot with a bounded rebound curve", () => {
+    expect(layerStyleToCss({ role: "surface", shape: "round-rect", fill: "#000000FF", transition: { durationMs: 180, easing: "ease-out", overshoot: 0.2 } }).transition).toContain("cubic-bezier(.2,1.2,.3,1)");
+  });
+
   it("translates renderer-neutral lengths and tactile layer styles", () => {
     expect(controlLengthCss({ value: 4, unit: "px" })).toBe("4px");
     expect(controlLengthCss({ value: 0.5, unit: "ratio" })).toBe("50%");

@@ -1,6 +1,14 @@
 export const packageIdentity = "@sfhs/control-feedback-runtime" as const;
 
-export { createControlFeedbackRuntime } from "./runtime.ts";
+import { validateControlPreset } from "@sfhs/control-feedback-contract";
+import { createControlFeedbackRuntimeUnchecked } from "./runtime.ts";
+import type { ControlFeedbackRuntime, CreateControlFeedbackRuntimeOptions } from "./types.ts";
+
+export function createControlFeedbackRuntime(options: CreateControlFeedbackRuntimeOptions): ControlFeedbackRuntime {
+  const validation = validateControlPreset(options.preset);
+  if (!validation.valid) throw new Error(`Invalid control preset: ${validation.findings.map((finding) => `${finding.path}: ${finding.message}`).join("; ")}`);
+  return createControlFeedbackRuntimeUnchecked(options);
+}
 export {
   controlFeedbackEventSchema,
   controlFeedbackStateSchema,

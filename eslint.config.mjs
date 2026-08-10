@@ -37,6 +37,7 @@ export default tseslint.config(
       "examples/mobile-controls-lab/tools/*.mjs",
       "examples/control-feedback-dom-proof/tools/*.mjs",
       "examples/control-feedback-cue-proof/tools/*.mjs",
+      "examples/control-feedback-editor/tools/*.mjs",
       "examples/control-feedback-library-proof/tools/*.mjs",
       "examples/control-feedback-pixi-proof/tools/*.mjs"
     ],
@@ -46,6 +47,7 @@ export default tseslint.config(
         Event: "readonly",
         EventTarget: "readonly",
         HTMLElement: "readonly",
+        HTMLScriptElement: "readonly",
         PageTransitionEvent: "readonly",
         PointerEvent: "readonly",
         dispatchEvent: "readonly",
@@ -56,6 +58,7 @@ export default tseslint.config(
         localStorage: "readonly",
         scrollTo: "readonly",
         scrollY: "readonly",
+        structuredClone: "readonly",
         window: "readonly"
       }
     }

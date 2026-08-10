@@ -19,7 +19,7 @@ import {
   Rectangle,
   Text
 } from "pixi.js";
-import type { FederatedPointerEvent } from "pixi.js";
+import type { FederatedPointerEvent, TextStyleFontWeight } from "pixi.js";
 
 import type {
   CreatePixiV8ControlOptions,
@@ -49,6 +49,7 @@ interface LayerMotion {
   startedAtMs: number;
   durationMs: number;
   easing: ControlEasing;
+  overshoot: number;
 }
 
 function rgba(value: string): RgbaColor {
@@ -86,11 +87,9 @@ function numericToggleThumbTransform(transform: ControlTransform | undefined, ge
   });
 }
 
-function ease(value: number, easing: ControlEasing): number {
-  if (easing === "linear") return value;
-  if (easing === "ease-in") return value * value;
-  if (easing === "ease-out") return 1 - ((1 - value) * (1 - value));
-  return value < 0.5 ? 2 * value * value : 1 - ((-2 * value + 2) ** 2) / 2;
+function ease(value: number, easing: ControlEasing, overshoot: number): number {
+  const base = easing === "linear" ? value : easing === "ease-in" ? value * value : easing === "ease-out" ? 1 - ((1 - value) * (1 - value)) : value < 0.5 ? 2 * value * value : 1 - ((-2 * value + 2) ** 2) / 2;
+  return base + (Math.sin(Math.PI * value) * overshoot);
 }
 
 function mix(from: NumericTransform, target: NumericTransform, amount: number): NumericTransform {
@@ -163,9 +162,11 @@ function redrawLayer(graphic: Graphics, layer: ControlLayerStyle, geometry: Pixi
   graphic.alpha = opacity;
 }
 
-function inside(event: FederatedPointerEvent, root: Container, geometry: PixiControlGeometry): boolean {
+function inside(event: FederatedPointerEvent, root: Container, geometry: PixiControlGeometry, minimumHitTargetPx: number): boolean {
   const local = root.toLocal(event.global);
-  return local.x >= 0 && local.x <= geometry.width && local.y >= 0 && local.y <= geometry.height;
+  const insetX = Math.max(0, (minimumHitTargetPx - geometry.width) / 2);
+  const insetY = Math.max(0, (minimumHitTargetPx - geometry.height) / 2);
+  return local.x >= -insetX && local.x <= geometry.width + insetX && local.y >= -insetY && local.y <= geometry.height + insetY;
 }
 
 function origin(event: FederatedPointerEvent, root: Container, geometry: PixiControlGeometry): ControlFeedbackOrigin {
@@ -174,12 +175,19 @@ function origin(event: FederatedPointerEvent, root: Container, geometry: PixiCon
 }
 
 export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8ControlController {
-  let geometry = { ...options.geometry };
+  const presetGeometry = options.preset.geometry;
+  const minimumHitTargetPx = presetGeometry?.minimumHitTargetPx ?? 0;
+  let geometry = options.geometry === undefined
+    ? { x: 0, y: 0, width: presetGeometry?.widthPx ?? 180, height: presetGeometry?.heightPx ?? 56 }
+    : { ...options.geometry };
   if (geometry.width <= 0 || geometry.height <= 0) throw new Error("Pixi control geometry must have positive dimensions.");
+  const contentValue = options.preset.content;
+  const label = options.label ?? contentValue?.label ?? options.preset.title;
+  const fontWeight = String(Math.min(900, Math.max(100, Math.round((contentValue?.fontWeight ?? 600) / 100) * 100))) as TextStyleFontWeight;
   const root = new Container({ label: `sfhs-control:${options.controlId}` });
   const layerRoot = root.addChild(new Container({ label: "layers" }));
   const effectRoot = root.addChild(new Container({ label: "effects" }));
-  const content = root.addChild(new Text({ text: options.label, style: { fontFamily: "system-ui", fontSize: 14, fontWeight: "600", fill: 0xffffff, align: "center" } }));
+  const content = root.addChild(new Text({ text: contentValue?.icon === undefined ? label : contentValue.iconSlot === "trailing" ? `${label} ${contentValue.icon}` : `${contentValue.icon} ${label}`, style: { fontFamily: contentValue?.fontFamily ?? "system-ui", fontSize: contentValue?.fontSizePx ?? 14, fontWeight, fill: contentValue === undefined ? 0xffffff : rgba(contentValue.textColor).color, letterSpacing: contentValue?.letterSpacingPx ?? 0, align: "center" } }));
   content.anchor.set(0.5);
   root.eventMode = "static";
   root.cursor = "pointer";
@@ -209,13 +217,15 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
 
   const applyGeometry = (): void => {
     root.position.set(geometry.x, geometry.y);
-    root.hitArea = new Rectangle(0, 0, geometry.width, geometry.height);
+    const insetX = Math.max(0, (minimumHitTargetPx - geometry.width) / 2);
+    const insetY = Math.max(0, (minimumHitTargetPx - geometry.height) / 2);
+    root.hitArea = new Rectangle(insetX === 0 ? 0 : -insetX, insetY === 0 ? 0 : -insetY, geometry.width + (insetX * 2), geometry.height + (insetY * 2));
     content.position.set(geometry.width / 2, geometry.height / 2);
   };
 
   const updateMotion = (motion: LayerMotion, atMs: number): void => {
     const progress = motion.durationMs <= 0 ? 1 : Math.min(1, Math.max(0, (atMs - motion.startedAtMs) / motion.durationMs));
-    motion.current = mix(motion.from, motion.target, ease(progress, motion.easing));
+    motion.current = mix(motion.from, motion.target, ease(progress, motion.easing, motion.overshoot));
     applyTransform(motion.display, motion.current);
   };
 
@@ -251,7 +261,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       if (motion === undefined) {
         const display = layerRoot.addChild(new Graphics({ label: key }));
         const initial = numericTransform(layer.transform, geometry);
-        motion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear" };
+        motion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear", overshoot: 0 };
         motions.set(key, motion);
       }
       redrawLayer(motion.display, layer, geometry);
@@ -260,6 +270,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       motion.startedAtMs = atMs;
       motion.durationMs = snapshot.reducedMotion ? 0 : (layer.transition?.durationMs ?? 0);
       motion.easing = layer.transition?.easing ?? "linear";
+      motion.overshoot = layer.transition?.overshoot ?? 0;
       updateMotion(motion, atMs);
       layerRoot.addChild(motion.display);
     }
@@ -272,7 +283,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       if (trackMotion === undefined) {
         const display = layerRoot.addChild(new Graphics({ label: trackKey }));
         const initial = numericTransform(track.transform, geometry);
-        trackMotion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear" };
+        trackMotion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear", overshoot: 0 };
         motions.set(trackKey, trackMotion);
       }
       redrawLayer(trackMotion.display, track, geometry);
@@ -281,6 +292,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       trackMotion.startedAtMs = atMs;
       trackMotion.durationMs = snapshot.reducedMotion ? 0 : (track.transition?.durationMs ?? 0);
       trackMotion.easing = track.transition?.easing ?? "linear";
+      trackMotion.overshoot = track.transition?.overshoot ?? 0;
       updateMotion(trackMotion, atMs);
       layerRoot.addChild(trackMotion.display);
 
@@ -295,7 +307,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       if (thumbMotion === undefined) {
         const display = layerRoot.addChild(new Graphics({ label: thumbKey }));
         const initial = numericToggleThumbTransform(thumbTransform, geometry, thumbSize);
-        thumbMotion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear" };
+        thumbMotion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear", overshoot: 0 };
         motions.set(thumbKey, thumbMotion);
       }
       redrawLayer(thumbMotion.display, thumb, thumbGeometry);
@@ -304,6 +316,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       thumbMotion.startedAtMs = atMs;
       thumbMotion.durationMs = snapshot.reducedMotion ? 0 : (thumb.transition?.durationMs ?? 0);
       thumbMotion.easing = thumb.transition?.easing ?? "linear";
+      thumbMotion.overshoot = thumb.transition?.overshoot ?? 0;
       updateMotion(thumbMotion, atMs);
       layerRoot.addChild(thumbMotion.display);
     }
@@ -338,7 +351,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       }
       graphic.position.set(ripple.origin.x * geometry.width, ripple.origin.y * geometry.height);
     }
-    content.text = snapshot.model.status === "loading" ? "…" : snapshot.model.status === "success" ? "✓" : snapshot.model.status === "error" ? "!" : options.label;
+    content.text = snapshot.model.status === "loading" ? "…" : snapshot.model.status === "success" ? "✓" : snapshot.model.status === "error" ? "!" : contentValue?.icon === undefined ? label : contentValue.iconSlot === "trailing" ? `${label} ${contentValue.icon}` : `${contentValue.icon} ${label}`;
     content.alpha = snapshot.model.enabled ? 1 : 0.65;
     update(atMs);
   };
@@ -368,10 +381,10 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
     dispatchNormalized({ kind: "contact-begin", source: "pointer", sourceId: sourceId(event), origin: origin(event, root, geometry), atMs: now() });
   });
   on("globalpointermove", (event) => {
-    dispatchNormalized({ kind: "contact-update", sourceId: sourceId(event), inside: inside(event, root, geometry), origin: origin(event, root, geometry), atMs: now() });
+    dispatchNormalized({ kind: "contact-update", sourceId: sourceId(event), inside: inside(event, root, geometry, minimumHitTargetPx), origin: origin(event, root, geometry), atMs: now() });
   });
   on("pointerup", (event) => {
-    dispatchNormalized({ kind: "contact-end", sourceId: sourceId(event), inside: inside(event, root, geometry), origin: origin(event, root, geometry), atMs: now() });
+    dispatchNormalized({ kind: "contact-end", sourceId: sourceId(event), inside: inside(event, root, geometry, minimumHitTargetPx), origin: origin(event, root, geometry), atMs: now() });
   });
   on("pointerupoutside", (event) => {
     dispatchNormalized({ kind: "contact-end", sourceId: sourceId(event), inside: false, origin: origin(event, root, geometry), atMs: now() });

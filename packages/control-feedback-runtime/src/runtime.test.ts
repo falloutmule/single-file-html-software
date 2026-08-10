@@ -1,7 +1,7 @@
 import { p0ControlPresets, type ControlPreset } from "@sfhs/control-feedback-contract";
 import { describe, expect, it } from "vitest";
 
-import { createControlFeedbackRuntime } from "./runtime.ts";
+import { createControlFeedbackRuntime } from "./index.ts";
 import type { ControlFeedbackEvent, ControlFeedbackRuntime } from "./types.ts";
 
 function preset(id: string): ControlPreset {

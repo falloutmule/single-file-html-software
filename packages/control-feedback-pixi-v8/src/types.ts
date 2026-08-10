@@ -24,8 +24,8 @@ export interface CreatePixiV8ControlOptions {
   readonly parent: Container;
   readonly controlId: string;
   readonly preset: ControlPreset;
-  readonly label: string;
-  readonly geometry: PixiControlGeometry;
+  readonly label?: string;
+  readonly geometry?: PixiControlGeometry;
   readonly enabled?: boolean;
   readonly selected?: boolean;
   readonly status?: ControlStatus;

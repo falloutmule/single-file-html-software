@@ -4,8 +4,10 @@ import {
   controlPresetSchema,
   type ControlBorder,
   type ControlDonorProvenance,
+  type ControlContent,
   type ControlEffect,
   type ControlGradient,
+  type ControlGeometry,
   type ControlLayerStyle,
   type ControlLength,
   type ControlPack,
@@ -92,6 +94,38 @@ function validateColor(value: unknown, path: string, findings: ControlValidation
   }
 }
 
+function validateGeometry(value: unknown, path: string, findings: ControlValidationFinding[]): value is ControlGeometry {
+  const record = asRecord(value);
+  if (record === undefined) {
+    add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", path, "Geometry must be an object.");
+    return false;
+  }
+  rejectUnknownFields(record, ["widthPx", "heightPx", "minimumHitTargetPx"], path, findings);
+  for (const key of ["widthPx", "heightPx"] as const) {
+    if (validateFinite(record[key], `${path}/${key}`, findings) && (record[key] as number) <= 0) add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/${key}`, "Geometry dimensions must be positive.");
+  }
+  if (record.minimumHitTargetPx !== undefined && validateFinite(record.minimumHitTargetPx, `${path}/minimumHitTargetPx`, findings) && (record.minimumHitTargetPx as number) < 1) add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/minimumHitTargetPx`, "Minimum hit target must be at least 1 px.");
+  return true;
+}
+
+function validateContent(value: unknown, path: string, findings: ControlValidationFinding[]): value is ControlContent {
+  const record = asRecord(value);
+  if (record === undefined) {
+    add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", path, "Content must be an object.");
+    return false;
+  }
+  rejectUnknownFields(record, ["label", "icon", "iconSlot", "fontFamily", "fontSizePx", "fontWeight", "letterSpacingPx", "textColor"], path, findings);
+  if (typeof record.label !== "string" || record.label.trim().length === 0) add(findings, "SFHS_CONTROL_SCHEMA_INVALID", `${path}/label`, "Content label is required.");
+  if (record.icon !== undefined && (typeof record.icon !== "string" || record.icon.length > 8)) add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/icon`, "Icon must be a short portable text symbol.");
+  if (record.iconSlot !== undefined && record.iconSlot !== "leading" && record.iconSlot !== "trailing") add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/iconSlot`, "Icon slot must be leading or trailing.");
+  if (record.fontFamily !== "system-ui" && record.fontFamily !== "serif" && record.fontFamily !== "monospace") add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/fontFamily`, "Font family must be a portable family token.");
+  if (validateFinite(record.fontSizePx, `${path}/fontSizePx`, findings) && (record.fontSizePx as number) <= 0) add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/fontSizePx`, "Font size must be positive.");
+  if (validateFinite(record.fontWeight, `${path}/fontWeight`, findings) && (!Number.isInteger(record.fontWeight) || (record.fontWeight as number) < 100 || (record.fontWeight as number) > 900 || (record.fontWeight as number) % 100 !== 0)) add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/fontWeight`, "Font weight must be a 100-step integer within 100..900.");
+  validateFinite(record.letterSpacingPx, `${path}/letterSpacingPx`, findings);
+  validateColor(record.textColor, `${path}/textColor`, findings);
+  return true;
+}
+
 function validateGradient(value: unknown, path: string, findings: ControlValidationFinding[]): value is ControlGradient {
   const record = asRecord(value);
   if (record === undefined) {
@@ -127,7 +161,7 @@ function validateTransition(value: unknown, path: string, findings: ControlValid
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", path, "Transition must be an object.");
     return false;
   }
-  rejectUnknownFields(record, ["durationMs", "delayMs", "easing"], path, findings);
+  rejectUnknownFields(record, ["durationMs", "delayMs", "easing", "overshoot"], path, findings);
   if (validateFinite(record.durationMs, `${path}/durationMs`, findings) && (record.durationMs as number) < 0) {
     add(findings, "SFHS_CONTROL_DURATION_INVALID", `${path}/durationMs`, "Duration cannot be negative.");
   }
@@ -137,6 +171,7 @@ function validateTransition(value: unknown, path: string, findings: ControlValid
   if (typeof record.easing !== "string" || !knownEasings.has(record.easing)) {
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/easing`, "Unsupported easing.");
   }
+  if (record.overshoot !== undefined && validateFinite(record.overshoot, `${path}/overshoot`, findings) && ((record.overshoot as number) < 0 || (record.overshoot as number) > 0.5)) add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/overshoot`, "Overshoot must be within 0..0.5.");
   return true;
 }
 
@@ -433,7 +468,7 @@ export function validateControlPreset(value: unknown): ControlValidationResult {
     return { valid: false, findings };
   }
   scanJsonDomain(record, "", findings);
-  rejectUnknownFields(record, ["schema", "id", "title", "semantic", "visuals", "toggleVisual", "cues", "provenance"], "", findings);
+  rejectUnknownFields(record, ["schema", "id", "title", "semantic", "geometry", "content", "visuals", "toggleVisual", "cues", "provenance"], "", findings);
   if (record.schema !== controlPresetSchema) {
     add(findings, "SFHS_CONTROL_SCHEMA_INVALID", "/schema", `Schema must be ${controlPresetSchema}.`);
   }
@@ -444,6 +479,8 @@ export function validateControlPreset(value: unknown): ControlValidationResult {
     add(findings, "SFHS_CONTROL_SCHEMA_INVALID", "/title", "Preset title is required.");
   }
   const semanticValid = validateSemantic(record.semantic, "/semantic", findings);
+  if (record.geometry !== undefined) validateGeometry(record.geometry, "/geometry", findings);
+  if (record.content !== undefined) validateContent(record.content, "/content", findings);
   validateVisuals(record.visuals, "/visuals", findings);
   if (record.toggleVisual !== undefined) validateToggleVisual(record.toggleVisual, "/toggleVisual", findings);
   if (semanticValid && (record.semantic as ControlSemantic).kind === "toggle" && (record.semantic as ControlSemantic & { variant?: string }).variant !== "checkbox" && record.toggleVisual === undefined) {
@@ -464,6 +501,8 @@ export function validateControlPreset(value: unknown): ControlValidationResult {
   }
   validateProvenance(record.provenance, "/provenance", findings, typeof record.id === "string" ? record.id : undefined);
   scanRendererStrings(record.semantic, "/semantic", findings);
+  scanRendererStrings(record.geometry, "/geometry", findings);
+  scanRendererStrings(record.content, "/content", findings);
   scanRendererStrings(record.visuals, "/visuals", findings);
   scanRendererStrings(record.toggleVisual, "/toggleVisual", findings);
   scanRendererStrings(record.cues, "/cues", findings);

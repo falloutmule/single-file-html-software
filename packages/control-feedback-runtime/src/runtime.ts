@@ -1,12 +1,11 @@
-import {
-  validateControlPreset,
-  type ActivationRippleEffect,
-  type ControlCueMap,
-  type ControlEffect,
-  type ControlInteractionState,
-  type ControlLayerStyle,
-  type ControlPreset,
-  type ControlVisualState
+import type {
+  ActivationRippleEffect,
+  ControlCueMap,
+  ControlEffect,
+  ControlInteractionState,
+  ControlLayerStyle,
+  ControlPreset,
+  ControlVisualState
 } from "@sfhs/control-feedback-contract";
 import {
   controlFeedbackEventSchema,
@@ -139,11 +138,8 @@ function activationRippleEffect(effects: readonly ControlEffect[]): ActivationRi
   return effects.find((effect): effect is ActivationRippleEffect => effect.kind === "activation-ripple");
 }
 
-export function createControlFeedbackRuntime(options: CreateControlFeedbackRuntimeOptions): ControlFeedbackRuntime {
+export function createControlFeedbackRuntimeUnchecked(options: CreateControlFeedbackRuntimeOptions): ControlFeedbackRuntime {
   if (!/^[a-z0-9][a-z0-9._-]*$/.test(options.controlId)) throw new Error("Control feedback controlId is invalid.");
-  const validation = validateControlPreset(options.preset);
-  if (!validation.valid) throw new Error(`Invalid control preset: ${validation.findings.map((finding) => `${finding.path}: ${finding.message}`).join("; ")}`);
-
   const preset = options.preset;
   const initial = options.initialModel ?? {};
   const state: MutableRuntimeState = {
