@@ -53,6 +53,13 @@ Here is what that includes:
   game can target mobile and PC without maintaining two unrelated control
   systems.
 
+- **Portable tactile control feedback.** A renderer-neutral control contract,
+  deterministic runtime, native DOM and PixiJS v8 adapters, optional Web Audio
+  and haptics, 25 provenance-frozen presets, deterministic notices, and an
+  offline single-file Control Editor let products design a control once and
+  reuse its press/rebound/state behavior. See
+  [`docs/control-feedback/README.md`](docs/control-feedback/README.md).
+
 - **Android portrait and landscape layout handling.** The game surface, HUD,
   and touch controls adapt to both orientations with safe-area and containment
   rules. The primary target is stable Android Chrome on a Samsung Galaxy S21

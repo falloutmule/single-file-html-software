@@ -16,6 +16,7 @@
     "determinism": "node tools/verify-determinism.mjs",
     "browser-smoke": "node packages/browser-runner/tools/run-smoke.mjs",
     "browser-scenarios": "node packages/browser-runner/tools/run-scenarios.mjs",
+    "control-feedback-acceptance": "node tools/run-control-feedback-acceptance.mjs",
     "hermes-adapter-validate": "node tools/validate-hermes-adapter.mjs",
     "hermes-task": "node tools/create-hermes-task-packet.mjs",
     "plugin-validate": "node tools/validate-sfhs-plugin.mjs",
