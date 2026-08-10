@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>SFHS Control Feedback DOM Proof</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">SFHS / native DOM adapter</p>
+      <h1>Control Feedback Proof</h1>
+      <section class="controls" aria-label="Control feedback fixtures">
+        <div id="momentary" class="mount"></div>
+        <div id="toggle" class="mount toggle"></div>
+        <div id="choice" class="mount choice"></div>
+        <div id="status" class="mount"></div>
+        <div id="ripple" class="mount"></div>
+      </section>
+      <output id="diagnostic" aria-live="polite">ready</output>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

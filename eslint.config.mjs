@@ -33,7 +33,10 @@ export default tseslint.config(
     }
   },
   {
-    files: ["examples/mobile-controls-lab/tools/*.mjs"],
+    files: [
+      "examples/mobile-controls-lab/tools/*.mjs",
+      "examples/control-feedback-dom-proof/tools/*.mjs"
+    ],
     languageOptions: {
       globals: {
         Buffer: "readonly",

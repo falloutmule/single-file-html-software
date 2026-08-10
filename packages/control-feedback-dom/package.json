@@ -1,0 +1,13 @@
+{
+  "name": "@sfhs/control-feedback-dom",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@sfhs/control-feedback-contract": "workspace:*",
+    "@sfhs/control-feedback-runtime": "workspace:*"
+  }
+}
