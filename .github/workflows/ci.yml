@@ -33,10 +33,13 @@ jobs:
       - run: pnpm browser-scenarios
         env:
           SFHS_BROWSER_EVIDENCE: .sfhs-browser/ci
+      - run: pnpm control-feedback-acceptance
       - uses: actions/upload-artifact@v7
         with:
           name: sfhs-browser-evidence-Linux-node-${{ matrix.node-version }}
-          path: .sfhs-browser/ci
+          path: |
+            .sfhs-browser/ci
+            .sfhs-evidence/control-feedback-v0
           if-no-files-found: error
           retention-days: 7
 

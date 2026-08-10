@@ -10,6 +10,13 @@ Fabric adapter, bounded
 Canvas-to-Pixi compatibility work, local Codex/Hermes plugins, fixtures, and
 existing tests.
 
+The repository also includes SFHS Control Feedback v0: strict portable control
+packs, a renderer-neutral deterministic runtime, native DOM and PixiJS v8
+adapters, optional Web Audio/haptics, 25 provenance-frozen presets,
+used-preset-only notices, the offline single-file Control Editor/exporter, and a
+presentation-only Mobile Controls bridge. The architecture and current
+limitations are documented in [control-feedback/README.md](control-feedback/README.md).
+
 ## WIP boundary
 
 - **PixiJS v8/WebGL** and **DOM/Canvas Fabric** are validated adapter lanes.
