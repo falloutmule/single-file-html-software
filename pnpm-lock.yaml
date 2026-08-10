@@ -40,6 +40,28 @@ importers:
         specifier: 8.19.0
         version: 8.19.0
 
+  examples/control-feedback-dom-proof:
+    dependencies:
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-contract
+      '@sfhs/control-feedback-dom':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-dom
+      '@sfhs/control-feedback-runtime':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-runtime
+    devDependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../../packages/packer
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+
   examples/hermes-minimal-import:
     dependencies:
       '@sfhs/adapter-pixi-v8':
@@ -215,6 +237,15 @@ importers:
       '@sfhs/contracts':
         specifier: workspace:*
         version: link:../contracts
+
+  packages/control-feedback-dom:
+    dependencies:
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../control-feedback-contract
+      '@sfhs/control-feedback-runtime':
+        specifier: workspace:*
+        version: link:../control-feedback-runtime
 
   packages/control-feedback-runtime:
     dependencies:
