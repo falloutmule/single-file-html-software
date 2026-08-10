@@ -40,6 +40,31 @@ importers:
         specifier: 8.19.0
         version: 8.19.0
 
+  examples/control-feedback-cue-proof:
+    dependencies:
+      '@sfhs/control-feedback-audio-web':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-audio-web
+      '@sfhs/control-feedback-contract':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-contract
+      '@sfhs/control-feedback-dom':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-dom
+      '@sfhs/control-feedback-haptics-web':
+        specifier: workspace:*
+        version: link:../../packages/control-feedback-haptics-web
+    devDependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../../packages/packer
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+
   examples/control-feedback-dom-proof:
     dependencies:
       '@sfhs/control-feedback-contract':
@@ -260,6 +285,12 @@ importers:
         specifier: 8.17.1
         version: 8.17.1
 
+  packages/control-feedback-audio-web:
+    dependencies:
+      '@sfhs/control-feedback-runtime':
+        specifier: workspace:*
+        version: link:../control-feedback-runtime
+
   packages/control-feedback-contract:
     dependencies:
       '@sfhs/contracts':
@@ -271,6 +302,12 @@ importers:
       '@sfhs/control-feedback-contract':
         specifier: workspace:*
         version: link:../control-feedback-contract
+      '@sfhs/control-feedback-runtime':
+        specifier: workspace:*
+        version: link:../control-feedback-runtime
+
+  packages/control-feedback-haptics-web:
+    dependencies:
       '@sfhs/control-feedback-runtime':
         specifier: workspace:*
         version: link:../control-feedback-runtime
