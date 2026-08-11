@@ -36,6 +36,7 @@ await page.goto(server.url, { waitUntil: "load" });
 await page.waitForFunction(() => window.CFPIXI?.selfCheck().pass === true);
 const initialVisualProbe = await page.evaluate(() => window.CFPIXI.visualProbe());
 assert(initialVisualProbe.nonTransparent > 10000 && initialVisualProbe.distinctColors > 4, JSON.stringify(initialVisualProbe));
+assert.deepEqual(await page.evaluate(() => window.CFPIXI.boundedSlotProbe()), { position: { x: 75, y: 32 }, pivot: { x: 16, y: 16 }, text: "◆", legacyVisible: false });
 
 const trace = [
   { kind: "contact-begin", source: "pointer", sourceId: "trace:1", origin: { x: 0.2, y: 0.8 }, atMs: 1 },
@@ -100,6 +101,7 @@ const report = {
   keyboard: { pass: true },
   reducedMotion: { pass: true },
   approximations: { count: 4, explicit: true },
+  boundedLayerGeometry: { pixiPositionPivot: true, contentSlot: true, legacyContentDeduplicated: true },
   visualProbe,
   fileProtocol: { pass: true },
   browserLaunch: { angle: "swiftshader", unsafeSwiftshaderEnabledForAutomation: true },

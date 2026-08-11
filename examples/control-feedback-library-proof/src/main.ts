@@ -1,6 +1,6 @@
 import { mountDomControl, type DomControlController } from "@sfhs/control-feedback-dom";
 import { canonicalControlThirdPartyNoticesJson, controlThirdPartyNoticesText } from "@sfhs/control-feedback-notices";
-import { controlFeedbackPresetEntries, controlFeedbackPresets, vettedControlFeedbackPack } from "@sfhs/control-feedback-presets";
+import { controlFeedbackPresetEntries, controlFeedbackPresets, controlFeedbackVisualConformance, vettedControlFeedbackPack } from "@sfhs/control-feedback-presets";
 
 const library = document.getElementById("library");
 const summary = document.getElementById("summary");
@@ -58,6 +58,7 @@ const api = Object.freeze({
   noticeJson,
   noticeText,
   pack: vettedControlFeedbackPack,
+  visualConformance: controlFeedbackVisualConformance,
   get activationCount() { return activationCount; },
   setReducedMotion(value: boolean) { for (const controller of Object.values(controllers)) controller.setReducedMotion(value); },
   selfCheck() {

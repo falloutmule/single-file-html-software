@@ -13,6 +13,8 @@ audio transport, haptic transport, editor, or donor source implementation.
 - frozen provenance validation for all 25 vetted donor presets;
 - explicit `sfhs-original` provenance for editor-authored controls;
 - renderer-neutral solid and linear/radial/conic gradient paints;
+- optional renderer-neutral layer bounds with anchored pixel/ratio geometry;
+- label, leading/trailing icon, and externally driven status content slots, with optional plain literal slot text;
 - eight normalized P0 fixtures;
 - canonical JSON serialization through `@sfhs/contracts`;
 - contract tests.
@@ -38,3 +40,5 @@ published by `@sfhs/control-feedback-presets`. All donor provenance is frozen by
 repository, commit, path, blob SHA, and MIT license identity. Shared preset data
 rejects renderer/framework source strings. `@sfhs/control-feedback-notices`
 derives deterministic used-preset attribution closure.
+
+When `ControlLayerStyle.bounds` is absent, a layer keeps the original full-control geometry. Bounds place a layer anchor inside the control; dimensions may use pixels or axis-relative ratios, including ratios above `1` for oversized clipped effects. `contentText` is plain text only and is valid only on a declared `contentSlot`.

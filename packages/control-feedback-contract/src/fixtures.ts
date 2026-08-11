@@ -2,6 +2,7 @@ import { controlPresetSchema, type ControlPreset, type ControlProvenance } from 
 
 const px = (value: number) => ({ value, unit: "px" as const });
 const ratio = (value: number) => ({ value, unit: "ratio" as const });
+const centeredBounds = (x: number, widthPx: number, heightPx = widthPx) => ({ x: ratio(x), y: ratio(0.5), width: px(widthPx), height: px(heightPx), anchorX: 0.5, anchorY: 0.5 });
 const snap = { durationMs: 70, easing: "ease-out" as const };
 const release = { durationMs: 110, easing: "ease-out" as const };
 
@@ -129,14 +130,15 @@ export const p0ControlPresets = [
     id: "uv-skeuo-icon-choice",
     title: "Skeuomorphic Icon Choice Group",
     semantic: { kind: "choice", groupId: "tool-mode", value: "primary" },
+    content: { label: "Tool", icon: "◆", iconSlot: "leading", fontFamily: "system-ui", fontSizePx: 18, fontWeight: 700, letterSpacingPx: 0, textColor: "#FFFFFFFF" },
     visuals: {
       base: { layers: [
         { role: "depth", shape: "round-rect", fill: "#2C2540FF", transform: { translateY: px(5) } },
         { role: "edge", shape: "round-rect", fill: "#51456FFF", transform: { translateY: px(2) } },
         { role: "surface", shape: "round-rect", fill: "#75649BFF", transition: snap },
-        { role: "content", shape: "rect", contentSlot: "icon-leading", transition: snap }
+        { role: "content", shape: "rect", contentSlot: "icon-leading", bounds: centeredBounds(0.5, 32), transition: snap }
       ] },
-      selected: { layers: [{ role: "surface", shape: "round-rect", fill: "#9A7CDBFF" }, { role: "content", shape: "rect", contentSlot: "icon-leading", transform: { scaleX: 1.08, scaleY: 1.08 } }] },
+      selected: { layers: [{ role: "surface", shape: "round-rect", fill: "#9A7CDBFF" }, { role: "content", shape: "rect", contentSlot: "icon-leading", bounds: centeredBounds(0.5, 32), transform: { scaleX: 1.08, scaleY: 1.08 } }] },
       pressedInside: { layers: [{ role: "surface", shape: "round-rect", transform: { translateY: px(3) } }] }
     },
     provenance: provenance.choice
@@ -157,12 +159,13 @@ export const p0ControlPresets = [
     id: "an-status-cycle",
     title: "Status Cycle Button",
     semantic: { kind: "momentary" },
+    content: { label: "Submit", fontFamily: "system-ui", fontSizePx: 14, fontWeight: 700, letterSpacingPx: 0, textColor: "#FFFFFFFF" },
     visuals: {
       base: { layers: [{ ...commonSurface }, { role: "content", shape: "rect", contentSlot: "label", transition: snap }] },
       status: {
-        loading: { layers: [{ role: "content", shape: "circle", contentSlot: "status-icon", transition: snap }] },
-        success: { layers: [{ role: "content", shape: "circle", contentSlot: "status-icon", transform: { scaleX: 1.05, scaleY: 1.05 }, transition: snap }] },
-        error: { layers: [{ role: "surface", shape: "round-rect", fill: "#B3261EFF" }, { role: "content", shape: "circle", contentSlot: "status-icon" }] }
+        loading: { layers: [{ role: "content", shape: "circle", contentSlot: "status-icon", bounds: centeredBounds(0.5, 32), transition: snap }] },
+        success: { layers: [{ role: "content", shape: "circle", contentSlot: "status-icon", bounds: centeredBounds(0.5, 32), transform: { scaleX: 1.05, scaleY: 1.05 }, transition: snap }] },
+        error: { layers: [{ role: "surface", shape: "round-rect", fill: "#B3261EFF" }, { role: "content", shape: "circle", contentSlot: "status-icon", bounds: centeredBounds(0.5, 32) }] }
       }
     },
     cues: { success: "success", error: "error" },

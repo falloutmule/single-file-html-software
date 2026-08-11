@@ -9,6 +9,7 @@ import {
   type ControlGradient,
   type ControlGeometry,
   type ControlLayerStyle,
+  type ControlLayerBounds,
   type ControlLength,
   type ControlPack,
   type ControlSemantic,
@@ -220,13 +221,42 @@ function validateTransform(value: unknown, path: string, findings: ControlValida
   }
 }
 
+function validateBounds(value: unknown, path: string, findings: ControlValidationFinding[]): value is ControlLayerBounds {
+  const record = asRecord(value);
+  if (record === undefined) {
+    add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", path, "Layer bounds must be an object.");
+    return false;
+  }
+  rejectUnknownFields(record, ["x", "y", "width", "height", "anchorX", "anchorY"], path, findings);
+  for (const key of ["x", "y"] as const) {
+    if (validateLength(record[key], `${path}/${key}`, findings)) {
+      const length = record[key] as ControlLength;
+      if (length.value < 0 || (length.unit === "ratio" && length.value > 1)) {
+        add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/${key}/value`, "Layer bound positions must place the anchor inside the control.");
+      }
+    }
+  }
+  for (const key of ["width", "height"] as const) {
+    if (validateLength(record[key], `${path}/${key}`, findings)) {
+      const length = record[key] as ControlLength;
+      if (length.value <= 0) add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/${key}/value`, "Layer bound dimensions must be positive.");
+    }
+  }
+  for (const key of ["anchorX", "anchorY"] as const) {
+    if (validateFinite(record[key], `${path}/${key}`, findings) && ((record[key] as number) < 0 || (record[key] as number) > 1)) {
+      add(findings, "SFHS_CONTROL_RATIO_INVALID", `${path}/${key}`, "Layer anchors must be within 0..1.");
+    }
+  }
+  return true;
+}
+
 function validateLayer(value: unknown, path: string, findings: ControlValidationFinding[]): value is ControlLayerStyle {
   const record = asRecord(value);
   if (record === undefined) {
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", path, "Layer must be an object.");
     return false;
   }
-  rejectUnknownFields(record, ["role", "shape", "fill", "gradient", "opacity", "border", "shadows", "transform", "transition", "contentSlot"], path, findings);
+  rejectUnknownFields(record, ["role", "shape", "fill", "gradient", "opacity", "border", "shadows", "transform", "transition", "contentSlot", "contentText", "bounds"], path, findings);
   if (typeof record.role !== "string" || !knownLayerRoles.has(record.role)) {
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/role`, "Unsupported layer role.");
   }
@@ -254,6 +284,14 @@ function validateLayer(value: unknown, path: string, findings: ControlValidation
   if (record.contentSlot !== undefined && (typeof record.contentSlot !== "string" || !knownSlots.has(record.contentSlot))) {
     add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/contentSlot`, "Unsupported content slot.");
   }
+  if (record.contentText !== undefined) {
+    if (record.contentSlot === undefined) add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/contentText`, "Layer content text requires a content slot.");
+    const hasNonPlainCharacters = typeof record.contentText === "string" && ([...record.contentText].some((character) => character.charCodeAt(0) <= 31 || character.charCodeAt(0) === 127) || record.contentText.includes("<") || record.contentText.includes(">"));
+    if (typeof record.contentText !== "string" || record.contentText.length === 0 || record.contentText.length > 128 || hasNonPlainCharacters) {
+      add(findings, "SFHS_CONTROL_PRIMITIVE_INVALID", `${path}/contentText`, "Layer content text must be 1..128 plain-text characters.");
+    }
+  }
+  if (record.bounds !== undefined) validateBounds(record.bounds, `${path}/bounds`, findings);
   return true;
 }
 

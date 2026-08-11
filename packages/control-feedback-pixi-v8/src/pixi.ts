@@ -1,9 +1,11 @@
-import type {
-  ControlEasing,
-  ControlLayerStyle,
-  ControlLength,
-  ControlShadow,
-  ControlTransform
+import {
+  resolveControlLayerContent,
+  type ControlContent,
+  type ControlEasing,
+  type ControlLayerStyle,
+  type ControlLength,
+  type ControlShadow,
+  type ControlTransform
 } from "@sfhs/control-feedback-contract";
 import {
   createControlFeedbackRuntime,
@@ -52,6 +54,15 @@ interface LayerMotion {
   overshoot: number;
 }
 
+interface LayerGeometry {
+  readonly width: number;
+  readonly height: number;
+  readonly x: number;
+  readonly y: number;
+  readonly anchorX: number;
+  readonly anchorY: number;
+}
+
 function rgba(value: string): RgbaColor {
   const body = value.slice(1);
   const alpha = body.length === 8 ? Number.parseInt(body.slice(6, 8), 16) / 255 : 1;
@@ -71,6 +82,23 @@ function numericTransform(transform: ControlTransform | undefined, geometry: Pix
     scaleY: transform?.scaleY ?? 1,
     rotation: ((transform?.rotationDeg ?? 0) * Math.PI) / 180
   });
+}
+
+function geometryForLayer(layer: ControlLayerStyle, geometry: PixiControlGeometry): LayerGeometry {
+  if (layer.bounds === undefined) return Object.freeze({ width: geometry.width, height: geometry.height, x: 0, y: 0, anchorX: 0, anchorY: 0 });
+  return Object.freeze({
+    width: lengthValue(layer.bounds.width, geometry.width),
+    height: lengthValue(layer.bounds.height, geometry.height),
+    x: lengthValue(layer.bounds.x, geometry.width),
+    y: lengthValue(layer.bounds.y, geometry.height),
+    anchorX: layer.bounds.anchorX,
+    anchorY: layer.bounds.anchorY
+  });
+}
+
+function numericLayerTransform(layer: ControlLayerStyle, geometry: PixiControlGeometry, local: LayerGeometry): NumericTransform {
+  const transformed = numericTransform(layer.transform, { ...geometry, width: local.width, height: local.height });
+  return Object.freeze({ ...transformed, x: local.x + transformed.x, y: local.y + transformed.y });
 }
 
 function numericToggleThumbTransform(transform: ControlTransform | undefined, geometry: PixiControlGeometry, size: number): NumericTransform {
@@ -136,8 +164,17 @@ function drawShadow(graphic: Graphics, layer: ControlLayerStyle, shadow: Control
   ).fill({ color: color.color, alpha: color.alpha * opacity });
 }
 
-function redrawLayer(graphic: Graphics, layer: ControlLayerStyle, geometry: PixiControlGeometry): void {
+function redrawLayer(
+  graphic: Graphics,
+  layer: ControlLayerStyle,
+  geometry: PixiControlGeometry,
+  contentValue: ControlContent | undefined,
+  status: ControlFeedbackSnapshot["model"]["status"],
+  visualLabel: string,
+  fontWeight: TextStyleFontWeight
+): void {
   graphic.clear();
+  for (const child of [...graphic.children]) child.destroy();
   const opacity = layer.opacity ?? 1;
   for (const shadow of layer.shadows ?? []) drawShadow(graphic, layer, shadow, geometry, opacity);
   if (layer.fill !== undefined) {
@@ -160,6 +197,23 @@ function redrawLayer(graphic: Graphics, layer: ControlLayerStyle, geometry: Pixi
     });
   }
   graphic.alpha = opacity;
+  const slotContent = resolveControlLayerContent(layer, contentValue, status, visualLabel);
+  if (slotContent !== undefined) {
+    const slot = graphic.addChild(new Text({
+      label: `content-slot:${layer.contentSlot}`,
+      text: slotContent,
+      style: {
+        fontFamily: contentValue?.fontFamily ?? "system-ui",
+        fontSize: contentValue?.fontSizePx ?? 14,
+        fontWeight,
+        fill: contentValue === undefined ? 0xffffff : rgba(contentValue.textColor).color,
+        letterSpacing: contentValue?.letterSpacingPx ?? 0,
+        align: "center"
+      }
+    }));
+    slot.anchor.set(0.5);
+    slot.position.set(geometry.width / 2, geometry.height / 2);
+  }
 }
 
 function inside(event: FederatedPointerEvent, root: Container, geometry: PixiControlGeometry, minimumHitTargetPx: number): boolean {
@@ -252,6 +306,8 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
     root.alpha = snapshot.model.enabled ? 1 : 0.55;
     const activeKeys = new Set<string>();
     const roleCounts = new Map<string, number>();
+    const underlays: Graphics[] = [];
+    const contentLayers: Graphics[] = [];
     for (const layer of snapshot.presentation.layers) {
       const occurrence = roleCounts.get(layer.role) ?? 0;
       roleCounts.set(layer.role, occurrence + 1);
@@ -260,20 +316,26 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       let motion = motions.get(key);
       if (motion === undefined) {
         const display = layerRoot.addChild(new Graphics({ label: key }));
-        const initial = numericTransform(layer.transform, geometry);
+        const local = geometryForLayer(layer, geometry);
+        const initial = numericLayerTransform(layer, geometry, local);
         motion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear", overshoot: 0 };
         motions.set(key, motion);
       }
-      redrawLayer(motion.display, layer, geometry);
+      const local = geometryForLayer(layer, geometry);
+      const localGeometry = { ...geometry, x: 0, y: 0, width: local.width, height: local.height };
+      redrawLayer(motion.display, layer, localGeometry, contentValue, snapshot.model.status, label, fontWeight);
+      motion.display.pivot.set(local.width * local.anchorX, local.height * local.anchorY);
       motion.from = motion.current;
-      motion.target = numericTransform(layer.transform, geometry);
+      motion.target = numericLayerTransform(layer, geometry, local);
       motion.startedAtMs = atMs;
       motion.durationMs = snapshot.reducedMotion ? 0 : (layer.transition?.durationMs ?? 0);
       motion.easing = layer.transition?.easing ?? "linear";
       motion.overshoot = layer.transition?.overshoot ?? 0;
       updateMotion(motion, atMs);
-      layerRoot.addChild(motion.display);
+      (layer.role === "content" || layer.role === "focus" ? contentLayers : underlays).push(motion.display);
     }
+    let trackDisplay: Graphics | undefined;
+    let thumbDisplay: Graphics | undefined;
     if (snapshot.presentation.toggleVisual !== undefined) {
       const track = snapshot.presentation.toggleVisual.track;
       const thumb = snapshot.presentation.toggleVisual.thumb;
@@ -286,7 +348,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
         trackMotion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear", overshoot: 0 };
         motions.set(trackKey, trackMotion);
       }
-      redrawLayer(trackMotion.display, track, geometry);
+      redrawLayer(trackMotion.display, track, geometry, contentValue, snapshot.model.status, label, fontWeight);
       trackMotion.from = trackMotion.current;
       trackMotion.target = numericTransform(track.transform, geometry);
       trackMotion.startedAtMs = atMs;
@@ -294,7 +356,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       trackMotion.easing = track.transition?.easing ?? "linear";
       trackMotion.overshoot = track.transition?.overshoot ?? 0;
       updateMotion(trackMotion, atMs);
-      layerRoot.addChild(trackMotion.display);
+      trackDisplay = trackMotion.display;
 
       const thumbKey = "toggle-thumb:0";
       const thumbSize = Math.min(geometry.width, geometry.height) * 0.72;
@@ -310,7 +372,7 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
         thumbMotion = { display, current: initial, from: initial, target: initial, startedAtMs: atMs, durationMs: 0, easing: "linear", overshoot: 0 };
         motions.set(thumbKey, thumbMotion);
       }
-      redrawLayer(thumbMotion.display, thumb, thumbGeometry);
+      redrawLayer(thumbMotion.display, thumb, thumbGeometry, contentValue, snapshot.model.status, label, fontWeight);
       thumbMotion.from = thumbMotion.current;
       thumbMotion.target = numericToggleThumbTransform(thumbTransform, geometry, thumbSize);
       thumbMotion.startedAtMs = atMs;
@@ -318,8 +380,12 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       thumbMotion.easing = thumb.transition?.easing ?? "linear";
       thumbMotion.overshoot = thumb.transition?.overshoot ?? 0;
       updateMotion(thumbMotion, atMs);
-      layerRoot.addChild(thumbMotion.display);
+      thumbDisplay = thumbMotion.display;
     }
+    if (trackDisplay !== undefined) layerRoot.addChild(trackDisplay);
+    for (const display of underlays) layerRoot.addChild(display);
+    if (thumbDisplay !== undefined) layerRoot.addChild(thumbDisplay);
+    for (const display of contentLayers) layerRoot.addChild(display);
     for (const [key, motion] of motions) {
       if (activeKeys.has(key)) continue;
       motion.display.destroy();
@@ -351,6 +417,10 @@ export function createPixiV8Control(options: CreatePixiV8ControlOptions): PixiV8
       }
       graphic.position.set(ripple.origin.x * geometry.width, ripple.origin.y * geometry.height);
     }
+    const hasContentSlots = snapshot.presentation.layers.some((layer) => layer.contentSlot !== undefined)
+      || snapshot.presentation.toggleVisual?.track.contentSlot !== undefined
+      || snapshot.presentation.toggleVisual?.thumb.contentSlot !== undefined;
+    content.visible = !hasContentSlots;
     content.text = snapshot.model.status === "loading" ? "…" : snapshot.model.status === "success" ? "✓" : snapshot.model.status === "error" ? "!" : contentValue?.icon === undefined ? label : contentValue.iconSlot === "trailing" ? `${label} ${contentValue.icon}` : `${contentValue.icon} ${label}`;
     content.alpha = snapshot.model.enabled ? 1 : 0.65;
     update(atMs);
