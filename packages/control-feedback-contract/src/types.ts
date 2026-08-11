@@ -27,6 +27,15 @@ export interface ControlTransform {
   readonly rotationDeg?: number;
 }
 
+export interface ControlLayerBounds {
+  readonly x: ControlLength;
+  readonly y: ControlLength;
+  readonly width: ControlLength;
+  readonly height: ControlLength;
+  readonly anchorX: number;
+  readonly anchorY: number;
+}
+
 export interface ControlTransition {
   readonly durationMs: number;
   readonly delayMs?: number;
@@ -71,6 +80,8 @@ export interface ControlLayerStyle {
   readonly transform?: ControlTransform;
   readonly transition?: ControlTransition;
   readonly contentSlot?: ControlContentSlot;
+  readonly contentText?: string;
+  readonly bounds?: ControlLayerBounds;
 }
 
 export interface FieldRippleEffect {

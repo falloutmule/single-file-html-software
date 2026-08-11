@@ -1,4 +1,4 @@
-import type { ControlLayerStyle } from "@sfhs/control-feedback-contract";
+import { resolveControlLayerContent, type ControlLayerStyle } from "@sfhs/control-feedback-contract";
 import type {
   ControlFeedbackCancelReason,
   ControlFeedbackDispatchResult,
@@ -103,11 +103,33 @@ function createInteractive(options: MountDomControlOptions): {
   return { root, interactive, visual, layers, effects, content, status };
 }
 
-function setLayerStyles(element: HTMLElement, layer: ControlLayerStyle): void {
+function setLayerStyles(
+  element: HTMLElement,
+  layer: ControlLayerStyle,
+  content: MountDomControlOptions["preset"]["content"],
+  status: ControlFeedbackSnapshot["model"]["status"],
+  visualLabel: string
+): void {
   applyStyle(element, layerStyleToCss(layer));
   element.className = `sfhs-cf-layer sfhs-cf-layer-${layer.role}`;
   element.dataset.role = layer.role;
-  if (layer.contentSlot !== undefined) element.dataset.contentSlot = layer.contentSlot;
+  if (layer.contentSlot === undefined) {
+    delete element.dataset.contentSlot;
+    element.textContent = "";
+    return;
+  }
+  element.dataset.contentSlot = layer.contentSlot;
+  element.textContent = resolveControlLayerContent(layer, content, status, visualLabel) ?? "";
+  if (content !== undefined) {
+    element.style.fontFamily = content.fontFamily;
+    element.style.fontSize = `${content.fontSizePx}px`;
+    element.style.fontWeight = String(content.fontWeight);
+    element.style.letterSpacing = `${content.letterSpacingPx}px`;
+    element.style.color = content.textColor;
+  } else {
+    element.style.color = "#FFFFFFFF";
+    element.style.font = "600 14px/1.1 system-ui, sans-serif";
+  }
 }
 
 export function mountDomControlUnchecked(options: MountDomControlOptions): DomControlController {
@@ -115,6 +137,8 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
   ensureDomControlStyles(options.container.ownerDocument);
   const view = options.container.ownerDocument.defaultView;
   const elements = createInteractive(options);
+  const contentValue = options.preset.content;
+  const visualLabel = options.visualLabel ?? contentValue?.label ?? options.label ?? options.preset.title;
   const geometry = options.preset.geometry;
   if (geometry !== undefined) {
     const hitWidth = Math.max(geometry.widthPx, geometry.minimumHitTargetPx ?? 0);
@@ -178,6 +202,8 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
     elements.status.textContent = statusText(snapshot.model.status);
 
     const activeLayerKeys = new Set<string>();
+    const underlayElements: HTMLSpanElement[] = [];
+    const contentElements: HTMLSpanElement[] = [];
     const roleCounts = new Map<string, number>();
     for (const layer of snapshot.presentation.layers) {
       const occurrence = roleCounts.get(layer.role) ?? 0;
@@ -189,8 +215,8 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
         layerElement = options.container.ownerDocument.createElement("span");
         layerElements.set(key, layerElement);
       }
-      setLayerStyles(layerElement, layer);
-      elements.layers.append(layerElement);
+      setLayerStyles(layerElement, layer, contentValue, snapshot.model.status, visualLabel);
+      (layer.role === "content" || layer.role === "focus" ? contentElements : underlayElements).push(layerElement);
     }
     if (snapshot.presentation.toggleVisual !== undefined) {
       const trackKey = "toggle-track:0";
@@ -200,8 +226,7 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
         trackElement = options.container.ownerDocument.createElement("span");
         layerElements.set(trackKey, trackElement);
       }
-      setLayerStyles(trackElement, snapshot.presentation.toggleVisual.track);
-      elements.layers.append(trackElement);
+      setLayerStyles(trackElement, snapshot.presentation.toggleVisual.track, contentValue, snapshot.model.status, visualLabel);
 
       const thumbKey = "toggle-thumb:0";
       activeLayerKeys.add(thumbKey);
@@ -210,7 +235,7 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
         thumbElement = options.container.ownerDocument.createElement("span");
         layerElements.set(thumbKey, thumbElement);
       }
-      setLayerStyles(thumbElement, snapshot.presentation.toggleVisual.thumb);
+      setLayerStyles(thumbElement, snapshot.presentation.toggleVisual.thumb, contentValue, snapshot.model.status, visualLabel);
       const thumbTransform = snapshot.model.selected
         ? snapshot.presentation.toggleVisual.selectedThumbTransform
         : snapshot.presentation.toggleVisual.thumb.transform;
@@ -223,13 +248,18 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
       thumbElement.style.width = "35%";
       thumbElement.style.height = "70%";
       thumbElement.style.inset = `15% auto auto calc(8% + ${leftOffset})`;
-      elements.layers.append(thumbElement);
+      elements.layers.append(trackElement, ...underlayElements, thumbElement, ...contentElements);
+    } else {
+      elements.layers.append(...underlayElements, ...contentElements);
     }
     for (const [key, element] of layerElements) {
       if (activeLayerKeys.has(key)) continue;
       element.remove();
       layerElements.delete(key);
     }
+    elements.content.hidden = snapshot.presentation.layers.some((layer) => layer.contentSlot !== undefined)
+      || snapshot.presentation.toggleVisual?.track.contentSlot !== undefined
+      || snapshot.presentation.toggleVisual?.thumb.contentSlot !== undefined;
 
     const activeEffectKeys = new Set<string>();
     if (snapshot.fieldRipple !== undefined) {

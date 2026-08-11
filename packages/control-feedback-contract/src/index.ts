@@ -1,6 +1,7 @@
 export const packageIdentity = "@sfhs/control-feedback-contract" as const;
 
 export { canonicalControlPackJson, canonicalControlPresetJson, canonicalControlPresetSetJson } from "./canonical.ts";
+export { resolveControlLayerContent } from "./content.ts";
 export { p0ControlPresetIds, p0ControlPresets } from "./fixtures.ts";
 export {
   frozenDonorRevisions,
@@ -32,6 +33,7 @@ export {
   type ControlInteractionState,
   type ControlContent,
   type ControlLayerRole,
+  type ControlLayerBounds,
   type ControlLayerStyle,
   type ControlLength,
   type ControlLengthUnit,

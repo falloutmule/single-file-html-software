@@ -22,6 +22,18 @@ describe("control feedback DOM adapter", () => {
     expect(layerStyleToCss({ role: "surface", shape: "round-rect", fill: "#000000FF", transition: { durationMs: 180, easing: "ease-out", overshoot: 0.2 } }).transition).toContain("cubic-bezier(.2,1.2,.3,1)");
   });
 
+  it("maps neutral bounds and composes their anchor with state transforms", () => {
+    expect(layerStyleToCss({
+      role: "content", shape: "circle", contentSlot: "icon-leading",
+      bounds: { x: { value: 0.2, unit: "ratio" }, y: { value: 0.5, unit: "ratio" }, width: { value: 36, unit: "px" }, height: { value: 1.2, unit: "ratio" }, anchorX: 0.5, anchorY: 0.5 },
+      transform: { translateX: { value: 4, unit: "px" }, scaleX: 1.1, scaleY: 1.1 }, transition: { durationMs: 120, easing: "ease-out" }
+    })).toMatchObject({
+      inset: "auto", left: "20%", top: "50%", width: "36px", height: "120%",
+      transform: "translate(-50%, -50%) translate(4px, 0) scale(1.1, 1.1)"
+    });
+    expect(layerStyleToCss({ role: "content", shape: "rect", transition: { durationMs: 90, easing: "linear" } }).transition).toContain("width 90ms linear 0ms");
+  });
+
   it("translates renderer-neutral lengths and tactile layer styles", () => {
     expect(controlLengthCss({ value: 4, unit: "px" })).toBe("4px");
     expect(controlLengthCss({ value: 0.5, unit: "ratio" })).toBe("50%");

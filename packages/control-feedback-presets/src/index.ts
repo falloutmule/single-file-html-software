@@ -1,6 +1,7 @@
 export const packageIdentity = "@sfhs/control-feedback-presets" as const;
 export {
   controlFeedbackPresetEntries,
+  controlFeedbackVisualConformance,
   controlFeedbackPresetIds,
   controlFeedbackPresets,
   findControlFeedbackPreset,
@@ -9,5 +10,7 @@ export {
   vettedControlFeedbackPack,
   type ControlPresetCategory,
   type ControlPresetLibraryEntry,
-  type ControlPresetPriority
+  type ControlPresetPriority,
+  type ControlVisualConformanceFinding,
+  type ControlVisualConformanceLevel
 } from "./library.ts";

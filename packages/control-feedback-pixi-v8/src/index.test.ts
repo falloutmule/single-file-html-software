@@ -51,6 +51,21 @@ describe("PixiJS v8 control feedback adapter", () => {
     expect((control.root.children[2] as { text?: string }).text).toBe("◆ Launch");
   });
 
+  it("renders bounded content slots with equivalent pivot geometry and no legacy duplicate", () => {
+    const preset: ControlPreset = {
+      schema: "sfhs.control-preset@0", id: "pixi-bounded-slot", title: "Bounded Slot", semantic: { kind: "momentary" },
+      content: { label: "Launch", icon: "→", iconSlot: "leading", fontFamily: "system-ui", fontSizePx: 14, fontWeight: 600, letterSpacingPx: 0, textColor: "#FFFFFFFF" },
+      visuals: { base: { layers: [{ role: "surface", shape: "capsule", fill: "#111827FF" }, { role: "content", shape: "circle", fill: "#FFFFFFFF", contentSlot: "icon-leading", bounds: { x: { value: 0.2, unit: "ratio" }, y: { value: 0.5, unit: "ratio" }, width: { value: 36, unit: "px" }, height: { value: 36, unit: "px" }, anchorX: 0.5, anchorY: 0.5 } }] } },
+      provenance: { origin: "sfhs-original" }
+    };
+    const control = createPixiV8Control({ parent: new Container(), controlId: "bounded", preset, geometry: { x: 0, y: 0, width: 200, height: 60 }, clock: () => 0 });
+    const layerRoot = control.root.children[0] as Container;
+    const slotLayer = layerRoot.children[1] as Container;
+    expect({ x: slotLayer.position.x, y: slotLayer.position.y, pivotX: slotLayer.pivot.x, pivotY: slotLayer.pivot.y }).toEqual({ x: 40, y: 30, pivotX: 18, pivotY: 18 });
+    expect((slotLayer.children[0] as { text?: string }).text).toBe("→");
+    expect((control.root.children[2] as { visible?: boolean }).visible).toBe(false);
+  });
+
   it("retains external state authority and bounded ripple instances", () => {
     let time = 0;
     const activations: unknown[] = [];

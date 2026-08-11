@@ -5,6 +5,7 @@ import {
   frozenPresetSourceKeys,
   p0ControlPresets,
   type ControlDonorProvenance,
+  type ControlContent,
   type ControlGradient,
   type ControlPack,
   type ControlPreset,
@@ -34,8 +35,16 @@ export interface ControlPresetLibraryEntry {
   readonly normalizedPrimitive: string;
 }
 
+export type ControlVisualConformanceLevel = "FULL" | "PARTIAL" | "BROKEN";
+export interface ControlVisualConformanceFinding {
+  readonly level: ControlVisualConformanceLevel;
+  readonly reason: string;
+}
+
 const px = (value: number) => Object.freeze({ value, unit: "px" as const });
 const ratio = (value: number) => Object.freeze({ value, unit: "ratio" as const });
+const bounds = (x: number, y: number, width: ReturnType<typeof px> | ReturnType<typeof ratio>, height: ReturnType<typeof px> | ReturnType<typeof ratio>, anchorX = 0.5, anchorY = 0.5) => Object.freeze({ x: ratio(x), y: ratio(y), width, height, anchorX, anchorY });
+const iconWell = (x: number, sizePx = 36) => bounds(x, 0.5, px(sizePx), px(sizePx));
 const snap = Object.freeze({ durationMs: 90, easing: "ease-out" as const });
 const glide = Object.freeze({ durationMs: 240, easing: "ease-in-out" as const });
 const focusLayer = Object.freeze({ role: "focus" as const, shape: "round-rect" as const, border: { width: px(2), color: "#FFFFFFFF", radius: px(10) } });
@@ -57,8 +66,8 @@ function donorProvenance(id: string): ControlDonorProvenance {
   return Object.freeze({ donor, license: "MIT", modified: true, sources: Object.freeze(sources) });
 }
 
-function momentary(id: string, title: string, visuals: ControlVisualStates, cues?: ControlPreset["cues"]): ControlPreset {
-  return Object.freeze({ schema: controlPresetSchema, id, title, semantic: { kind: "momentary" as const }, visuals, ...(cues === undefined ? {} : { cues }), provenance: donorProvenance(id) });
+function momentary(id: string, title: string, visuals: ControlVisualStates, cues?: ControlPreset["cues"], content?: ControlContent): ControlPreset {
+  return Object.freeze({ schema: controlPresetSchema, id, title, semantic: { kind: "momentary" as const }, visuals, ...(cues === undefined ? {} : { cues }), ...(content === undefined ? {} : { content }), provenance: donorProvenance(id) });
 }
 
 const darkSurface = Object.freeze({ role: "surface" as const, shape: "capsule" as const, fill: "#202735FF", transition: snap });
@@ -83,19 +92,24 @@ const addedPresets: readonly ControlPreset[] = Object.freeze([
     pressedInside: { layers: [{ role: "effect", shape: "capsule", fill: "#8B5CF633", opacity: 0.18 }, { ...darkSurface, transform: { translateY: px(2) } }] }
   }),
   momentary("uv-dark-capsule-icon", "Dark Capsule with Icon Well", {
-    base: { layers: [{ role: "surface", shape: "capsule", gradient: gradient("linear", 135, ["#111827FF", "#374151FF"]), shadows: [{ x: px(0), y: px(5), blur: px(10), spread: px(0), color: "#00000066", inset: false }], transition: snap }, { role: "content", shape: "circle", fill: "#FFFFFF18", contentSlot: "icon-leading", transition: snap }] },
-    hover: { layers: [{ role: "surface", shape: "capsule", gradient: gradient("linear", 135, ["#1F2937FF", "#4B5563FF"]), shadows: [{ x: px(0), y: px(6), blur: px(10), spread: px(0), color: "#00000066", inset: false }] }, { role: "content", shape: "circle", fill: "#FFFFFF24", contentSlot: "icon-leading", transform: { scaleX: 1.08, scaleY: 1.08 }, transition: snap }] },
-    pressedInside: { layers: [{ role: "surface", shape: "capsule", gradient: gradient("linear", 135, ["#111827FF", "#374151FF"]), transform: { translateY: px(3) }, transition: snap }, { role: "content", shape: "circle", fill: "#FFFFFF18", contentSlot: "icon-leading", transform: { translateY: px(3) } }] }
-  }),
+    base: { layers: [{ role: "surface", shape: "capsule", gradient: gradient("linear", 135, ["#111827FF", "#374151FF"]), shadows: [{ x: px(0), y: px(5), blur: px(10), spread: px(0), color: "#00000066", inset: false }], transition: snap }, { role: "content", shape: "circle", fill: "#FFFFFF18", contentSlot: "icon-leading", bounds: iconWell(0.16), transition: snap }, { ...labelLayer, bounds: bounds(0.6, 0.5, ratio(0.7), ratio(1)) }] },
+    hover: { layers: [{ role: "surface", shape: "capsule", gradient: gradient("linear", 135, ["#1F2937FF", "#4B5563FF"]), shadows: [{ x: px(0), y: px(6), blur: px(10), spread: px(0), color: "#00000066", inset: false }] }, { role: "content", shape: "circle", fill: "#FFFFFF24", contentSlot: "icon-leading", bounds: iconWell(0.16), transform: { scaleX: 1.08, scaleY: 1.08 }, transition: snap }] },
+    pressedInside: { layers: [{ role: "surface", shape: "capsule", gradient: gradient("linear", 135, ["#111827FF", "#374151FF"]), transform: { translateY: px(3) }, transition: snap }, { role: "content", shape: "circle", fill: "#FFFFFF18", contentSlot: "icon-leading", bounds: iconWell(0.16), transform: { translateY: px(3) } }] }
+  }, undefined, { label: "Launch", icon: "→", iconSlot: "leading", fontFamily: "system-ui", fontSizePx: 14, fontWeight: 700, letterSpacingPx: 0, textColor: "#FFFFFFFF" }),
   Object.freeze({
     schema: controlPresetSchema, id: "uv-sun-moon-toggle", title: "Sun–Moon Morph Toggle", semantic: { kind: "toggle" },
-    visuals: { base: {}, selected: { layers: [{ role: "surface", shape: "capsule", gradient: gradient("linear", 90, ["#172554FF", "#4338CAFF"]) }, { role: "content", shape: "circle", fill: "#F8FAFCFF", contentSlot: "icon-leading", transform: { rotationDeg: 180 }, transition: glide }] } },
+    content: { label: "Day or night", fontFamily: "system-ui", fontSizePx: 17, fontWeight: 700, letterSpacingPx: 0, textColor: "#172554FF" },
+    visuals: {
+      base: { layers: [{ role: "content", shape: "circle", contentSlot: "icon-leading", contentText: "☀", bounds: iconWell(0.16, 30), transition: glide }] },
+      selected: { layers: [{ role: "surface", shape: "capsule", gradient: gradient("linear", 90, ["#172554FF", "#4338CAFF"]) }, { role: "content", shape: "circle", contentSlot: "icon-leading", contentText: "☾", bounds: iconWell(0.84, 30), transform: { rotationDeg: 180 }, transition: glide }] }
+    },
     toggleVisual: { track: { role: "surface", shape: "capsule", gradient: gradient("linear", 90, ["#38BDF8FF", "#FDE68AFF"]), transition: glide }, thumb: { role: "content", shape: "circle", fill: "#FFF7CCFF", transition: glide }, selectedThumbTransform: { translateX: ratio(1), rotationDeg: 180 } },
     cues: { selectOn: "select-on", selectOff: "select-off" }, provenance: donorProvenance("uv-sun-moon-toggle")
   } satisfies ControlPreset),
   Object.freeze({
     schema: controlPresetSchema, id: "uv-like-pop-toggle", title: "Like/Favorite Pop Toggle", semantic: { kind: "toggle", variant: "checkbox" },
-    visuals: { base: { layers: [{ role: "surface", shape: "circle", fill: "#F3F4F6FF", border: { width: px(2), color: "#9CA3AFFF", radius: ratio(1) } }, { role: "content", shape: "circle", fill: "#6B7280FF", contentSlot: "icon-leading", transition: snap }] }, selected: { layers: [{ role: "surface", shape: "circle", fill: "#FFE4E6FF", border: { width: px(2), color: "#FB7185FF", radius: ratio(1) } }, { role: "content", shape: "circle", fill: "#E11D48FF", contentSlot: "icon-leading", transform: { scaleX: 1.15, scaleY: 1.15 }, transition: snap }] } },
+    content: { label: "Favorite", icon: "♥", iconSlot: "leading", fontFamily: "system-ui", fontSizePx: 18, fontWeight: 700, letterSpacingPx: 0, textColor: "#FFFFFFFF" },
+    visuals: { base: { layers: [{ role: "surface", shape: "circle", fill: "#F3F4F6FF", border: { width: px(2), color: "#9CA3AFFF", radius: ratio(1) } }, { role: "content", shape: "circle", fill: "#6B7280FF", contentSlot: "icon-leading", bounds: iconWell(0.5, 28), transition: snap }] }, selected: { layers: [{ role: "surface", shape: "circle", fill: "#FFE4E6FF", border: { width: px(2), color: "#FB7185FF", radius: ratio(1) } }, { role: "content", shape: "circle", fill: "#E11D48FF", contentSlot: "icon-leading", bounds: iconWell(0.5, 28), transform: { scaleX: 1.15, scaleY: 1.15 }, transition: snap }] } },
     cues: { selectOn: "select-on", selectOff: "select-off" }, provenance: donorProvenance("uv-like-pop-toggle")
   } satisfies ControlPreset),
   momentary("an-shine-sweep", "Diagonal Shine Sweep", {
@@ -103,24 +117,24 @@ const addedPresets: readonly ControlPreset[] = Object.freeze([
     hover: { layers: [purpleSurface, { ...labelLayer, transform: { translateX: px(4) } }, { role: "effect", shape: "rect", gradient: gradient("linear", 110, ["#FFFFFF00", "#FFFFFFFF", "#FFFFFF00"]), opacity: 0.7, transform: { translateX: ratio(1) }, transition: { durationMs: 460, easing: "ease-in-out" } }] }
   }),
   momentary("an-vertical-label-swap", "Vertical Label Swap", {
-    base: { layers: [darkSurface, labelLayer, { ...labelLayer, opacity: 0, transform: { translateY: ratio(1) } }] },
-    hover: { layers: [darkSurface, { ...labelLayer, opacity: 0, transform: { translateY: ratio(1) } }, { ...labelLayer, opacity: 1, transform: { translateY: ratio(0) } }] }
+    base: { layers: [darkSurface, { ...labelLayer, contentText: "Explore" }, { ...labelLayer, contentText: "Open →", opacity: 0, transform: { translateY: ratio(1) } }] },
+    hover: { layers: [darkSurface, { ...labelLayer, contentText: "Explore", opacity: 0, transform: { translateY: ratio(1) } }, { ...labelLayer, contentText: "Open →", opacity: 1, transform: { translateY: ratio(0) } }] }
   }),
   momentary("an-overlay-arrow-swap", "Overlay Arrow Swap", {
-    base: { layers: [darkSurface, { role: "effect", shape: "capsule", fill: "#22C55EFF", transform: { translateX: ratio(1) }, transition: glide }, labelLayer, { role: "content", shape: "rect", contentSlot: "icon-trailing", opacity: 0, transform: { translateX: ratio(1) }, transition: glide }] },
-    hover: { layers: [darkSurface, { role: "effect", shape: "capsule", fill: "#22C55EFF", transform: { translateX: ratio(0) }, transition: glide }, { ...labelLayer, opacity: 0, transform: { translateX: ratio(1) } }, { role: "content", shape: "rect", contentSlot: "icon-trailing", opacity: 1, transform: { translateX: ratio(0) }, transition: glide }] }
+    base: { layers: [darkSurface, { role: "effect", shape: "capsule", fill: "#22C55EFF", transform: { translateX: ratio(1) }, transition: glide }, labelLayer, { role: "content", shape: "rect", contentSlot: "icon-trailing", contentText: "→", bounds: iconWell(0.5, 36), opacity: 0, transform: { translateX: ratio(1) }, transition: glide }] },
+    hover: { layers: [darkSurface, { role: "effect", shape: "capsule", fill: "#22C55EFF", transform: { translateX: ratio(0) }, transition: glide }, { ...labelLayer, opacity: 0, transform: { translateX: ratio(1) } }, { role: "content", shape: "rect", contentSlot: "icon-trailing", contentText: "→", bounds: iconWell(0.5, 36), opacity: 1, transform: { translateX: ratio(0) }, transition: glide }] }
   }),
   momentary("an-expanding-leading-fill", "Expanding Leading Fill", {
-    base: { layers: [{ role: "surface", shape: "capsule", fill: "#F8FAFCFF", border: { width: px(2), color: "#111827FF", radius: px(999) } }, { role: "effect", shape: "circle", fill: "#111827FF", transform: { translateX: ratio(0), scaleX: 0.18, scaleY: 0.18 }, transition: glide }, { ...labelLayer, transform: { translateX: px(10) } }] },
-    hover: { layers: [{ role: "surface", shape: "capsule", fill: "#F8FAFCFF", border: { width: px(2), color: "#111827FF", radius: px(999) } }, { role: "effect", shape: "circle", fill: "#111827FF", transform: { translateX: ratio(0), scaleX: 1.35, scaleY: 1.35 }, transition: glide }, { ...labelLayer, transform: { translateX: px(16) } }] }
+    base: { layers: [{ role: "surface", shape: "capsule", fill: "#F8FAFCFF", border: { width: px(2), color: "#111827FF", radius: px(999) } }, { role: "effect", shape: "circle", fill: "#111827FF", bounds: iconWell(0.14, 28), transform: { scaleX: 0.5, scaleY: 0.5 }, transition: glide }, { ...labelLayer, bounds: bounds(0.6, 0.5, ratio(0.7), ratio(1)) }] },
+    hover: { layers: [{ role: "surface", shape: "capsule", fill: "#F8FAFCFF", border: { width: px(2), color: "#111827FF", radius: px(999) } }, { role: "effect", shape: "circle", fill: "#111827FF", bounds: iconWell(0.14, 28), transform: { scaleX: 9, scaleY: 9 }, transition: glide }, { ...labelLayer, bounds: bounds(0.6, 0.5, ratio(0.7), ratio(1)), transform: { translateX: px(8) } }] }
   }),
   momentary("an-rising-bubble-fill", "Rising Bubble Fill", {
-    base: { layers: [{ role: "surface", shape: "round-rect", fill: "#F8FAFCFF", border: { width: px(2), color: "#0F766EFF", radius: px(12) } }, { role: "effect", shape: "circle", fill: "#14B8A6FF", transform: { translateY: ratio(1), scaleX: 1.5, scaleY: 1.5 }, transition: glide }, labelLayer] },
-    hover: { layers: [{ role: "surface", shape: "round-rect", fill: "#F8FAFCFF", border: { width: px(2), color: "#0F766EFF", radius: px(12) } }, { role: "effect", shape: "circle", fill: "#14B8A6FF", transform: { translateY: ratio(0), scaleX: 1.5, scaleY: 1.5 }, transition: glide }, labelLayer] }
+    base: { layers: [{ role: "surface", shape: "round-rect", fill: "#F8FAFCFF", border: { width: px(2), color: "#0F766EFF", radius: px(12) } }, { role: "effect", shape: "circle", fill: "#14B8A6FF", bounds: bounds(0.5, 1, ratio(1.25), ratio(4)), transform: { translateY: ratio(0.55) }, transition: glide }, labelLayer] },
+    hover: { layers: [{ role: "surface", shape: "round-rect", fill: "#F8FAFCFF", border: { width: px(2), color: "#0F766EFF", radius: px(12) } }, { role: "effect", shape: "circle", fill: "#14B8A6FF", bounds: bounds(0.5, 0.5, ratio(1.25), ratio(4)), transform: { translateY: ratio(0) }, transition: glide }, labelLayer] }
   }),
   momentary("an-arrow-conveyor", "Arrow Conveyor", {
-    base: { layers: [darkSurface, labelLayer, { role: "content", shape: "circle", fill: "#F8FAFCFF", contentSlot: "icon-trailing", transition: glide }, { role: "content", shape: "circle", fill: "#F8FAFCFF", contentSlot: "icon-trailing", transform: { translateX: ratio(1) }, transition: glide }] },
-    hover: { layers: [{ ...darkSurface, fill: "#F8FAFCFF" }, labelLayer, { role: "content", shape: "circle", fill: "#111827FF", contentSlot: "icon-trailing", transform: { translateX: ratio(1) }, transition: glide }, { role: "content", shape: "circle", fill: "#111827FF", contentSlot: "icon-trailing", transform: { translateX: ratio(0) }, transition: glide }] }
+    base: { layers: [darkSurface, { ...labelLayer, bounds: bounds(0.42, 0.5, ratio(0.62), ratio(1)) }, { role: "content", shape: "circle", fill: "#F8FAFCFF", contentSlot: "icon-trailing", contentText: "→", bounds: iconWell(0.82), transition: glide }, { role: "content", shape: "circle", fill: "#F8FAFCFF", contentSlot: "icon-trailing", contentText: "→", bounds: iconWell(0.82), transform: { translateX: ratio(1.3) }, transition: glide }] },
+    hover: { layers: [{ ...darkSurface, fill: "#F8FAFCFF" }, { ...labelLayer, bounds: bounds(0.42, 0.5, ratio(0.62), ratio(1)) }, { role: "content", shape: "circle", fill: "#111827FF", contentSlot: "icon-trailing", contentText: "→", bounds: iconWell(0.82), transform: { translateX: ratio(1.3) }, transition: glide }, { role: "content", shape: "circle", fill: "#111827FF", contentSlot: "icon-trailing", contentText: "→", bounds: iconWell(0.82), transform: { translateX: ratio(0) }, transition: glide }] }
   }),
   momentary("mu-perimeter-shimmer", "Perimeter Shimmer", {
     base: { layers: [{ role: "edge", shape: "round-rect", gradient: gradient("conic", 0, ["#FFFFFF00", "#A78BFAFF", "#FFFFFF00", "#38BDF8FF", "#FFFFFF00"]), border: { width: px(3), color: "#A78BFAFF", radius: px(12) }, transition: { durationMs: 700, easing: "linear" } }, { role: "surface", shape: "round-rect", fill: "#18181BFF", transform: { scaleX: 0.96, scaleY: 0.86 } }] },
@@ -131,8 +145,8 @@ const addedPresets: readonly ControlPreset[] = Object.freeze([
     selected: { layers: [{ role: "edge", shape: "round-rect", gradient: gradient("linear", 270, ["#AF52DEFF", "#007AFFFF", "#34C759FF", "#FFCC00FF", "#FF3B30FF"]), transform: { scaleX: 1.03, scaleY: 1.03 }, transition: glide }, { role: "surface", shape: "round-rect", fill: "#111827FF", transform: { scaleX: 0.97, scaleY: 0.88 } }] }
   }),
   momentary("mu-dot-flood-reveal", "Dot Flood Reveal", {
-    base: { layers: [{ role: "surface", shape: "capsule", fill: "#F8FAFCFF", border: { width: px(2), color: "#111827FF", radius: px(999) } }, { role: "effect", shape: "circle", fill: "#111827FF", transform: { translateX: ratio(0), scaleX: 0.08, scaleY: 0.08 }, transition: glide }, labelLayer] },
-    hover: { layers: [{ role: "surface", shape: "capsule", fill: "#F8FAFCFF", border: { width: px(2), color: "#111827FF", radius: px(999) } }, { role: "effect", shape: "circle", fill: "#111827FF", transform: { translateX: ratio(0), scaleX: 1.45, scaleY: 1.45 }, transition: glide }, { ...labelLayer, transform: { translateX: px(8) } }] }
+    base: { layers: [{ role: "surface", shape: "capsule", fill: "#F8FAFCFF", border: { width: px(2), color: "#111827FF", radius: px(999) } }, { role: "effect", shape: "circle", fill: "#111827FF", bounds: iconWell(0.12, 20), transform: { scaleX: 0.35, scaleY: 0.35 }, transition: glide }, { ...labelLayer, bounds: bounds(0.58, 0.5, ratio(0.72), ratio(1)) }] },
+    hover: { layers: [{ role: "surface", shape: "capsule", fill: "#F8FAFCFF", border: { width: px(2), color: "#111827FF", radius: px(999) } }, { role: "effect", shape: "circle", fill: "#111827FF", bounds: iconWell(0.12, 20), transform: { scaleX: 12, scaleY: 12 }, transition: glide }, { ...labelLayer, bounds: bounds(0.58, 0.5, ratio(0.72), ratio(1)), transform: { translateX: px(8) } }] }
   }),
   momentary("mu-attention-pulse", "Attention Pulse", {
     base: { layers: [{ role: "effect", shape: "capsule", fill: "#7C3AED33", shadows: [{ x: px(0), y: px(0), blur: px(10), spread: px(5), color: "#7C3AED55", inset: false }], transition: { durationMs: 650, easing: "ease-out" } }, { role: "surface", shape: "capsule", fill: "#7C3AEDFF" }] },
@@ -204,6 +218,20 @@ export const controlFeedbackPresetEntries: readonly ControlPresetLibraryEntry[] 
 export const controlFeedbackPresets: readonly ControlPreset[] = Object.freeze(controlFeedbackPresetEntries.map((entry) => entry.preset));
 export const controlFeedbackPresetIds: readonly string[] = Object.freeze(controlFeedbackPresets.map((preset) => preset.id));
 export const vettedControlFeedbackPack: ControlPack = Object.freeze({ schema: controlPackSchema, id: "sfhs-vetted-controls", title: "SFHS Vetted Control Library", presets: controlFeedbackPresets });
+
+export const controlFeedbackVisualConformance: Readonly<Record<string, ControlVisualConformanceFinding>> = Object.freeze({
+  "uv-dark-capsule-icon": Object.freeze({ level: "PARTIAL", reason: "Bounded icon well and label are complete; Pixi explicitly flattens the declared gradient." }),
+  "uv-sun-moon-toggle": Object.freeze({ level: "PARTIAL", reason: "Stateful sun/moon glyph travel is complete; donor vector ray-to-crescent path morphing is represented as a deterministic glyph swap." }),
+  "uv-like-pop-toggle": Object.freeze({ level: "FULL", reason: "Bounded heart content, recolor, external toggle state, and pop scale are represented." }),
+  "uv-skeuo-icon-choice": Object.freeze({ level: "FULL", reason: "Depth, edge, surface, bounded icon, selected state, and press travel are represented." }),
+  "an-status-cycle": Object.freeze({ level: "FULL", reason: "External idle/loading/success/error state drives label and deterministic status glyph slots." }),
+  "an-vertical-label-swap": Object.freeze({ level: "FULL", reason: "Two distinct text slots exchange vertically with stable occurrence identity." }),
+  "an-overlay-arrow-swap": Object.freeze({ level: "FULL", reason: "The full overlay enters as the label exits and a bounded arrow slot replaces it." }),
+  "an-expanding-leading-fill": Object.freeze({ level: "FULL", reason: "A bounded leading circle expands from its local origin while label geometry stays separate." }),
+  "an-rising-bubble-fill": Object.freeze({ level: "FULL", reason: "An oversized bounded fill rises from below the clipped control." }),
+  "an-arrow-conveyor": Object.freeze({ level: "FULL", reason: "Two bounded arrow wells retain occurrence identity and exchange through the trailing lane." }),
+  "mu-dot-flood-reveal": Object.freeze({ level: "FULL", reason: "A bounded leading dot expands from its local origin to flood the control." })
+});
 
 export function findControlFeedbackPreset(id: string): ControlPreset | undefined {
   return controlFeedbackPresets.find((preset) => preset.id === id);

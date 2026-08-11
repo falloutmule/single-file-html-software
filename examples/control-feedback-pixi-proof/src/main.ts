@@ -2,7 +2,7 @@ import { p0ControlPresets, type ControlPreset } from "@sfhs/control-feedback-con
 import { mountDomControl } from "@sfhs/control-feedback-dom";
 import { createPixiV8Control, pixiV8ControlApproximations, type PixiV8ControlController } from "@sfhs/control-feedback-pixi-v8";
 import type { ControlFeedbackActivationProposal, ControlFeedbackEvent, ControlFeedbackSignal } from "@sfhs/control-feedback-runtime";
-import { Application, Graphics, Rectangle } from "pixi.js";
+import { Application, Graphics, Rectangle, Text } from "pixi.js";
 
 function preset(id: string): ControlPreset {
   const match = p0ControlPresets.find((candidate) => candidate.id === id);
@@ -31,13 +31,13 @@ const cues: Array<{ id: string; role: string }> = [];
 const controllers: Record<string, PixiV8ControlController> = {};
 function updateDiagnostic(): void { if (diagnostic !== null) diagnostic.textContent = `${activations.length} activations / ${cues.length} cues`; }
 
-function add(id: string, presetId: string, label: string, x: number, onActivation?: (proposal: ControlFeedbackActivationProposal) => void, keyboard = false): PixiV8ControlController {
+function add(id: string, presetId: string, label: string, x: number, onActivation?: (proposal: ControlFeedbackActivationProposal) => void, keyboard = false, y = 96): PixiV8ControlController {
   const controller = createPixiV8Control({
     parent: application.stage,
     controlId: id,
     preset: preset(presetId),
     label,
-    geometry: { x, y: 96, width: 150, height: 64 },
+    geometry: { x, y, width: 150, height: 64 },
     lifecycleWindow: window,
     ...(keyboard ? { keyboardTarget: keyboardElement } : {}),
     onActivate(proposal) { activations.push({ id, proposal }); onActivation?.(proposal); updateDiagnostic(); },
@@ -50,6 +50,7 @@ function add(id: string, presetId: string, label: string, x: number, onActivatio
 add("press", "uv-plastic-inset-press", "Press", 62, undefined, true);
 const toggle = add("toggle", "uv-basic-toggle", "Power", 245, (proposal) => { if (proposal.kind === "toggle") toggle.setModel({ selected: proposal.proposedSelected }); });
 add("ripple", "mu-multi-activation-ripple", "Ripple", 428);
+add("choice", "uv-skeuo-icon-choice", "Tool", 245, undefined, false, 188);
 
 const parityPreset = preset("uv-plastic-inset-press");
 const parityPixi = createPixiV8Control({ parent: application.stage, controlId: "parity-pixi", preset: parityPreset, label: "Parity", geometry: { x: -1000, y: -1000, width: 120, height: 52 } });
@@ -82,6 +83,18 @@ const api = Object.freeze({
   cues,
   approximations: pixiV8ControlApproximations,
   runParityTrace,
+  boundedSlotProbe() {
+    const layerRoot = controllers.choice?.root.children[0];
+    const slot = layerRoot?.children.find((child) => child.label === "content:0");
+    const slotText = slot?.children[0];
+    const legacy = controllers.choice?.root.children[2];
+    return {
+      position: { x: slot?.position.x, y: slot?.position.y },
+      pivot: { x: slot?.pivot.x, y: slot?.pivot.y },
+      text: slotText instanceof Text ? slotText.text : undefined,
+      legacyVisible: legacy?.visible
+    };
+  },
   visualProbe() {
     const extracted = application.renderer.extract.pixels({ target: application.stage, frame: new Rectangle(0, 0, 640, 300) });
     const colors = new Set<string>();

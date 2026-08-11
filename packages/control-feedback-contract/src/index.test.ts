@@ -99,6 +99,34 @@ describe("control feedback contract", () => {
     expect(validateControlPreset(preset).findings.some((finding) => finding.code === "SFHS_CONTROL_RATIO_INVALID")).toBe(true);
   });
 
+  it("validates and canonicalizes bounded content layers fail closed", () => {
+    const preset = structuredClone(p0ControlPresets[0]) as unknown as { id: string; provenance: unknown; visuals: { base: { layers: Array<Record<string, unknown>> } } };
+    preset.id = "bounded-content-control";
+    preset.provenance = { origin: "sfhs-original" };
+    preset.visuals.base.layers.push({
+      role: "content", shape: "circle", contentSlot: "icon-leading", contentText: "→",
+      bounds: { x: { value: 0.18, unit: "ratio" }, y: { value: 0.5, unit: "ratio" }, width: { value: 36, unit: "px" }, height: { value: 1.25, unit: "ratio" }, anchorX: 0.5, anchorY: 0.5 }
+    });
+    expect(validateControlPreset(preset)).toEqual({ valid: true, findings: [] });
+    const canonical = canonicalControlPresetSetJson([preset as never]);
+    expect(canonical).toContain('"contentText":"→"');
+    expect(canonicalControlPresetSetJson([structuredClone(preset) as never])).toBe(canonical);
+
+    const invalid = structuredClone(preset);
+    const layer = invalid.visuals.base.layers.at(-1);
+    if (layer === undefined) throw new Error("Missing bounded layer.");
+    (layer.bounds as { width: { value: number }; anchorX: number }).width.value = 0;
+    (layer.bounds as { width: { value: number }; anchorX: number }).anchorX = 1.1;
+    expect(validateControlPreset(invalid).findings.map((finding) => finding.path)).toEqual(expect.arrayContaining(["/visuals/base/layers/1/bounds/width/value", "/visuals/base/layers/1/bounds/anchorX"]));
+    delete layer.contentSlot;
+    expect(validateControlPreset(invalid).findings.some((finding) => finding.path === "/visuals/base/layers/1/contentText")).toBe(true);
+    const markup = structuredClone(preset);
+    const markupLayer = markup.visuals.base.layers.at(-1);
+    if (markupLayer === undefined) throw new Error("Missing content layer.");
+    markupLayer.contentText = "<b>unsafe</b>";
+    expect(validateControlPreset(markup).findings.some((finding) => finding.path === "/visuals/base/layers/1/contentText")).toBe(true);
+  });
+
   it("validates and canonicalizes deterministic portable packs", () => {
     const pack = { schema: controlPackSchema, id: "p0-controls", title: "P0 Controls", presets: p0ControlPresets };
     expect(validateControlPack(pack)).toEqual({ valid: true, findings: [] });

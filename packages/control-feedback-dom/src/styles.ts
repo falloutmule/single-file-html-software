@@ -1,4 +1,4 @@
-import type { ControlGradient, ControlLayerStyle, ControlLength, ControlShadow, ControlTransform } from "@sfhs/control-feedback-contract";
+import type { ControlGradient, ControlLayerStyle, ControlLength, ControlShadow } from "@sfhs/control-feedback-contract";
 
 export const domControlStyleText = `
 .sfhs-cf-root{position:relative;display:inline-grid;isolation:isolate;box-sizing:border-box;min-width:44px;min-height:44px;touch-action:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:pointer}
@@ -25,9 +25,11 @@ export function controlLengthCss(length: ControlLength): string {
   return length.unit === "px" ? `${length.value}px` : `${length.value * 100}%`;
 }
 
-function transformCss(transform: ControlTransform | undefined): string | undefined {
-  if (transform === undefined) return undefined;
+function transformCss(layer: ControlLayerStyle): string | undefined {
   const parts: string[] = [];
+  if (layer.bounds !== undefined) parts.push(`translate(${-layer.bounds.anchorX * 100}%, ${-layer.bounds.anchorY * 100}%)`);
+  const transform = layer.transform;
+  if (transform === undefined) return parts.length === 0 ? undefined : parts.join(" ");
   if (transform.translateX !== undefined || transform.translateY !== undefined) {
     parts.push(`translate(${transform.translateX === undefined ? "0" : controlLengthCss(transform.translateX)}, ${transform.translateY === undefined ? "0" : controlLengthCss(transform.translateY)})`);
   }
@@ -49,6 +51,13 @@ function gradientCss(gradient: ControlGradient): string {
 
 export function layerStyleToCss(layer: ControlLayerStyle): Readonly<Record<string, string>> {
   const style: Record<string, string> = {};
+  if (layer.bounds !== undefined) {
+    style.inset = "auto";
+    style.left = controlLengthCss(layer.bounds.x);
+    style.top = controlLengthCss(layer.bounds.y);
+    style.width = controlLengthCss(layer.bounds.width);
+    style.height = controlLengthCss(layer.bounds.height);
+  }
   if (layer.fill !== undefined) style.background = layer.fill;
   if (layer.gradient !== undefined) style.background = gradientCss(layer.gradient);
   if (layer.opacity !== undefined) style.opacity = String(layer.opacity);
@@ -60,11 +69,12 @@ export function layerStyleToCss(layer: ControlLayerStyle): Readonly<Record<strin
     style.borderRadius = controlLengthCss(layer.border.radius);
   }
   if (layer.shadows !== undefined) style.boxShadow = layer.shadows.map(shadowCss).join(", ");
-  const transform = transformCss(layer.transform);
+  const transform = transformCss(layer);
   if (transform !== undefined) style.transform = transform;
   if (layer.transition !== undefined) {
     const timing = (layer.transition.overshoot ?? 0) > 0 ? `cubic-bezier(.2,${1 + (layer.transition.overshoot ?? 0)},.3,1)` : layer.transition.easing;
-    style.transition = `transform ${layer.transition.durationMs}ms ${timing} ${layer.transition.delayMs ?? 0}ms, left ${layer.transition.durationMs}ms ${timing} ${layer.transition.delayMs ?? 0}ms, box-shadow ${layer.transition.durationMs}ms ${timing} ${layer.transition.delayMs ?? 0}ms, opacity ${layer.transition.durationMs}ms ${timing} ${layer.transition.delayMs ?? 0}ms, background ${layer.transition.durationMs}ms ${timing} ${layer.transition.delayMs ?? 0}ms`;
+    const transition = `${layer.transition.durationMs}ms ${timing} ${layer.transition.delayMs ?? 0}ms`;
+    style.transition = ["transform", "left", "top", "width", "height", "box-shadow", "opacity", "background"].map((property) => `${property} ${transition}`).join(", ");
   }
   return Object.freeze(style);
 }
