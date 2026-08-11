@@ -12,7 +12,11 @@ import {
 import {
   runDomCanvasFabricArtifactScenarios,
   runDomInteractiveArtifactScenarios,
-  runPixiArtifactScenarios
+  runHtmlArtifactBrowserSmoke,
+  runPixiArtifactScenarios,
+  type HtmlArtifactBrowserSmokeFindingCode,
+  type HtmlArtifactBrowserSmokeOptions,
+  type HtmlArtifactBrowserSmokeReport
 } from "@sfhs/browser-runner";
 import {
   canonicalJsonStringify,
@@ -68,7 +72,9 @@ import {
 import {
   type ArtifactVerificationFinding,
   type ArtifactVerificationFindingCode,
-  verifyArtifactFile
+  type StaticScanFinding,
+  verifyArtifactFile,
+  verifyHtmlArtifactBytes
 } from "@sfhs/verifier";
 import {
   releasePreparationSteps,
@@ -81,6 +87,8 @@ import {
 export const packageIdentity = "@sfhs/cli" as const;
 
 export type CliCommand =
+  | "artifact smoke"
+  | "artifact verify"
   | "build"
   | "check"
   | "doctor"
@@ -114,6 +122,7 @@ export type CliFindingCode =
   | EvidenceErrorCode
   | OneShotFindingCode
   | GraduationFindingCode
+  | HtmlArtifactBrowserSmokeFindingCode
   | "SFHS_ONE_SHOT_RUN_STATE_INVALID"
   | "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID"
   | "SFHS_ONE_SHOT_RUN_STATE_HASH_MISMATCH"
@@ -123,6 +132,7 @@ export type CliFindingCode =
   | "SFHS_ONE_SHOT_PHYSICAL_SEED_INVALID"
   | ValidationFindingCode
   | "SFHS_CLI_ARGUMENT_INVALID"
+  | "SFHS_HTML_ARTIFACT_INPUT_UNREADABLE"
   | "SFHS_CLI_IO_FAILURE"
   | "SFHS_MANIFEST_PARSE_INVALID"
   | "SFHS_NODE_VERSION_UNSUPPORTED"
@@ -166,6 +176,21 @@ export interface CliArtifactSummary {
   readonly sourceSha256: string;
 }
 
+export interface CliHtmlArtifactSummary {
+  readonly path: string;
+  readonly allowedRuntimeUrls: readonly string[];
+  readonly bytes?: number;
+  readonly sha256?: string;
+}
+
+export interface CliHtmlArtifactBrowserSummary {
+  readonly channel: "chrome" | "chromium";
+  readonly version: string;
+  readonly readyState: string;
+  readonly readySelectorRequested: string | null;
+  readonly readySelectorMatched: boolean;
+}
+
 export interface CliTestStepResult {
   readonly id: string;
   readonly command: string;
@@ -199,6 +224,8 @@ export interface CliEnvelope {
   readonly project?: CliProjectSummary;
   readonly build?: CliBuildSummary;
   readonly artifact?: CliArtifactSummary;
+  readonly htmlArtifact?: CliHtmlArtifactSummary;
+  readonly browser?: CliHtmlArtifactBrowserSummary;
   readonly testPlan?: CliTestPlanSummary;
   readonly release?: CliReleaseSummary;
   readonly oneShot?: {
@@ -219,6 +246,7 @@ export interface CliRunOptions {
   readonly now?: () => Date;
   readonly runId?: string;
   readonly releaseBrowserRunner?: CliReleaseBrowserRunner;
+  readonly htmlArtifactBrowserRunner?: CliHtmlArtifactBrowserRunner;
 }
 
 export interface CliRunResult {
@@ -244,6 +272,9 @@ interface ParsedArguments {
   readonly sourceArgument?: string;
   readonly reportArgument?: string;
   readonly candidateArgument?: string;
+  readonly inputArgument?: string;
+  readonly allowedRuntimeUrls: readonly string[];
+  readonly readySelectorArgument?: string;
 }
 
 export interface CliCommandExecution {
@@ -275,7 +306,12 @@ export type CliReleaseBrowserRunner = (
   adapterId: string
 ) => Promise<CliReleaseBrowserResult>;
 
-const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot complete|one-shot run-state inspect|one-shot run-state validate|one-shot graduate inspect|one-shot graduate plan|one-shot graduate import|one-shot graduate materialize|one-shot graduate audit|one-shot graduate complete> [--project <path>] [--source <path>] [--evidence <path>] [--report <path>] [--candidate <path>] [--output <path>] [--brief <path>] [--lane <id>] [--protocol chat-v2] [--stage chat-build] [--depth <fast|deep>] [--changed <path>]... [--device-evidence <file>] [--json]";
+export type CliHtmlArtifactBrowserRunner = (
+  bytes: Uint8Array,
+  options?: HtmlArtifactBrowserSmokeOptions
+) => Promise<HtmlArtifactBrowserSmokeReport>;
+
+const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|artifact verify|artifact smoke|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot complete|one-shot run-state inspect|one-shot run-state validate|one-shot graduate inspect|one-shot graduate plan|one-shot graduate import|one-shot graduate materialize|one-shot graduate audit|one-shot graduate complete> [--project <path>] [--input <html-file>] [--allow-runtime-url <exact-url>]... [--ready-selector <css-selector>] [--source <path>] [--evidence <path>] [--report <path>] [--candidate <path>] [--output <path>] [--brief <path>] [--lane <id>] [--protocol chat-v2] [--stage chat-build] [--depth <fast|deep>] [--changed <path>]... [--device-evidence <file>] [--json]";
 const execFileAsync = promisify(execFile);
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -322,6 +358,8 @@ function coreFinding(error: unknown, path: string): CliFinding {
 function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   const commandCandidate: string = (argv[0] === "release" && argv[1] === "prepare"
     ? "release prepare"
+    : argv[0] === "artifact" && ["verify", "smoke"].includes(argv[1] ?? "")
+      ? `artifact ${argv[1]!}`
     : argv[0] === "one-shot" && argv[1] === "run-state" && ["inspect", "validate"].includes(argv[2] ?? "")
       ? `one-shot run-state ${argv[2]!}`
     : argv[0] === "one-shot" && argv[1] === "graduate" && ["inspect", "plan", "import", "materialize", "audit", "complete"].includes(argv[2] ?? "")
@@ -329,8 +367,10 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     : argv[0] === "one-shot" && ["init", "inspect", "audit", "kit", "preflight", "complete"].includes(argv[1] ?? "")
       ? `one-shot ${argv[1]!}`
       : argv[0]) ?? "";
-  const optionStart = commandCandidate.startsWith("one-shot run-state") || commandCandidate.startsWith("one-shot graduate") ? 3 : commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") ? 2 : 1;
+  const optionStart = commandCandidate.startsWith("one-shot run-state") || commandCandidate.startsWith("one-shot graduate") ? 3 : commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") || commandCandidate.startsWith("artifact ") ? 2 : 1;
   if (
+    commandCandidate !== "artifact smoke" &&
+    commandCandidate !== "artifact verify" &&
     commandCandidate !== "doctor" &&
     commandCandidate !== "inspect" &&
     commandCandidate !== "one-shot init" &&
@@ -376,6 +416,9 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   let sourceArgument: string | undefined;
   let reportArgument: string | undefined;
   let candidateArgument: string | undefined;
+  let inputArgument: string | undefined;
+  let readySelectorArgument: string | undefined;
+  const allowedRuntimeUrls: string[] = [];
   const changedPaths: string[] = [];
 
   for (let index = optionStart; index < argv.length; index += 1) {
@@ -397,6 +440,51 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
       }
 
       projectArgument = value;
+      index += 1;
+      continue;
+    }
+
+    if (argument === "--input") {
+      const value = argv[index + 1];
+      if (value === undefined || value.startsWith("--") || value.length === 0 || inputArgument !== undefined) {
+        return {
+          code: "SFHS_CLI_ARGUMENT_INVALID",
+          severity: "error",
+          path: "/argv",
+          message: usage
+        };
+      }
+      inputArgument = value;
+      index += 1;
+      continue;
+    }
+
+    if (argument === "--allow-runtime-url") {
+      const value = argv[index + 1];
+      if (value === undefined || value.startsWith("--") || value.length === 0) {
+        return {
+          code: "SFHS_CLI_ARGUMENT_INVALID",
+          severity: "error",
+          path: "/argv",
+          message: usage
+        };
+      }
+      allowedRuntimeUrls.push(value);
+      index += 1;
+      continue;
+    }
+
+    if (argument === "--ready-selector") {
+      const value = argv[index + 1];
+      if (value === undefined || value.startsWith("--") || value.length === 0 || readySelectorArgument !== undefined) {
+        return {
+          code: "SFHS_CLI_ARGUMENT_INVALID",
+          severity: "error",
+          path: "/argv",
+          message: usage
+        };
+      }
+      readySelectorArgument = value;
       index += 1;
       continue;
     }
@@ -519,7 +607,30 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   const graduateMaterialize = commandCandidate === "one-shot graduate materialize";
   const graduateAudit = commandCandidate === "one-shot graduate audit";
   const graduateComplete = commandCandidate === "one-shot graduate complete";
+  const artifactCommand = commandCandidate === "artifact verify" || commandCandidate === "artifact smoke";
   if (
+    (artifactCommand && (
+      inputArgument === undefined ||
+      projectArgument !== undefined ||
+      changedPaths.length > 0 ||
+      evidenceArgument !== undefined ||
+      deviceEvidenceArgument !== undefined ||
+      briefArgument !== undefined ||
+      outputArgument !== undefined ||
+      laneArgument !== undefined ||
+      depthArgument !== undefined ||
+      protocolArgument !== undefined ||
+      stageArgument !== undefined ||
+      sourceArgument !== undefined ||
+      reportArgument !== undefined ||
+      candidateArgument !== undefined ||
+      (commandCandidate === "artifact verify" && readySelectorArgument !== undefined)
+    )) ||
+    (!artifactCommand && (
+      inputArgument !== undefined ||
+      allowedRuntimeUrls.length > 0 ||
+      readySelectorArgument !== undefined
+    )) ||
     (oneShotInit && (briefArgument === undefined || outputArgument === undefined || laneArgument === undefined || projectArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
     (oneShotProject && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
     (oneShotKit && (outputArgument === undefined || projectArgument !== undefined || briefArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined)) ||
@@ -539,6 +650,7 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     command: commandCandidate,
     json,
     changedPaths: Object.freeze([...changedPaths]),
+    allowedRuntimeUrls: Object.freeze([...new Set(allowedRuntimeUrls)].sort((left, right) => left.localeCompare(right))),
     ...(projectArgument === undefined ? {} : { projectArgument }),
     ...(evidenceArgument === undefined ? {} : { evidenceArgument }),
     ...(deviceEvidenceArgument === undefined ? {} : { deviceEvidenceArgument }),
@@ -551,6 +663,8 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     , ...(sourceArgument === undefined ? {} : { sourceArgument })
     , ...(reportArgument === undefined ? {} : { reportArgument })
     , ...(candidateArgument === undefined ? {} : { candidateArgument })
+    , ...(inputArgument === undefined ? {} : { inputArgument })
+    , ...(readySelectorArgument === undefined ? {} : { readySelectorArgument })
   };
 }
 
@@ -690,6 +804,24 @@ function formatHuman(envelope: CliEnvelope): string {
     lines.push(`artifact-bytes: ${envelope.artifact.bytes}`);
     lines.push(`artifact-sha256: ${envelope.artifact.sha256}`);
     lines.push(`build-id: ${envelope.artifact.buildId}`);
+  }
+
+  if (envelope.htmlArtifact !== undefined) {
+    lines.push(`html-artifact: ${envelope.htmlArtifact.path}`);
+    if (envelope.htmlArtifact.bytes !== undefined) {
+      lines.push(`html-artifact-bytes: ${envelope.htmlArtifact.bytes}`);
+    }
+    if (envelope.htmlArtifact.sha256 !== undefined) {
+      lines.push(`html-artifact-sha256: ${envelope.htmlArtifact.sha256}`);
+    }
+    lines.push(`allowed-runtime-urls: ${envelope.htmlArtifact.allowedRuntimeUrls.join(", ") || "none"}`);
+  }
+
+  if (envelope.browser !== undefined) {
+    lines.push(`browser: ${envelope.browser.channel} ${envelope.browser.version}`);
+    lines.push(`ready-state: ${envelope.browser.readyState}`);
+    lines.push(`ready-selector: ${envelope.browser.readySelectorRequested ?? "none"}`);
+    lines.push(`ready-selector-matched: ${envelope.browser.readySelectorMatched}`);
   }
 
   if (envelope.testPlan !== undefined) {
@@ -923,6 +1055,103 @@ function findingsFromArtifactVerification(
     path: `/${location}`,
     message
   }));
+}
+
+function findingsFromHtmlArtifactVerification(
+  findings: readonly StaticScanFinding[]
+): readonly CliFinding[] {
+  return findings.map(({ code, location, message }) => ({
+    code,
+    severity: "error" as const,
+    path: `/${location}`,
+    message
+  }));
+}
+
+async function runHtmlArtifactCommand(
+  parsed: ParsedArguments,
+  options: CliRunOptions,
+  workingDirectory: string
+): Promise<CliRunResult> {
+  const inputPath = resolve(workingDirectory, parsed.inputArgument!);
+  const findings: CliFinding[] = [];
+  let bytes: Uint8Array | undefined;
+  try {
+    const inputStat = await stat(inputPath);
+    if (!inputStat.isFile()) {
+      throw new Error("not-file");
+    }
+    bytes = new Uint8Array(await readFile(inputPath));
+  } catch {
+    findings.push({
+      code: "SFHS_HTML_ARTIFACT_INPUT_UNREADABLE",
+      severity: "error",
+      path: "/htmlArtifact/path",
+      message: "The HTML artifact input is missing, unreadable, or not a file."
+    });
+  }
+
+  let htmlArtifact: CliHtmlArtifactSummary = {
+    path: inputPath,
+    allowedRuntimeUrls: parsed.allowedRuntimeUrls
+  };
+  let browserSummary: CliHtmlArtifactBrowserSummary | undefined;
+  if (bytes !== undefined) {
+    const verification = verifyHtmlArtifactBytes(bytes, {
+      allowedRuntimeUrls: parsed.allowedRuntimeUrls
+    });
+    htmlArtifact = {
+      path: inputPath,
+      bytes: verification.htmlArtifact.bytes,
+      sha256: verification.htmlArtifact.sha256,
+      allowedRuntimeUrls: verification.htmlArtifact.allowedRuntimeUrls
+    };
+    findings.push(...findingsFromHtmlArtifactVerification(verification.findings));
+
+    if (verification.valid && parsed.command === "artifact smoke") {
+      const browserRunner = options.htmlArtifactBrowserRunner ?? runHtmlArtifactBrowserSmoke;
+      const smoke = await browserRunner(bytes, {
+        allowedRuntimeUrls: parsed.allowedRuntimeUrls,
+        ...(parsed.readySelectorArgument === undefined ? {} : {
+          readySelector: parsed.readySelectorArgument
+        })
+      });
+      browserSummary = {
+        channel: smoke.browser.channel,
+        version: smoke.browser.version,
+        readyState: smoke.browser.readyState,
+        readySelectorRequested: smoke.browser.readySelectorRequested,
+        readySelectorMatched: smoke.browser.readySelectorMatched
+      };
+      findings.push(...smoke.findings.map((finding) => ({
+        code: finding.code,
+        severity: finding.severity,
+        path: `/browser/${finding.code}`,
+        message: `${finding.message}${finding.detail === undefined ? "" : ` ${finding.detail}`}`
+      })));
+      if (!smoke.valid && !smoke.findings.some((finding) => finding.severity === "error")) {
+        findings.push({
+          code: "SFHS_HTML_ARTIFACT_BROWSER_NAVIGATION_FAILED",
+          severity: "error",
+          path: "/browser",
+          message: "Generic Chromium smoke verification did not pass."
+        });
+      }
+    }
+  }
+
+  const sortedFindings = sortFindings(findings);
+  const ok = !hasErrors(sortedFindings);
+  const envelope: CliEnvelope = {
+    schema: "sfhs.cli@1",
+    command: parsed.command,
+    ok,
+    exitCode: ok ? 0 : 1,
+    findings: sortedFindings,
+    htmlArtifact,
+    ...(browserSummary === undefined ? {} : { browser: browserSummary })
+  };
+  return resultFor(envelope, parsed.json);
 }
 
 const defaultCommandExecutor: CliCommandExecutor = async (step, projectRoot) => new Promise((resolvePromise) => {
@@ -1356,6 +1585,9 @@ export async function runCli(argv: readonly string[], options: CliRunOptions = {
   }
 
   const workingDirectory = options.cwd ?? process.cwd();
+  if (parsed.command === "artifact verify" || parsed.command === "artifact smoke") {
+    return runHtmlArtifactCommand(parsed, options, workingDirectory);
+  }
   if (parsed.command.startsWith("one-shot ")) {
     return runOneShotCommand(parsed, options, workingDirectory);
   }

@@ -132,6 +132,24 @@ Readable game files -> SFHS checks them -> one self-contained index.html
 SFHS is the toolchain, not the game itself. The included `pixi-minimal` project
 is a small example showing how to use it.
 
+## Check an existing HTML artifact
+
+SFHS also has a producer-neutral, read-only path for a finished HTML file. It
+does not require a project manifest, adapter, descriptor, SFHS metadata, or a
+particular filename:
+
+```powershell
+pnpm sfhs artifact verify --input path/to/file.html --json
+pnpm sfhs artifact smoke --input path/to/file.html --ready-selector "#app-ready" --json
+```
+
+The first command proves bounded static one-file properties. The second proves
+generic Chromium loading of the exact bytes; it does not prove product
+completeness. Network access is offline by default, with repeated exact-literal
+`--allow-runtime-url` declarations available when needed. These commands do not
+make a file canonical, deterministic, release-ready, or physically accepted.
+See [`docs/ARTIFACT-FIRST.md`](docs/ARTIFACT-FIRST.md).
+
 ## Build a bounded game with an agent
 
 For a complete bounded game or interactive application, start at
