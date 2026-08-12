@@ -177,6 +177,28 @@ importers:
         specifier: 1.61.1
         version: 1.61.1
 
+  examples/godot-animation-proof:
+    dependencies:
+      '@sfhs/adapter-dom-interactive':
+        specifier: workspace:*
+        version: link:../../adapters/dom-interactive
+      '@sfhs/godot-animation':
+        specifier: workspace:*
+        version: link:../../packages/godot-animation
+    devDependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../../packages/packer
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@22.20.1)(vite@8.1.5(@types/node@22.20.1)(esbuild@0.28.1))
+
   examples/hermes-minimal-import:
     dependencies:
       '@sfhs/adapter-pixi-v8':
@@ -369,6 +391,9 @@ importers:
       '@sfhs/evidence':
         specifier: workspace:*
         version: link:../evidence
+      '@sfhs/godot-animation':
+        specifier: workspace:*
+        version: link:../godot-animation
       '@sfhs/one-shot':
         specifier: workspace:*
         version: link:../one-shot
@@ -487,6 +512,8 @@ importers:
       '@sfhs/contracts':
         specifier: workspace:*
         version: link:../contracts
+
+  packages/godot-animation: {}
 
   packages/mobile-controls: {}
 

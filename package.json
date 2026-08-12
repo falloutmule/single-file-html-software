@@ -19,6 +19,7 @@
     "control-feedback-acceptance": "node tools/run-control-feedback-acceptance.mjs",
     "hermes-adapter-validate": "node tools/validate-hermes-adapter.mjs",
     "hermes-task": "node tools/create-hermes-task-packet.mjs",
+    "godot-animation-fixture": "pnpm sfhs godot animation export --project examples/godot-animation-proof --descriptor godot/mascot-export.json --json",
     "plugin-validate": "node tools/validate-sfhs-plugin.mjs",
     "one-shot-validate": "node tools/validate-one-shot.mjs",
     "release-gate": "node tools/check-release-readiness.mjs",

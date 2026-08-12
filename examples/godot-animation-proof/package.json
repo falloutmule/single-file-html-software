@@ -1,0 +1,22 @@
+{
+  "name": "@sfhs/example-godot-animation-proof",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "pnpm --dir ../.. lint",
+    "typecheck": "pnpm --dir ../.. typecheck",
+    "test": "pnpm --dir ../.. test packages/godot-animation/src examples/godot-animation-proof/src/fixture.test.ts",
+    "browser-smoke": "node tools/run-browser-proof.mjs"
+  },
+  "dependencies": {
+    "@sfhs/adapter-dom-interactive": "workspace:*",
+    "@sfhs/godot-animation": "workspace:*"
+  },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1",
+    "vitest": "4.1.10"
+  }
+}

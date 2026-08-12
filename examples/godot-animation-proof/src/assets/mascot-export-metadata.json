@@ -1,0 +1,57 @@
+{
+  "anchor": {
+    "groundedTolerance": 2,
+    "x": 32,
+    "y": 56
+  },
+  "descriptor": {
+    "path": "godot/mascot-export.json",
+    "sha256": "640d0ca523815037bf2178d475465999e34cd77a1b7ea2ce014195d5459e9e0c"
+  },
+  "godot": {
+    "executableSha256": "35dab11e04ece16a2b93035e65204f4a944a3e00b020d43e54409193379d5eef",
+    "executionMode": "noninteractive-offscreen-window",
+    "renderer": "gl_compatibility",
+    "sourceGuard": "fail-closed textual preflight; not an OS syscall sandbox",
+    "supportedVersion": "4.7.1.stable",
+    "version": "4.7.1.stable.official.a13da4feb"
+  },
+  "outputs": [
+    {
+      "bytes": 652,
+      "id": "mint",
+      "output": "src/assets/mascot-mint.png",
+      "sha256": "02cbdf6b901542c9022b1268c6e0e49ea7937dc403afc5267a327b7f0ec4ee45"
+    },
+    {
+      "bytes": 651,
+      "id": "violet",
+      "output": "src/assets/mascot-violet.png",
+      "sha256": "bef459887e4df35a88afe7b9209c9d30760a326bde99c867b77012f2d4d4217d"
+    }
+  ],
+  "samples": [
+    {
+      "animation": "idle",
+      "grounded": true,
+      "id": "idle",
+      "timeSeconds": 0
+    },
+    {
+      "animation": "wave",
+      "grounded": true,
+      "id": "wave",
+      "timeSeconds": 0.5
+    }
+  ],
+  "scale": 2,
+  "schema": "sfhs.godot-animation-export-metadata@1",
+  "sheet": {
+    "columns": 2,
+    "rows": 1
+  },
+  "workingFrame": {
+    "height": 64,
+    "width": 64
+  }
+}

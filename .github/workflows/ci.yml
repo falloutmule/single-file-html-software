@@ -43,6 +43,58 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  godot-animation:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.18.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir packages/browser-runner exec playwright install --with-deps chromium
+      - name: Download pinned official Godot 4.7.1
+        run: |
+          mkdir -p .sfhs-ci/godot-bin
+          curl --fail --location --retry 3 --output .sfhs-ci/Godot_v4.7.1-stable_linux.x86_64.zip https://github.com/godotengine/godot-builds/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          echo "c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27addaa33ba  .sfhs-ci/Godot_v4.7.1-stable_linux.x86_64.zip" | sha256sum --check
+          unzip -q .sfhs-ci/Godot_v4.7.1-stable_linux.x86_64.zip -d .sfhs-ci/godot-bin
+          chmod +x .sfhs-ci/godot-bin/Godot_v4.7.1-stable_linux.x86_64
+          echo "SFHS_GODOT_EXECUTABLE=$PWD/.sfhs-ci/godot-bin/Godot_v4.7.1-stable_linux.x86_64" >> "$GITHUB_ENV"
+      - name: Prepare isolated Linux fixture
+        run: |
+          cp -a examples/godot-animation-proof .sfhs-ci/godot-animation-proof
+          rm .sfhs-ci/godot-animation-proof/src/assets/mascot-mint.png
+          rm .sfhs-ci/godot-animation-proof/src/assets/mascot-violet.png
+          rm .sfhs-ci/godot-animation-proof/src/assets/mascot-export-metadata.json
+          rm .sfhs-ci/godot-animation-proof/src/assets/mascot-export-validation.json
+      - name: Export twice with exact same-platform bytes
+        run: |
+          xvfb-run -a pnpm sfhs godot animation export --project .sfhs-ci/godot-animation-proof --descriptor godot/mascot-export.json --json | tee .sfhs-ci/godot-animation-export-first.json
+          xvfb-run -a pnpm sfhs godot animation export --project .sfhs-ci/godot-animation-proof --descriptor godot/mascot-export.json --json | tee .sfhs-ci/godot-animation-export-second.json
+      - name: Inspect, validate, check, pack, verify, and smoke exact fixture
+        run: |
+          pnpm sfhs inspect --project .sfhs-ci/godot-animation-proof --json | tee .sfhs-ci/godot-animation-inspect.json
+          pnpm sfhs validate --project .sfhs-ci/godot-animation-proof --json | tee .sfhs-ci/godot-animation-validate.json
+          pnpm sfhs check --project .sfhs-ci/godot-animation-proof --json | tee .sfhs-ci/godot-animation-check.json
+          pnpm sfhs pack --project .sfhs-ci/godot-animation-proof --json | tee .sfhs-ci/godot-animation-pack.json
+          pnpm sfhs verify --project .sfhs-ci/godot-animation-proof --json | tee .sfhs-ci/godot-animation-verify.json
+          pnpm sfhs artifact smoke --input .sfhs-ci/godot-animation-proof/dist/index.html --ready-selector "[data-ready='true']" --json | tee .sfhs-ci/godot-animation-smoke.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sfhs-godot-animation-Linux-node-22.18.0
+          path: |
+            .sfhs-ci/godot-animation-*.json
+            .sfhs-ci/godot-animation-proof/dist/index.html
+            .sfhs-ci/godot-animation-proof/src/assets/mascot-*
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
   determinism:
     needs: quality
     strategy:

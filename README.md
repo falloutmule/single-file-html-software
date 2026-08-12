@@ -194,6 +194,16 @@ pnpm sfhs one-shot audit --project examples/<project-id> --json
 SFHS is a standalone project. It is **not part of SNC**, and it does not copy or
 change SNC game code.
 
+## Export sampled Godot animations
+
+SFHS can sample a scripted Godot 2D scene into validated, nearest-neighbor RGBA sprite sheets before normal one-file packing. This workflow supports only official Godot 4.7.1 stable and is driven by a renderer-neutral project descriptor:
+
+```powershell
+pnpm sfhs godot animation export --project <project> --descriptor <descriptor.json> --godot-executable <godot-4.7.1> --json
+```
+
+Use `SFHS_GODOT_EXECUTABLE` when the executable flag is omitted. See [`packages/godot-animation/README.md`](packages/godot-animation/README.md) for the descriptor, scene hook, outputs, deterministic limits, source-network guard, fixture command, and troubleshooting.
+
 ## What should I edit?
 
 For the included PixiJS example, edit files here:
