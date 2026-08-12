@@ -8,7 +8,7 @@ export interface Physics2DVector {
   readonly y: number;
 }
 
-export type Physics2DBodyType = "dynamic" | "fixed";
+export type Physics2DBodyType = "dynamic" | "fixed" | "kinematic-position";
 
 export type Physics2DColliderShape =
   | { readonly kind: "box"; readonly halfWidth: number; readonly halfHeight: number }
@@ -100,6 +100,7 @@ export interface Physics2DWorld {
   step(): Physics2DStepResult;
   setGravity(gravity: Physics2DVector): void;
   setBodyTransform(id: string, position: Physics2DVector, rotation: number): void;
+  setNextKinematicTransform(id: string, position: Physics2DVector, rotation: number): void;
   setBodyVelocity(id: string, linearVelocity: Physics2DVector, angularVelocity?: number): void;
   applyImpulse(id: string, impulse: Physics2DVector): void;
   destroy(): void;
@@ -211,7 +212,9 @@ class RapierPhysics2DWorld implements Physics2DWorld {
     const linearVelocity = vector(definition.linearVelocity ?? { x: 0, y: 0 }, "linearVelocity");
     let bodyDescription = definition.type === "dynamic"
       ? RAPIER.RigidBodyDesc.dynamic()
-      : RAPIER.RigidBodyDesc.fixed();
+      : definition.type === "fixed"
+        ? RAPIER.RigidBodyDesc.fixed()
+        : RAPIER.RigidBodyDesc.kinematicPositionBased();
     bodyDescription = bodyDescription
       .setTranslation(position.x, position.y)
       .setRotation(finite(definition.rotation ?? 0, "rotation"))
@@ -291,6 +294,18 @@ class RapierPhysics2DWorld implements Physics2DWorld {
     const body = this.requireBody(id).body;
     body.setTranslation(vector(position, "position"), true);
     body.setRotation(finite(rotation, "rotation"), true);
+  }
+
+  setNextKinematicTransform(id: string, position: Physics2DVector, rotation: number): void {
+    const record = this.requireBody(id);
+    if (record.type !== "kinematic-position") {
+      throw new Physics2DError(
+        "SFHS_PHYSICS_INPUT_INVALID",
+        `Next kinematic transform requires a kinematic-position body: ${id}`
+      );
+    }
+    record.body.setNextKinematicTranslation(vector(position, "position"));
+    record.body.setNextKinematicRotation(finite(rotation, "rotation"));
   }
 
   setBodyVelocity(id: string, linearVelocity: Physics2DVector, angularVelocity = 0): void {

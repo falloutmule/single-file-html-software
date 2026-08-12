@@ -66,6 +66,12 @@ function createScene(target: Physics2DWorld): void {
     rotation: -0.2,
     collider: { shape: { kind: "box", halfWidth: 0.42, halfHeight: 0.72 }, density: 1.1, friction: 0.4, restitution: 0.3 }
   });
+  target.createBody({
+    id: "kinematic-paddle",
+    type: "kinematic-position",
+    position: { x: 2.2, y: 5.8 },
+    collider: { shape: { kind: "circle", radius: 0.55 }, friction: 0, restitution: 0.9 }
+  });
 }
 
 async function resetWorld(): Promise<void> {
@@ -97,10 +103,10 @@ function drawBody(body: Physics2DSnapshot["bodies"][number]): void {
   context.save();
   context.translate(body.position.x * scale, body.position.y * scale);
   context.rotate(body.rotation);
-  context.fillStyle = body.id === "ball" ? "#ffd166" : body.type === "fixed" ? "#4d8fb9" : "#72e0a5";
-  if (body.id === "ball") {
+  context.fillStyle = body.id === "ball" ? "#ffd166" : body.type === "fixed" ? "#4d8fb9" : body.type === "kinematic-position" ? "#ef7dbb" : "#72e0a5";
+  if (body.id === "ball" || body.id === "kinematic-paddle") {
     context.beginPath();
-    context.arc(0, 0, 0.45 * scale, 0, Math.PI * 2);
+    context.arc(0, 0, (body.id === "ball" ? 0.45 : 0.55) * scale, 0, Math.PI * 2);
     context.fill();
     context.strokeStyle = "#6d4c12";
     context.lineWidth = 3;
@@ -131,6 +137,8 @@ function frame(time: number): void {
   accumulator += Math.min(0.1, (time - previousTime) / 1000);
   previousTime = time;
   while (accumulator >= fixedStep) {
+    const paddleX = 2.2 + Math.sin((ticks + 1) * fixedStep * 2.4) * 1.25;
+    world.setNextKinematicTransform("kinematic-paddle", { x: paddleX, y: 5.8 }, 0);
     const result = world.step();
     snapshot = result;
     collisions += result.collisions.filter((event) => event.started).length;
@@ -169,7 +177,7 @@ const proofApi = Object.freeze({
       body.linearVelocity.x, body.linearVelocity.y, body.angularVelocity
     ].every(Number.isFinite));
     return Object.freeze({
-      pass: shell.dataset.phase === "running" && ticks >= 5 && bodiesFinite && snapshot.bodies.length === 6,
+      pass: shell.dataset.phase === "running" && ticks >= 5 && bodiesFinite && snapshot.bodies.length === 7,
       snapshot: Object.freeze({ ticks, collisions, generation, bodies: snapshot.bodies })
     });
   }
