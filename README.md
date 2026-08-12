@@ -102,6 +102,11 @@ Here is what that includes:
   checker tasks while calling the same SFHS CLI. This avoids creating a second,
   incompatible implementation of the build and release rules.
 
+- **Renderer-neutral Rapier 2D physics.** `@sfhs/physics-2d` provides a small
+  fixed-step world, common rigid bodies and colliders, state access, impulses,
+  collision events, and explicit cleanup without coupling products to a
+  renderer. The neutral Canvas proof lives in `examples/physics-2d-proof`.
+
 - **An importer proving an existing HTML game can be moved into SFHS.** A small
   non-SNC game was inventoried, migrated behind the SFHS contracts, packed into
   one file, and behavior-tested. That proves SFHS can support more than projects

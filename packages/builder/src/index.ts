@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { dirname, extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
-import { type BuildResult, build, transform } from "esbuild";
+import { type BuildResult, build, type Plugin, transform } from "esbuild";
 
 import {
   canonicalJsonStringify,
@@ -12,6 +12,7 @@ import {
 import { discoverProject, resolveProjectPath, sha256Bytes } from "@sfhs/core";
 
 export const packageIdentity = "@sfhs/builder" as const;
+const wasmModuleNamespace = "sfhs-wasm-module";
 
 export type BuildErrorCode =
   | "SFHS_BUILD_ASSET_INVALID"
@@ -237,6 +238,53 @@ function outputImports(result: BuildResult): readonly string[] {
     .map((entry) => entry.path));
 }
 
+function wasmModulePlugin(maximumBytes: number): Plugin {
+  return {
+    name: wasmModuleNamespace,
+    setup(esbuild): void {
+      esbuild.onResolve({ filter: /\.wasm$/ }, (args) => ({
+        namespace: wasmModuleNamespace,
+        path: isAbsolute(args.path) ? args.path : resolve(args.resolveDir, args.path)
+      }));
+      esbuild.onLoad({ filter: /.*/, namespace: wasmModuleNamespace }, async (args) => {
+        const bytes = await readFile(args.path);
+        if (bytes.byteLength > maximumBytes) {
+          throw new SfhsBuildError("SFHS_BUILD_ASSET_TOO_LARGE", `Imported WASM exceeds the configured size limit: ${args.path}`);
+        }
+        let module: WebAssembly.Module;
+        try {
+          module = new WebAssembly.Module(bytes);
+        } catch {
+          throw new SfhsBuildError("SFHS_BUILD_ASSET_INVALID", `Imported WASM is invalid: ${args.path}`);
+        }
+        const imports = [...new Set(WebAssembly.Module.imports(module).map((entry) => entry.module))];
+        const exports = WebAssembly.Module.exports(module).map((entry) => entry.name);
+        for (const name of exports) {
+          if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/u.test(name)) {
+            throw new SfhsBuildError("SFHS_BUILD_ASSET_UNSUPPORTED", `WASM export is not a JavaScript identifier: ${name}`);
+          }
+        }
+        const importBindings = imports.map((specifier, index) => `import * as sfhsImport${index} from ${JSON.stringify(specifier)};`);
+        const importObject = imports.map((specifier, index) => `${JSON.stringify(specifier)}:sfhsImport${index}`).join(",");
+        const exportBindings = exports.map((name) => `export const ${name}=sfhsInstance.exports[${JSON.stringify(name)}];`);
+        return {
+          contents: [
+            ...importBindings,
+            `const sfhsEncoded=${JSON.stringify(bytes.toString("base64"))};`,
+            "const sfhsDecoded=atob(sfhsEncoded);",
+            "const sfhsBytes=new Uint8Array(sfhsDecoded.length);",
+            "for(let index=0;index<sfhsDecoded.length;index+=1)sfhsBytes[index]=sfhsDecoded.charCodeAt(index);",
+            `const sfhsInstance=new WebAssembly.Instance(new WebAssembly.Module(sfhsBytes),{${importObject}});`,
+            ...exportBindings
+          ].join("\n"),
+          loader: "js",
+          resolveDir: dirname(args.path)
+        };
+      });
+    }
+  };
+}
+
 export async function buildIntermediate(plan: BuildPlan): Promise<IntermediateBundle> {
   try {
     if (!(await stat(plan.publicDirectoryPath)).isDirectory()) {
@@ -275,6 +323,7 @@ export async function buildIntermediate(plan: BuildPlan): Promise<IntermediateBu
       charset: "ascii",
       treeShaking: true,
       logLevel: "silent",
+      plugins: [wasmModulePlugin(plan.manifest.assets.maximumSingleAssetBytes)],
       outdir: intermediateDirectory,
       entryNames: "app",
       assetNames: "assets/[name]-[hash]",
@@ -332,7 +381,9 @@ export async function buildIntermediate(plan: BuildPlan): Promise<IntermediateBu
     .sort((left, right) => left.fileName.localeCompare(right.fileName)));
 
   const moduleInputs = Object.keys(result.metafile?.inputs ?? {})
-    .map((input) => resolve(plan.projectRoot, input))
+    .map((input) => input.startsWith(`${wasmModuleNamespace}:`)
+      ? input.slice(wasmModuleNamespace.length + 1)
+      : resolve(plan.projectRoot, input))
     .filter((input) => isInsideProject(plan.projectRoot, input))
     .map((input) => projectPath(plan.projectRoot, input))
     .sort();
