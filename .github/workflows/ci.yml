@@ -91,6 +91,7 @@ jobs:
             .sfhs-ci/godot-animation-*.json
             .sfhs-ci/godot-animation-proof/dist/index.html
             .sfhs-ci/godot-animation-proof/src/assets/mascot-*
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
 
