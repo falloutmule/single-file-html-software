@@ -63,6 +63,53 @@ describe("SFHS Physics 2D", () => {
     }));
   });
 
+  it("moves position-based kinematic bodies with inferred collision velocity", async () => {
+    const world = await createPhysics2DWorld({ gravity: { x: 0, y: 0 } });
+    try {
+      world.createBody({
+        id: "pusher",
+        type: "kinematic-position",
+        position: { x: -2, y: 0 },
+        collider: { shape: { kind: "circle", radius: 0.5 }, friction: 0, restitution: 1 }
+      });
+      world.createBody({
+        id: "puck",
+        type: "dynamic",
+        position: { x: 0, y: 0 },
+        ccd: true,
+        collider: { shape: { kind: "circle", radius: 0.5 }, density: 1, friction: 0, restitution: 1 }
+      });
+
+      let collisionStarted = false;
+      for (let step = 0; step < 30; step += 1) {
+        world.setNextKinematicTransform("pusher", { x: -2 + (step + 1) * 0.08, y: 0 }, 0.01 * (step + 1));
+        const result = world.step();
+        collisionStarted ||= result.collisions.some((event) => event.started &&
+          event.bodyA === "puck" && event.bodyB === "pusher");
+      }
+
+      expect(collisionStarted).toBe(true);
+      expect(world.getBody("pusher").type).toBe("kinematic-position");
+      expect(world.getBody("pusher").rotation).toBeCloseTo(0.3);
+      expect(world.getBody("pusher").linearVelocity.x).toBeGreaterThan(0);
+      expect(world.getBody("puck").linearVelocity.x).toBeGreaterThan(0);
+    } finally {
+      world.destroy();
+    }
+  });
+
+  it("rejects next kinematic transforms for non-kinematic bodies", async () => {
+    const world = await fallingWorld();
+    try {
+      expect(() => world.setNextKinematicTransform("ball", { x: 1, y: 1 }, 0))
+        .toThrowError(expect.objectContaining<Partial<Physics2DError>>({ code: "SFHS_PHYSICS_INPUT_INVALID" }));
+      expect(() => world.setNextKinematicTransform("missing", { x: 1, y: 1 }, 0))
+        .toThrowError(expect.objectContaining<Partial<Physics2DError>>({ code: "SFHS_PHYSICS_BODY_MISSING" }));
+    } finally {
+      world.destroy();
+    }
+  });
+
   it("rejects duplicate, missing, and invalid body operations with stable errors", async () => {
     const world = await createPhysics2DWorld({ gravity: { x: 0, y: 0 } });
     try {
