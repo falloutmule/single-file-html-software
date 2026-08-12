@@ -1,0 +1,22 @@
+; Engine configuration file.
+; SFHS fixture for deterministic transparent animation export.
+
+config_version=5
+
+[application]
+config/name="SFHS Godot Animation Proof"
+run/main_scene="res://mascot.tscn"
+
+[display]
+window/size/viewport_width=64
+window/size/viewport_height=64
+window/size/window_width_override=64
+window/size/window_height_override=64
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+anti_aliasing/quality/msaa_2d=0
+anti_aliasing/quality/screen_space_aa=0
+environment/defaults/default_clear_color=Color(0, 0, 0, 0)

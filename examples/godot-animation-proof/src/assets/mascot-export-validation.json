@@ -1,0 +1,95 @@
+{
+  "checks": [
+    "descriptor",
+    "path-and-symlink-guard",
+    "network-source-guard",
+    "godot-version",
+    "rgba8",
+    "alpha-nonempty",
+    "transparent-border",
+    "anchor-baseline",
+    "nearest-integer-scaling",
+    "row-major-sheet-packing",
+    "variant-alpha-parity"
+  ],
+  "outputs": [
+    {
+      "bytes": 652,
+      "frames": [
+        {
+          "alphaPixels": 726,
+          "alphaSha256": "660535a522041e942621afbbe9e33690acf2f8f3deceefa842abc1ff7850d46c",
+          "animation": "idle",
+          "bounds": {
+            "maxX": 51,
+            "maxY": 55,
+            "minX": 12,
+            "minY": 22
+          },
+          "id": "idle",
+          "index": 0,
+          "rgbaSha256": "d745a4d4b6d721c0e490481adb897a28c3f81891c0404c33299bee845f36ce1f",
+          "timeSeconds": 0
+        },
+        {
+          "alphaPixels": 746,
+          "alphaSha256": "468796dcca13960d539011bb60a7c2762fb3fe357777ec6a3a7981f0e19fe41c",
+          "animation": "wave",
+          "bounds": {
+            "maxX": 55,
+            "maxY": 55,
+            "minX": 12,
+            "minY": 22
+          },
+          "id": "wave",
+          "index": 1,
+          "rgbaSha256": "74cfc595ad0738e61399bf7f135c4710dab423f3465a1ef96b80e8f6360d36d3",
+          "timeSeconds": 0.5
+        }
+      ],
+      "id": "mint",
+      "output": "src/assets/mascot-mint.png",
+      "sha256": "02cbdf6b901542c9022b1268c6e0e49ea7937dc403afc5267a327b7f0ec4ee45"
+    },
+    {
+      "bytes": 651,
+      "frames": [
+        {
+          "alphaPixels": 726,
+          "alphaSha256": "660535a522041e942621afbbe9e33690acf2f8f3deceefa842abc1ff7850d46c",
+          "animation": "idle",
+          "bounds": {
+            "maxX": 51,
+            "maxY": 55,
+            "minX": 12,
+            "minY": 22
+          },
+          "id": "idle",
+          "index": 0,
+          "rgbaSha256": "0e10e2908077d526b09703b14d141cbdf6c58e3c196c5994d861b37142f51cc3",
+          "timeSeconds": 0
+        },
+        {
+          "alphaPixels": 746,
+          "alphaSha256": "468796dcca13960d539011bb60a7c2762fb3fe357777ec6a3a7981f0e19fe41c",
+          "animation": "wave",
+          "bounds": {
+            "maxX": 55,
+            "maxY": 55,
+            "minX": 12,
+            "minY": 22
+          },
+          "id": "wave",
+          "index": 1,
+          "rgbaSha256": "a9eb16d3aadb6bc92bd5ed417383fd7f7240189bd9c9caae906516fda80c06c6",
+          "timeSeconds": 0.5
+        }
+      ],
+      "id": "violet",
+      "output": "src/assets/mascot-violet.png",
+      "sha256": "bef459887e4df35a88afe7b9209c9d30760a326bde99c867b77012f2d4d4217d"
+    }
+  ],
+  "schema": "sfhs.godot-animation-validation@1",
+  "valid": true
+}

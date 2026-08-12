@@ -1,0 +1,22 @@
+{
+  "schema": "sfhs.godot-animation-export@1",
+  "godotProject": "godot",
+  "scene": "res://mascot.tscn",
+  "animationPlayer": "AnimationPlayer",
+  "workingFrame": { "width": 64, "height": 64 },
+  "scale": 2,
+  "sheet": { "columns": 2, "rows": 1 },
+  "anchor": { "x": 32, "y": 56, "groundedTolerance": 2 },
+  "border": { "transparentPixels": 2 },
+  "variantAlphaParity": true,
+  "samples": [
+    { "id": "idle", "animation": "idle", "timeSeconds": 0, "grounded": true },
+    { "id": "wave", "animation": "wave", "timeSeconds": 0.5, "grounded": true }
+  ],
+  "variants": [
+    { "id": "mint", "parameters": { "fill": "68d6c7", "accent": "fff0b5" }, "output": "src/assets/mascot-mint.png" },
+    { "id": "violet", "parameters": { "fill": "b99be8", "accent": "ff9a83" }, "output": "src/assets/mascot-violet.png" }
+  ],
+  "metadataOutput": "src/assets/mascot-export-metadata.json",
+  "validationOutput": "src/assets/mascot-export-validation.json"
+}

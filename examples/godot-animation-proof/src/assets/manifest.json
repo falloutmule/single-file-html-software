@@ -1,0 +1,11 @@
+{
+  "bundles": [
+    {
+      "name": "godot-animation-proof",
+      "assets": [
+        { "alias": "mascot-mint", "src": "./mascot-mint.png" },
+        { "alias": "mascot-violet", "src": "./mascot-violet.png" }
+      ]
+    }
+  ]
+}

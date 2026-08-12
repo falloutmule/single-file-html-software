@@ -43,6 +43,12 @@ import {
   writeEvidenceRun
 } from "@sfhs/evidence";
 import {
+  exportGodotAnimation,
+  GodotAnimationExportError,
+  type GodotAnimationExportResult,
+  type GodotAnimationFindingCode
+} from "@sfhs/godot-animation";
+import {
   auditOneShotProject,
   buildOneShotKit,
   initializeOneShotProject,
@@ -92,6 +98,7 @@ export type CliCommand =
   | "build"
   | "check"
   | "doctor"
+  | "godot animation export"
   | "inspect"
   | "one-shot audit"
   | "one-shot init"
@@ -122,6 +129,7 @@ export type CliFindingCode =
   | EvidenceErrorCode
   | OneShotFindingCode
   | GraduationFindingCode
+  | GodotAnimationFindingCode
   | HtmlArtifactBrowserSmokeFindingCode
   | "SFHS_ONE_SHOT_RUN_STATE_INVALID"
   | "SFHS_ONE_SHOT_RUN_STATE_REFERENCE_INVALID"
@@ -191,6 +199,14 @@ export interface CliHtmlArtifactBrowserSummary {
   readonly readySelectorMatched: boolean;
 }
 
+export interface CliGodotAnimationSummary {
+  readonly descriptor: { readonly path: string; readonly sha256: string };
+  readonly godot: { readonly executable: string; readonly executableSha256: string; readonly version: string; readonly supportedVersion: string };
+  readonly outputs: readonly { readonly id: string; readonly output: string; readonly bytes: number; readonly sha256: string; readonly disposition: "verified" | "written" }[];
+  readonly metadataOutput: string;
+  readonly validationOutput: string;
+}
+
 export interface CliTestStepResult {
   readonly id: string;
   readonly command: string;
@@ -226,6 +242,7 @@ export interface CliEnvelope {
   readonly artifact?: CliArtifactSummary;
   readonly htmlArtifact?: CliHtmlArtifactSummary;
   readonly browser?: CliHtmlArtifactBrowserSummary;
+  readonly godotAnimation?: CliGodotAnimationSummary;
   readonly testPlan?: CliTestPlanSummary;
   readonly release?: CliReleaseSummary;
   readonly oneShot?: {
@@ -275,6 +292,8 @@ interface ParsedArguments {
   readonly inputArgument?: string;
   readonly allowedRuntimeUrls: readonly string[];
   readonly readySelectorArgument?: string;
+  readonly descriptorArgument?: string;
+  readonly godotExecutableArgument?: string;
 }
 
 export interface CliCommandExecution {
@@ -311,7 +330,7 @@ export type CliHtmlArtifactBrowserRunner = (
   options?: HtmlArtifactBrowserSmokeOptions
 ) => Promise<HtmlArtifactBrowserSmokeReport>;
 
-const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|artifact verify|artifact smoke|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot complete|one-shot run-state inspect|one-shot run-state validate|one-shot graduate inspect|one-shot graduate plan|one-shot graduate import|one-shot graduate materialize|one-shot graduate audit|one-shot graduate complete> [--project <path>] [--input <html-file>] [--allow-runtime-url <exact-url>]... [--ready-selector <css-selector>] [--source <path>] [--evidence <path>] [--report <path>] [--candidate <path>] [--output <path>] [--brief <path>] [--lane <id>] [--protocol chat-v2] [--stage chat-build] [--depth <fast|deep>] [--changed <path>]... [--device-evidence <file>] [--json]";
+const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|godot animation export|artifact verify|artifact smoke|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot complete|one-shot run-state inspect|one-shot run-state validate|one-shot graduate inspect|one-shot graduate plan|one-shot graduate import|one-shot graduate materialize|one-shot graduate audit|one-shot graduate complete> [--project <path>] [--descriptor <path>] [--godot-executable <path>] [--input <html-file>] [--allow-runtime-url <exact-url>]... [--ready-selector <css-selector>] [--source <path>] [--evidence <path>] [--report <path>] [--candidate <path>] [--output <path>] [--brief <path>] [--lane <id>] [--protocol chat-v2] [--stage chat-build] [--depth <fast|deep>] [--changed <path>]... [--device-evidence <file>] [--json]";
 const execFileAsync = promisify(execFile);
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -358,6 +377,8 @@ function coreFinding(error: unknown, path: string): CliFinding {
 function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   const commandCandidate: string = (argv[0] === "release" && argv[1] === "prepare"
     ? "release prepare"
+    : argv[0] === "godot" && argv[1] === "animation" && argv[2] === "export"
+      ? "godot animation export"
     : argv[0] === "artifact" && ["verify", "smoke"].includes(argv[1] ?? "")
       ? `artifact ${argv[1]!}`
     : argv[0] === "one-shot" && argv[1] === "run-state" && ["inspect", "validate"].includes(argv[2] ?? "")
@@ -367,11 +388,12 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     : argv[0] === "one-shot" && ["init", "inspect", "audit", "kit", "preflight", "complete"].includes(argv[1] ?? "")
       ? `one-shot ${argv[1]!}`
       : argv[0]) ?? "";
-  const optionStart = commandCandidate.startsWith("one-shot run-state") || commandCandidate.startsWith("one-shot graduate") ? 3 : commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") || commandCandidate.startsWith("artifact ") ? 2 : 1;
+  const optionStart = commandCandidate === "godot animation export" ? 3 : commandCandidate.startsWith("one-shot run-state") || commandCandidate.startsWith("one-shot graduate") ? 3 : commandCandidate === "release prepare" || commandCandidate.startsWith("one-shot ") || commandCandidate.startsWith("artifact ") ? 2 : 1;
   if (
     commandCandidate !== "artifact smoke" &&
     commandCandidate !== "artifact verify" &&
     commandCandidate !== "doctor" &&
+    commandCandidate !== "godot animation export" &&
     commandCandidate !== "inspect" &&
     commandCandidate !== "one-shot init" &&
     commandCandidate !== "one-shot inspect" &&
@@ -418,6 +440,8 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   let candidateArgument: string | undefined;
   let inputArgument: string | undefined;
   let readySelectorArgument: string | undefined;
+  let descriptorArgument: string | undefined;
+  let godotExecutableArgument: string | undefined;
   const allowedRuntimeUrls: string[] = [];
   const changedPaths: string[] = [];
 
@@ -455,6 +479,15 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
         };
       }
       inputArgument = value;
+      index += 1;
+      continue;
+    }
+
+    if (argument === "--descriptor" || argument === "--godot-executable") {
+      const value = argv[index + 1];
+      const existing = argument === "--descriptor" ? descriptorArgument : godotExecutableArgument;
+      if (value === undefined || value.startsWith("--") || value.length === 0 || existing !== undefined) return { code: "SFHS_CLI_ARGUMENT_INVALID", severity: "error", path: "/argv", message: usage };
+      if (argument === "--descriptor") descriptorArgument = value; else godotExecutableArgument = value;
       index += 1;
       continue;
     }
@@ -608,6 +641,7 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
   const graduateAudit = commandCandidate === "one-shot graduate audit";
   const graduateComplete = commandCandidate === "one-shot graduate complete";
   const artifactCommand = commandCandidate === "artifact verify" || commandCandidate === "artifact smoke";
+  const godotAnimationCommand = commandCandidate === "godot animation export";
   if (
     (artifactCommand && (
       inputArgument === undefined ||
@@ -631,6 +665,8 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
       allowedRuntimeUrls.length > 0 ||
       readySelectorArgument !== undefined
     )) ||
+    (godotAnimationCommand && (projectArgument === undefined || descriptorArgument === undefined)) ||
+    (!godotAnimationCommand && (descriptorArgument !== undefined || godotExecutableArgument !== undefined)) ||
     (oneShotInit && (briefArgument === undefined || outputArgument === undefined || laneArgument === undefined || projectArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
     (oneShotProject && (projectArgument === undefined || briefArgument !== undefined || outputArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined || stageArgument !== undefined)) ||
     (oneShotKit && (outputArgument === undefined || projectArgument !== undefined || briefArgument !== undefined || laneArgument !== undefined || protocolArgument !== undefined || depthArgument !== undefined)) ||
@@ -665,6 +701,8 @@ function parseArguments(argv: readonly string[]): ParsedArguments | CliFinding {
     , ...(candidateArgument === undefined ? {} : { candidateArgument })
     , ...(inputArgument === undefined ? {} : { inputArgument })
     , ...(readySelectorArgument === undefined ? {} : { readySelectorArgument })
+    , ...(descriptorArgument === undefined ? {} : { descriptorArgument })
+    , ...(godotExecutableArgument === undefined ? {} : { godotExecutableArgument })
   };
 }
 
@@ -822,6 +860,12 @@ function formatHuman(envelope: CliEnvelope): string {
     lines.push(`ready-state: ${envelope.browser.readyState}`);
     lines.push(`ready-selector: ${envelope.browser.readySelectorRequested ?? "none"}`);
     lines.push(`ready-selector-matched: ${envelope.browser.readySelectorMatched}`);
+  }
+
+  if (envelope.godotAnimation !== undefined) {
+    lines.push(`godot: ${envelope.godotAnimation.godot.version}`);
+    lines.push(`godot-executable-sha256: ${envelope.godotAnimation.godot.executableSha256}`);
+    for (const output of envelope.godotAnimation.outputs) lines.push(`godot-animation-output: ${output.output} ${output.sha256} (${output.disposition})`);
   }
 
   if (envelope.testPlan !== undefined) {
@@ -1031,6 +1075,16 @@ function artifactSummary(artifact: PackedArtifact): CliArtifactSummary {
     sha256: artifact.descriptor.artifact.sha256,
     buildId: artifact.descriptor.artifact.buildId,
     sourceSha256: artifact.descriptor.source.sha256
+  };
+}
+
+function godotAnimationSummary(result: GodotAnimationExportResult): CliGodotAnimationSummary {
+  return {
+    descriptor: result.descriptor,
+    godot: result.godot,
+    outputs: result.outputs.map(({ id, output, bytes, sha256, disposition }) => ({ id, output, bytes, sha256, disposition })),
+    metadataOutput: result.metadataOutput,
+    validationOutput: result.validationOutput
   };
 }
 
@@ -1642,6 +1696,19 @@ export async function runCli(argv: readonly string[], options: CliRunOptions = {
 
   let build: CliBuildSummary | undefined;
   let artifact: CliArtifactSummary | undefined;
+  let godotAnimation: CliGodotAnimationSummary | undefined;
+  if (!hasErrors(findings) && parsed.command === "godot animation export") {
+    try {
+      godotAnimation = godotAnimationSummary(await exportGodotAnimation({
+        projectRoot: discovery.projectRoot,
+        descriptorPath: parsed.descriptorArgument!,
+        ...(parsed.godotExecutableArgument === undefined ? {} : { godotExecutable: parsed.godotExecutableArgument })
+      }));
+    } catch (error) {
+      if (error instanceof GodotAnimationExportError) findings.push(...error.findings);
+      else findings.push({ code: "SFHS_GODOT_ANIMATION_RENDER_FAILED", severity: "error", path: "/godotAnimation", message: "SFHS could not complete the Godot animation export." });
+    }
+  }
   if (!hasErrors(findings) && (parsed.command === "build" || parsed.command === "pack" || parsed.command === "verify")) {
     try {
       if (parsed.command === "build") {
@@ -1716,6 +1783,7 @@ export async function runCli(argv: readonly string[], options: CliRunOptions = {
     project: projectSummary(discovery, manifest),
     ...(build === undefined ? {} : { build }),
     ...(artifact === undefined ? {} : { artifact }),
+    ...(godotAnimation === undefined ? {} : { godotAnimation }),
     ...(testPlan === undefined ? {} : { testPlan }),
     ...(release === undefined ? {} : { release }),
     ...(parsed.command === "doctor" ? { runtime: { node: nodeVersion } } : {})

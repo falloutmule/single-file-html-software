@@ -106,6 +106,18 @@ describe("@sfhs/cli", () => {
     await expect(readdir(projectRoot)).resolves.toEqual(before);
   });
 
+  it("requires both project and descriptor for Godot animation export", async () => {
+    const result = await runCli(["godot", "animation", "export", "--project", ".", "--json"], { cwd: await makeTemporaryRoot() });
+
+    expect(result.exitCode).toBe(2);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      command: "unknown",
+      findings: [{ code: "SFHS_CLI_ARGUMENT_INVALID", path: "/argv", severity: "error" }],
+      ok: false,
+      schema: "sfhs.cli@1"
+    });
+  });
+
   it("builds a versioned One-Shot external-agent kit without a project", async () => {
     const root = await makeTemporaryRoot();
     const output = join(root, "sfhs-one-shot-kit.json");

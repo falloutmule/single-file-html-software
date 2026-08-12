@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>SFHS Godot Animation Proof</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main id="proof" data-ready="false">
+      <h1>Godot animation export</h1>
+      <p>Two renderer-neutral scene variants, packed offline into deterministic RGBA sheets.</p>
+      <canvas id="playback" width="640" height="256" aria-label="Godot animation sheet playback"></canvas>
+      <button id="toggle" type="button">Show wave frame</button>
+      <output id="status" aria-live="polite">Loading embedded sheets...</output>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
