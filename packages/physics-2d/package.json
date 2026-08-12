@@ -1,0 +1,19 @@
+{
+  "name": "@sfhs/physics-2d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#rapier2d-backend": {
+      "browser": "@dimforge/rapier2d/rapier.js",
+      "default": "@dimforge/rapier2d-compat"
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@dimforge/rapier2d": "0.19.3",
+    "@dimforge/rapier2d-compat": "0.19.3"
+  }
+}

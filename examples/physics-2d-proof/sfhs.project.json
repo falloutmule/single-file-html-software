@@ -1,0 +1,16 @@
+{
+  "schema": "sfhs.project@1",
+  "project": { "id": "physics-2d-proof", "title": "SFHS Physics 2D Proof", "version": "0.1.0" },
+  "adapter": {
+    "id": "dom-interactive",
+    "versionRange": "^0.1.0",
+    "renderer": { "required": "none", "webgpu": "disabled", "unsupportedBehavior": "show-capability-page" }
+  },
+  "source": { "html": "src/index.html", "entry": "src/main.ts", "styles": ["src/styles.css"], "publicDir": "public" },
+  "viewport": { "mode": "adaptive", "logicalWidth": 720, "logicalHeight": 480, "maxDevicePixelRatio": 4, "orientation": "adaptive" },
+  "assets": { "manifest": "src/assets/manifest.json", "runtimeExternalUrls": [], "inline": "all", "maximumSingleAssetBytes": 8388608 },
+  "runtime": { "simulationHz": 60, "maximumFrameDeltaMs": 100, "pauseWhenHidden": true, "domOverlay": true },
+  "storage": { "localStorage": "disabled", "exportImportFallback": true },
+  "build": { "output": "dist/index.html", "minify": true, "sourceMaps": "external-evidence-only", "canonicalLineEnding": "lf", "failOnExternalReference": true, "failOnDynamicChunk": true },
+  "test": { "baseURL": "http://127.0.0.1:4173", "browsers": ["chromium"], "viewports": ["desktop", "samsung-s21-ultra-portrait", "samsung-s21-ultra-landscape"], "screenshots": ["running"], "fileProtocolSmoke": true }
+}

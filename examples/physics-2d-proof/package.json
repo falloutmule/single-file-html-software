@@ -1,0 +1,17 @@
+{
+  "name": "@sfhs/example-physics-2d-proof",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "browser-proof": "node tools/run-browser-proof.mjs"
+  },
+  "dependencies": {
+    "@sfhs/physics-2d": "workspace:*"
+  },
+  "devDependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*",
+    "playwright": "1.61.1"
+  }
+}

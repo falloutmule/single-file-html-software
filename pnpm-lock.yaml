@@ -231,6 +231,22 @@ importers:
         specifier: 1.61.1
         version: 1.61.1
 
+  examples/physics-2d-proof:
+    dependencies:
+      '@sfhs/physics-2d':
+        specifier: workspace:*
+        version: link:../../packages/physics-2d
+    devDependencies:
+      '@sfhs/browser-runner':
+        specifier: workspace:*
+        version: link:../../packages/browser-runner
+      '@sfhs/packer':
+        specifier: workspace:*
+        version: link:../../packages/packer
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+
   examples/pixi-compat-geometry:
     dependencies:
       '@sfhs/pixi-canvas-compat':
@@ -494,6 +510,15 @@ importers:
         specifier: 8.0.1
         version: 8.0.1
 
+  packages/physics-2d:
+    dependencies:
+      '@dimforge/rapier2d':
+        specifier: 0.19.3
+        version: 0.19.3
+      '@dimforge/rapier2d-compat':
+        specifier: 0.19.3
+        version: 0.19.3
+
   packages/pixi-canvas-compat:
     dependencies:
       '@sfhs/pixi-canvas-compat-contract':
@@ -552,6 +577,12 @@ importers:
         version: link:../packer
 
 packages:
+
+  '@dimforge/rapier2d-compat@0.19.3':
+    resolution: {integrity: sha512-5HZUgiSpu9Uba3He+4SCPVte3h2vgxcodkxWThRjd3X/zgq/Z4OyRUKpNEOsOR6AC+OfulPkkZ5asZGzRMpcwA==}
+
+  '@dimforge/rapier2d@0.19.3':
+    resolution: {integrity: sha512-3dz6q3E3+Gbla1qje6/EhzlZ+nH/oQNpUASM4Mspk8DPPH7itxutpLJyvbu7Nci1aW1hhHp7eBZ3w3j45O5MiQ==}
 
   '@emnapi/core@1.11.1':
     resolution: {integrity: sha512-RSvbQmHzdKzNsLYa/wHrbc3KN4sYLKAdPZxqiM2HATqv/SBk2/ENSHpvXGaLOMcsAyz0poEGqkmmKYG3OWiJEQ==}
@@ -1657,6 +1688,10 @@ packages:
     engines: {node: '>=10'}
 
 snapshots:
+
+  '@dimforge/rapier2d-compat@0.19.3': {}
+
+  '@dimforge/rapier2d@0.19.3': {}
 
   '@emnapi/core@1.11.1':
     dependencies:

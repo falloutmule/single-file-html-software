@@ -15,6 +15,7 @@ import {
 } from "./index.ts";
 
 const fixtureRoot = fileURLToPath(new URL("../../../examples/pixi-minimal/", import.meta.url));
+const physicsFixtureRoot = fileURLToPath(new URL("../../../examples/physics-2d-proof/", import.meta.url));
 
 async function readOptional(path: string): Promise<Buffer | undefined> {
   return readFile(path).catch(() => undefined);
@@ -69,6 +70,17 @@ describe("@sfhs/builder", () => {
     );
     expect(await readOptional(plan.outputPath)).toEqual(outputBefore);
     expect(existsSync(join(fixtureRoot, ".sfhs-intermediate"))).toBe(false);
+  });
+
+  it("embeds imported WebAssembly modules without a runtime sidecar", async () => {
+    const first = await buildProject(physicsFixtureRoot);
+    const second = await buildProject(physicsFixtureRoot);
+
+    expect(first.javascript).toContain("WebAssembly.Module");
+    expect(first.javascript).not.toContain("rapier_wasm2d_bg.wasm");
+    expect(first.emittedAssets).toHaveLength(0);
+    expect(second.javascript).toBe(first.javascript);
+    expect(second.sourceSha256).toBe(first.sourceSha256);
   });
 
   it("uses esbuild to serialize raw C0/C1 JavaScript controls without changing string or regexp behavior", async () => {
