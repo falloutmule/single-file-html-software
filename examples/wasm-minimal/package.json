@@ -1,0 +1,19 @@
+{
+  "name": "@sfhs/example-wasm-minimal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "pnpm --dir ../.. run lint",
+    "typecheck": "pnpm --dir ../.. run typecheck",
+    "test": "pnpm --dir ../.. run test",
+    "browser-smoke": "pnpm --dir ../.. sfhs pack --project examples/wasm-minimal && node tools/browser-smoke.mjs"
+  },
+  "dependencies": {
+    "@sfhs/browser-runner": "workspace:*",
+    "@sfhs/packer": "workspace:*"
+  },
+  "devDependencies": {
+    "playwright": "1.61.1"
+  }
+}

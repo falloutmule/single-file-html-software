@@ -118,6 +118,7 @@ function mediaTypeFor(pathValue: string): string {
     case ".webp": return "image/webp";
     case ".svg": return "image/svg+xml";
     case ".wav": return "audio/wav";
+    case ".wasm": return "application/wasm";
     default: throw new SfhsBuildError(
       "SFHS_BUILD_ASSET_UNSUPPORTED",
       `Unsupported v0.1 asset extension: ${extname(pathValue).toLowerCase() || "<none>"}`
@@ -333,7 +334,8 @@ export async function buildIntermediate(plan: BuildPlan): Promise<IntermediateBu
         ".jpeg": "file",
         ".webp": "file",
         ".svg": "file",
-        ".wav": "file"
+        ".wav": "file",
+        ".wasm": "file"
       },
       define: {
         "process.env.NODE_ENV": '"production"'
@@ -370,6 +372,9 @@ export async function buildIntermediate(plan: BuildPlan): Promise<IntermediateBu
   const emittedAssets = Object.freeze(outputFiles
     .filter((file) => file !== javascriptFile && extname(file.path) !== ".css" && extname(file.path) !== ".map")
     .map((file): IntermediateOutputAsset => {
+      if (file.contents.byteLength > plan.manifest.assets.maximumSingleAssetBytes) {
+        throw new SfhsBuildError("SFHS_BUILD_ASSET_TOO_LARGE", `Emitted asset exceeds the configured size limit: ${file.path}`);
+      }
       const fileName = relative(intermediateDirectory, file.path).split(sep).join("/");
       return Object.freeze({
         fileName,
