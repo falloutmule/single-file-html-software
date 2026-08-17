@@ -10,6 +10,7 @@ import {
   type IntermediateBundle
 } from "@sfhs/builder";
 import {
+  runDomCanvasFabricArtifactScenarios,
   runPixiArtifactScenarios
 } from "@sfhs/browser-runner";
 import {
@@ -269,7 +270,8 @@ export interface CliReleaseBrowserResult {
 export type CliReleaseBrowserRunner = (
   bytes: Uint8Array,
   descriptor: SfhsArtifactManifest,
-  evidenceDirectory: string
+  evidenceDirectory: string,
+  adapterId: string
 ) => Promise<CliReleaseBrowserResult>;
 
 const usage = "Usage: sfhs <doctor|inspect|validate|build|pack|verify|test|check|release prepare|one-shot init|one-shot inspect|one-shot audit|one-shot kit|one-shot preflight|one-shot complete|one-shot run-state inspect|one-shot run-state validate|one-shot graduate inspect|one-shot graduate plan|one-shot graduate import|one-shot graduate materialize|one-shot graduate audit|one-shot graduate complete> [--project <path>] [--source <path>] [--evidence <path>] [--report <path>] [--candidate <path>] [--output <path>] [--brief <path>] [--lane <id>] [--protocol chat-v2] [--stage chat-build] [--depth <fast|deep>] [--changed <path>]... [--device-evidence <file>] [--json]";
@@ -964,8 +966,16 @@ async function executeTestPlan(
 const defaultReleaseBrowserRunner: CliReleaseBrowserRunner = async (
   bytes,
   descriptor,
-  evidenceDirectory
+  evidenceDirectory,
+  adapterId
 ) => {
+  if (adapterId === "dom-canvas-fabric") {
+    const report = await runDomCanvasFabricArtifactScenarios(bytes, descriptor, {
+      browserChannel: process.env.SFHS_BROWSER_CHANNEL === "chrome" ? "chrome" : "chromium",
+      evidenceDirectory: join(evidenceDirectory, "screenshots")
+    });
+    return Object.freeze({ valid: report.valid, browserVersion: report.browserVersion, screenshots: report.screenshots });
+  }
   const report = await runPixiArtifactScenarios(bytes, descriptor, {
     browserChannel: process.env.SFHS_BROWSER_CHANNEL === "chrome" ? "chrome" : "chromium",
     evidenceDirectory: join(evidenceDirectory, "screenshots")
@@ -1095,7 +1105,10 @@ async function prepareRelease(
     commands.push({ id: "pack", command: "sfhs pack --json", exitCode: 1, status: "failed" });
   }
 
-  const releaseSteps = releasePreparationSteps();
+  const projectRelativePath = relative(workingDirectory, discovery.projectRoot).replaceAll("\\", "/");
+  const releaseSteps = releasePreparationSteps().map((step) => step.id === "determinism"
+    ? { ...step, arguments: ["determinism", "--", "--project", projectRelativePath], command: `pnpm determinism -- --project ${projectRelativePath}` }
+    : step);
   const stepResults = await executeTestPlan({
     schema: "sfhs.test-plan@1",
     mode: "check",
@@ -1172,7 +1185,8 @@ async function prepareRelease(
       const browser = await (options.releaseBrowserRunner ?? defaultReleaseBrowserRunner)(
         packed.bytes,
         packed.descriptor,
-        evidenceDirectory
+        evidenceDirectory,
+        (JSON.parse(await readFile(discovery.manifestPath, "utf8")) as { adapter: { id: string } }).adapter.id
       );
       browserVersion = browser.browserVersion;
       commands.push({

@@ -1,0 +1,8 @@
+{
+  "name": "@sfhs/control-feedback-audio-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@sfhs/control-feedback-runtime": "workspace:*" }
+}

@@ -112,6 +112,9 @@ function mediaTypeFor(pathValue: string): string {
   switch (extname(pathValue).toLowerCase()) {
     case ".json": return "application/json";
     case ".png": return "image/png";
+    case ".jpg":
+    case ".jpeg": return "image/jpeg";
+    case ".webp": return "image/webp";
     case ".svg": return "image/svg+xml";
     case ".wav": return "audio/wav";
     default: throw new SfhsBuildError(
@@ -277,6 +280,9 @@ export async function buildIntermediate(plan: BuildPlan): Promise<IntermediateBu
       assetNames: "assets/[name]-[hash]",
       loader: {
         ".png": "file",
+        ".jpg": "file",
+        ".jpeg": "file",
+        ".webp": "file",
         ".svg": "file",
         ".wav": "file"
       },

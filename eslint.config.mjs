@@ -31,5 +31,26 @@ export default tseslint.config(
         process: "readonly"
       }
     }
+  },
+  {
+    files: ["examples/ueye/src/**/*.js"],
+    languageOptions: {
+      globals: {
+        Blob: "readonly",
+        CustomEvent: "readonly",
+        EventTarget: "readonly",
+        FileReader: "readonly",
+        URL: "readonly",
+        clearTimeout: "readonly",
+        console: "readonly",
+        document: "readonly",
+        fetch: "readonly",
+        localStorage: "readonly",
+        location: "readonly",
+        requestAnimationFrame: "readonly",
+        setTimeout: "readonly",
+        window: "readonly"
+      }
+    }
   }
 );

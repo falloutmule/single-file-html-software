@@ -1,0 +1,61 @@
+{
+  "schema": "sfhs.project@1",
+  "project": {
+    "id": "the-imaginarium",
+    "title": "The Imaginarium",
+    "version": "0.1.0"
+  },
+  "adapter": {
+    "id": "dom-canvas-fabric",
+    "versionRange": "^0.1.0",
+    "renderer": {
+      "required": "canvas2d",
+      "webgpu": "disabled",
+      "unsupportedBehavior": "show-capability-page"
+    }
+  },
+  "source": {
+    "html": "src/index.html",
+    "entry": "src/main.js",
+    "styles": ["src/styles.css"],
+    "publicDir": "public"
+  },
+  "viewport": {
+    "mode": "responsive-contained-artboard",
+    "logicalWidth": 390,
+    "logicalHeight": 844,
+    "maxDevicePixelRatio": 2,
+    "orientation": "adaptive"
+  },
+  "assets": {
+    "manifest": "src/assets/manifest.json",
+    "runtimeExternalUrls": [],
+    "inline": "all",
+    "maximumSingleAssetBytes": 4194304
+  },
+  "runtime": {
+    "simulationHz": 0,
+    "maximumFrameDeltaMs": 250,
+    "pauseWhenHidden": true,
+    "domOverlay": true
+  },
+  "storage": {
+    "localStorage": "optional",
+    "exportImportFallback": true
+  },
+  "build": {
+    "output": "dist/index.html",
+    "minify": true,
+    "sourceMaps": "external-evidence-only",
+    "canonicalLineEnding": "lf",
+    "failOnExternalReference": true,
+    "failOnDynamicChunk": true
+  },
+  "test": {
+    "baseURL": "http://127.0.0.1:4173",
+    "browsers": ["chromium"],
+    "viewports": ["mobile-portrait", "desktop"],
+    "screenshots": ["home", "editing", "gallery", "grown-up-tools"],
+    "fileProtocolSmoke": true
+  }
+}

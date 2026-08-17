@@ -40,6 +40,19 @@ describe("@sfhs/contracts", () => {
     }, { mode: "release" })).toEqual({ valid: true, findings: [] });
   });
 
+  it("accepts the DOM/Fabric Canvas 2D adapter contract", () => {
+    expect(validateProjectManifest({
+      ...validProject,
+      adapter: {
+        id: "dom-canvas-fabric",
+        versionRange: "^0.1.0",
+        renderer: { required: "canvas2d", webgpu: "disabled", unsupportedBehavior: "show-capability-page" }
+      },
+      viewport: { ...validProject.viewport, mode: "responsive-contained-artboard" },
+      runtime: { ...validProject.runtime, simulationHz: 0 }
+    }, { mode: "release" })).toEqual({ valid: true, findings: [] });
+  });
+
   it("rejects emulation as physical Samsung Galaxy S21 Ultra acceptance", () => {
     expect(validatePhysicalDeviceAcceptanceManifest(invalidDeviceEmulation).findings).toEqual([
       expect.objectContaining({ code: "SFHS_DEVICE_NOT_PHYSICAL", path: "/device/physical" })

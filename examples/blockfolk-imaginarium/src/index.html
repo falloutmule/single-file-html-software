@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Fabric.js 7.4.0 is MIT licensed. Temporary category icons are from Lucide under the ISC license. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#6d4aa5" />
+    <title>BlockFolk Imaginarium</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-shell" data-boot="pending">
+      <section id="home-screen" class="screen home-screen" aria-labelledby="home-title">
+        <div class="paper-cloud cloud-a" aria-hidden="true"></div>
+        <div class="paper-cloud cloud-b" aria-hidden="true"></div>
+        <header class="hero">
+          <div class="logo-mark" aria-hidden="true"><span>✦</span><span>●</span><span>★</span></div>
+          <p class="eyebrow">A sticker book for big ideas</p>
+          <h1 id="home-title">BlockFolk Imaginarium</h1>
+          <p>Add your own pictures now.<br />BlockFolk are coming soon.</p>
+        </header>
+        <div class="home-actions">
+          <button type="button" class="home-card make-card" data-action="new-picture"><span class="card-icon" aria-hidden="true">✂</span><strong>Make a Picture</strong><small>Start with a fresh page</small></button>
+          <button type="button" class="home-card gallery-card" data-action="show-gallery"><span class="card-icon" aria-hidden="true">▣</span><strong>My Pictures</strong><small>See what you made</small></button>
+          <button type="button" class="home-card surprise-card" data-action="surprise-picture"><span class="card-icon" aria-hidden="true">?</span><strong>Surprise Me</strong><small>Start with a fun idea</small></button>
+          <button type="button" class="home-card puzzle-card" data-action="make-puzzle" data-control-tone="sky"><span class="card-icon" aria-hidden="true">▦</span><strong>Make a Puzzle</strong><small>Turn a picture into a game</small></button>
+          <button type="button" class="home-card grown-card" data-action="show-parent-gate"><span class="card-icon" aria-hidden="true">★</span><strong>Grown-Up Tools</strong><small>Sticker packs and settings</small></button>
+        </div>
+        <button type="button" id="continue-picture" class="continue-button" data-action="continue-picture" hidden>Keep making your picture →</button>
+        <p class="privacy-note">Private on this device · Works offline · No ads</p>
+      </section>
+
+      <section id="editor-screen" class="screen editor-screen" aria-label="Picture editor" hidden>
+        <header class="editor-topbar">
+          <button type="button" class="icon-word" data-action="go-home"><span aria-hidden="true">⌂</span>Home</button>
+          <div class="history-actions">
+            <button type="button" class="icon-word" data-action="undo" disabled><span aria-hidden="true">↶</span>Undo</button>
+            <button type="button" class="icon-word" data-action="redo" disabled><span aria-hidden="true">↷</span>Redo</button>
+          </div>
+          <button type="button" class="icon-word sound-button" data-action="toggle-sound" aria-pressed="false"><span aria-hidden="true">♪</span>Sound</button>
+          <button type="button" class="done-button" data-action="done-picture"><span aria-hidden="true">✓</span>Done</button>
+        </header>
+
+        <div class="editor-main">
+          <div class="idea-row">
+            <button type="button" class="pill-button" data-action="show-backgrounds"><span aria-hidden="true">▧</span> Background</button>
+            <button type="button" class="pill-button" data-action="show-idea"><span aria-hidden="true">✦</span> Idea</button>
+            <span id="save-status" class="save-status" role="status">Ready!</span>
+          </div>
+          <div id="idea-card" class="idea-card" hidden><span id="idea-text"></span><button type="button" data-action="hide-idea" aria-label="Hide idea">×</button></div>
+          <div id="page-viewport" class="page-viewport" aria-label="Your sticker picture">
+            <div id="page-scaler" class="page-scaler">
+              <div id="page-frame" class="page-frame">
+                <canvas id="picture-canvas" width="1080" height="1440" aria-label="Picture page"></canvas>
+              </div>
+            </div>
+            <div id="empty-invitation" class="empty-invitation">Import a picture to start your BlockFolk story!</div>
+          </div>
+          <div id="selection-toolbar" class="selection-toolbar" aria-label="Selected sticker controls" hidden>
+            <button type="button" data-action="smaller"><span aria-hidden="true">−</span>Smaller</button>
+            <button type="button" data-action="bigger"><span aria-hidden="true">＋</span>Bigger</button>
+            <button type="button" data-action="turn"><span aria-hidden="true">↻</span>Turn</button>
+            <button type="button" data-action="flip" data-control-tone="sky"><span aria-hidden="true">⇆</span>Flip</button>
+            <button type="button" data-action="behind" data-control-tone="lilac"><span aria-hidden="true">◫</span>Behind</button>
+            <button type="button" data-action="in-front" data-control-tone="mint"><span aria-hidden="true">▣</span>In Front</button>
+            <button type="button" data-action="copy"><span aria-hidden="true">▣</span>Copy</button>
+            <button type="button" class="trash" data-action="trash"><span aria-hidden="true">♲</span>Trash</button>
+          </div>
+        </div>
+
+        <section class="sticker-tray" aria-label="Sticker tray">
+          <div id="category-tabs" class="category-tabs" role="radiogroup" aria-label="Sticker categories"></div>
+          <h2 id="sticker-strip-title" class="sticker-strip-title">Animals</h2>
+          <div class="tray-content">
+            <button type="button" class="surprise-sticker" data-action="surprise-sticker"><span aria-hidden="true">?</span><small>Surprise</small></button>
+            <div id="sticker-list" class="sticker-list" role="group" aria-label="Stickers in this category"></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="gallery-screen" class="screen gallery-screen" aria-labelledby="gallery-title" hidden>
+        <header class="screen-header"><button type="button" class="back-button" data-action="go-home">← Home</button><div><p class="eyebrow">Your private sticker book</p><h1 id="gallery-title">My Pictures</h1></div><button type="button" class="primary-button" data-action="new-picture">＋ New</button></header>
+        <div id="gallery-limit-note" class="friendly-note" hidden></div>
+        <div id="gallery-grid" class="gallery-grid"></div>
+        <div id="gallery-empty" class="empty-gallery" hidden><span aria-hidden="true">✦</span><h2>Your first page is waiting.</h2><p>Make a picture and it will live here.</p><button type="button" class="primary-button" data-action="new-picture">Make a Picture</button></div>
+      </section>
+
+      <section id="parent-gate-screen" class="screen parent-gate-screen" aria-labelledby="gate-title" hidden>
+        <button type="button" class="back-button gate-back" data-action="go-home">← Home</button>
+        <div class="gate-copy"><p class="eyebrow">Grown-Up Tools</p><h1 id="gate-title">Hold both stars</h1><p>Press and hold both big stars at the same time for three seconds.</p></div>
+        <div class="gate-stars" style="--gate-progress:0%">
+          <button type="button" class="gate-star" data-gate-star="left" aria-label="Hold left star"><span>★</span></button>
+          <div class="gate-progress" aria-hidden="true"><span id="gate-count">3</span></div>
+          <button type="button" class="gate-star" data-gate-star="right" aria-label="Hold right star"><span>★</span></button>
+        </div>
+        <p class="gate-fallback">Keyboard accessibility: press Ctrl + Shift + G.</p>
+      </section>
+
+      <section id="parent-tools-screen" class="screen parent-tools-screen" aria-labelledby="tools-title" hidden>
+        <header class="screen-header"><button type="button" class="back-button" data-action="go-home">← Home</button><div><p class="eyebrow">For grown-ups</p><h1 id="tools-title">Grown-Up Tools</h1></div></header>
+        <div class="tools-grid">
+          <article class="tool-card import-card">
+            <span class="tool-icon" aria-hidden="true">＋</span><div><h2>Import Sticker Pack</h2><p>Choose a local ZIP. Nothing is uploaded.</p></div>
+            <label class="import-category-row">Put imported stickers in
+              <select id="import-category">
+                <option value="auto">Pack folders or instructions</option>
+                <option value="animals">Animals</option>
+                <option value="people">People</option>
+                <option value="things">Things</option>
+                <option value="nature">Nature</option>
+                <option value="silly">Silly</option>
+                <option value="words">Words</option>
+                <option value="emoji">Emoji</option>
+                <option value="imported">Imported</option>
+                <option value="custom">Make a new category…</option>
+              </select>
+            </label>
+            <label id="custom-category-row" class="import-category-row" hidden>New category name
+              <input id="custom-category" type="text" maxlength="24" placeholder="For example: Space Friends" />
+            </label>
+            <button type="button" class="primary-button" data-action="choose-pack">Choose ZIP</button>
+            <input id="pack-input" type="file" accept="application/zip,.zip" hidden />
+            <div id="import-status" class="import-status" role="status"></div>
+            <details id="import-report-details" hidden><summary>Technical import report</summary><div id="import-report" class="technical-report"></div></details>
+          </article>
+          <article class="tool-card"><span class="tool-icon" aria-hidden="true">▦</span><div><h2>Imported Packs</h2><p>Removing a pack never removes stickers already saved in pictures.</p></div><div id="pack-list" class="pack-list"></div></article>
+          <article class="tool-card"><span class="tool-icon" aria-hidden="true">♪</span><div><h2>Comfort Settings</h2><p>These choices stay on this device.</p></div><label class="switch-row"><span>Sound effects</span><input id="sound-setting" type="checkbox" data-action="toggle-sound" /></label><label class="switch-row"><span>Gentle vibration</span><input id="haptics-setting" type="checkbox" data-action="toggle-haptics" /></label><label class="switch-row"><span>Reduced animation</span><input id="motion-setting" type="checkbox" data-action="toggle-motion" /></label><fieldset class="autosave-setting"><legend>Auto-save timing</legend><p>Background saves are always quiet.</p><div class="autosave-choices" role="radiogroup" aria-label="Auto-save timing"><button type="button" data-action="set-autosave" data-autosave-mode="quick" data-control-tone="peach" aria-label="Quick auto-save, after 1 second"><strong>Quick</strong><small>After 1 second</small></button><button type="button" data-action="set-autosave" data-autosave-mode="relaxed" data-control-tone="lavender" aria-label="Relaxed auto-save, after 4 seconds" aria-pressed="true"><strong>Relaxed</strong><small>After 4 seconds</small></button><button type="button" data-action="set-autosave" data-autosave-mode="leaving" data-control-tone="mint" aria-label="Auto-save only when leaving"><strong>Only when leaving</strong><small>Home, Done, or closing</small></button></div></fieldset></article>
+          <article class="tool-card"><span class="tool-icon" aria-hidden="true">↥</span><div><h2>Picture Recovery</h2><p>Download or restore the current picture data.</p></div><div class="button-row"><button type="button" data-action="export-recovery">Export recovery JSON</button><button type="button" data-action="choose-recovery">Import recovery JSON</button></div><input id="recovery-input" type="file" accept="application/json,.json" hidden /></article>
+          <article class="tool-card"><span class="tool-icon" aria-hidden="true">◴</span><div><h2>Device Storage</h2><p id="storage-summary">Checking storage…</p></div><button type="button" data-action="show-gallery">Manage saved pictures</button></article>
+          <article class="tool-card danger-card"><span class="tool-icon" aria-hidden="true">!</span><div><h2>Clear BlockFolk Imaginarium Data</h2><p>Erases pictures, imported packs, and settings from this device.</p></div><button type="button" class="danger-button" data-action="clear-data">Clear all local data</button></article>
+        </div>
+      </section>
+
+      <section id="puzzle-source-screen" class="screen puzzle-source-screen" aria-labelledby="puzzle-source-title" hidden>
+        <header class="screen-header"><button type="button" class="back-button" data-action="go-home" data-control-tone="lilac">← Home</button><div><p class="eyebrow">A BlockFolk Imaginarium toy</p><h1 id="puzzle-source-title">Make a Puzzle</h1></div></header>
+        <main class="puzzle-source-main">
+          <p class="puzzle-lead">Choose a picture. We will keep it private on this device.</p>
+          <div class="puzzle-source-choices">
+            <button type="button" class="puzzle-source-card photo-source" data-action="puzzle-photo" data-control-tone="yellow"><span aria-hidden="true">▣</span><strong>Photo</strong><small>Choose a picture from this device</small></button>
+            <button type="button" class="puzzle-source-card creation-source" data-action="puzzle-show-creations" data-control-tone="mint"><span aria-hidden="true">✦</span><strong>My Creation</strong><small>Use a picture from your sticker book</small></button>
+          </div>
+          <button type="button" id="puzzle-resume" class="primary-button puzzle-resume" data-action="puzzle-resume" data-control-tone="purple" hidden>Keep Solving</button>
+          <div id="puzzle-creation-grid" class="puzzle-creation-grid" aria-label="Choose one of your creations" hidden></div>
+          <input id="puzzle-photo-input" type="file" accept="image/*" hidden />
+        </main>
+      </section>
+
+      <section id="puzzle-frame-screen" class="screen puzzle-frame-screen" aria-labelledby="puzzle-frame-title" hidden>
+        <header class="screen-header"><button type="button" class="back-button" data-action="puzzle-frame-back" data-control-tone="lilac">← Back</button><div><p class="eyebrow">Step 1 of 2</p><h1 id="puzzle-frame-title">Frame Your Picture</h1></div></header>
+        <main class="puzzle-frame-main">
+          <div class="puzzle-frame-wrap"><canvas id="puzzle-frame-canvas" width="600" height="800" aria-label="Puzzle picture framing area. Drag to reposition the picture."></canvas></div>
+          <p class="puzzle-frame-note">Your whole picture fits by default. Zoom in only when you want to crop it.</p>
+          <label class="puzzle-zoom-row" for="puzzle-zoom"><span>Zoom</span><input id="puzzle-zoom" type="range" min="1" max="3" step="0.05" value="1" /></label>
+          <fieldset class="puzzle-difficulty"><legend>How many pieces?</legend><div role="radiogroup" aria-label="Puzzle difficulty">
+            <button type="button" data-action="puzzle-set-difficulty" data-puzzle-difficulty="easy" data-control-tone="mint" aria-label="Easy, 4 pieces"><strong>Easy</strong><small>2 × 2 · 4 pieces</small></button>
+            <button type="button" data-action="puzzle-set-difficulty" data-puzzle-difficulty="fun" data-control-tone="lavender" aria-label="Fun, 9 pieces" aria-pressed="true"><strong>Fun</strong><small>3 × 3 · 9 pieces</small></button>
+            <button type="button" data-action="puzzle-set-difficulty" data-puzzle-difficulty="tricky" data-control-tone="peach" aria-label="Tricky, 16 pieces"><strong>Tricky</strong><small>4 × 4 · 16 pieces</small></button>
+          </div></fieldset>
+          <div class="puzzle-frame-actions"><button type="button" data-action="puzzle-frame-reset" data-control-tone="sky">Fit Whole Picture</button><button type="button" class="primary-button" data-action="puzzle-build" data-control-family="big" data-control-tone="purple">Make Puzzle</button></div>
+        </main>
+      </section>
+
+      <section id="puzzle-play-screen" class="screen puzzle-play-screen" aria-labelledby="puzzle-play-title" hidden>
+        <header class="puzzle-play-header"><button type="button" data-action="puzzle-back" data-control-tone="lilac">← Back</button><div><h1 id="puzzle-play-title">Your Puzzle</h1><p id="puzzle-progress" aria-live="polite">0 pieces</p><p id="puzzle-race-time" class="puzzle-race-time" role="timer" aria-live="off" hidden>⏱ 0:00.0</p></div><button type="button" data-action="puzzle-hint" data-control-tone="yellow">Hint</button><button type="button" data-action="puzzle-race" data-control-tone="pink" aria-label="Start puzzle race">Race</button><button type="button" data-action="puzzle-snap" data-control-tone="mint" aria-label="Snap pieces into place">Snap</button><button type="button" data-action="puzzle-restart" data-control-tone="lilac">Shuffle</button></header>
+        <main class="puzzle-play-main">
+          <div id="puzzle-workspace" class="puzzle-workspace">
+            <div id="puzzle-board" class="puzzle-board" aria-label="Puzzle board"><img id="puzzle-hint-image" class="puzzle-hint-image" alt="Complete puzzle hint" /></div>
+            <div id="puzzle-tray" class="puzzle-tray" aria-label="Loose puzzle pieces"><span>Pick up a piece and bring it to the picture.</span></div>
+          </div>
+          <section id="puzzle-completion" class="puzzle-completion" aria-labelledby="puzzle-complete-title" hidden>
+            <div class="celebration-stars" aria-hidden="true"><span>★</span><span>✦</span><span>★</span></div><h2 id="puzzle-complete-title">You did it!</h2><p>Your picture is complete.</p>
+            <div class="button-row"><button type="button" data-action="puzzle-play-again" data-control-tone="yellow">Play Again</button><button type="button" data-action="puzzle-another" data-control-tone="sky">Another Puzzle</button><button type="button" class="primary-button" data-action="puzzle-done" data-control-tone="purple">Done</button></div>
+          </section>
+        </main>
+      </section>
+
+      <div id="background-sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="background-title" hidden>
+        <div class="sheet-panel"><header><div><p class="eyebrow">Pick a place</p><h2 id="background-title">Backgrounds</h2></div><button type="button" data-action="close-backgrounds" data-control-family="big" data-control-tone="purple">Done</button></header><div id="background-grid" class="background-grid" role="radiogroup" aria-label="Picture backgrounds"></div></div>
+      </div>
+
+      <div id="confirm-sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
+        <div class="sheet-panel confirm-panel"><span class="confirm-icon" aria-hidden="true">?</span><h2 id="confirm-title">Are you sure?</h2><p id="confirm-message"></p><div class="button-row"><button type="button" data-action="cancel-confirm" data-control-family="big" data-control-tone="mint">Keep it</button><button type="button" class="danger-button" data-action="accept-confirm" data-control-family="big">Yes, delete</button></div></div>
+      </div>
+
+      <div id="toast" class="toast" role="status" hidden></div>
+      <div id="live-region" class="sr-only" aria-live="polite"></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

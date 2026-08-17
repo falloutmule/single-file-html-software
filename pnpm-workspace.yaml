@@ -3,4 +3,6 @@ packages:
   - "adapters/*"
   - "examples/*"
 allowBuilds:
+  # Fabric's Node-only optional canvas binding is never used by browser builds.
+  canvas: false
   esbuild: true

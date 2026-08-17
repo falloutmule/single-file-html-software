@@ -43,7 +43,7 @@
       "additionalProperties": false,
       "required": ["result"],
       "properties": {
-        "result": { "enum": ["supported", "unsupported"] },
+        "result": { "enum": ["supported", "unsupported", "not-required"] },
         "renderer": { "type": "string", "minLength": 1 }
       }
     },

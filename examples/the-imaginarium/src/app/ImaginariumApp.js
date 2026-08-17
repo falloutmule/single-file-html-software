@@ -1,0 +1,769 @@
+/* global Blob, File, ResizeObserver, TextEncoder, URL, atob, clearInterval, clearTimeout, console, document, localStorage, matchMedia, navigator, performance, prompt, requestAnimationFrame, setInterval, setTimeout, structuredClone, window */
+import * as fabricNS from 'fabric';
+import { BUILT_IN_BACKGROUNDS, BUILT_IN_CATEGORIES, BUILT_IN_STICKERS, CREATIVE_PROMPTS, findBuiltInAsset } from '../model/builtInLibrary.js';
+import { computeBackgroundLayout } from '../model/backgroundLayout.js';
+import { DEFAULT_AUTOSAVE_MODE, autosavePolicy, normalizeAutosaveMode } from '../model/autosave.js';
+import { PictureHistory } from '../model/history.js';
+import { ImaginariumControls } from './ImaginariumControls.js';
+import { PuzzleController } from './PuzzleController.js';
+import {
+  GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, PAGE_HEIGHT, PAGE_WIDTH, clampStickerPosition, createPicture,
+  createSticker, duplicatePicture, flipSticker, mapChildSafeError, normalizePicture, resizeSticker, rotateSticker, validatePicture
+} from '../model/pageModel.js';
+import { createStableId } from '../model/ids.js';
+import { ImaginariumStorage, loadPreferences, savePreferences } from '../model/storage.js';
+import { processStickerPack, safeId } from '../model/stickerPacks.js';
+
+const SCREEN_IDS = ['home-screen', 'editor-screen', 'gallery-screen', 'parent-gate-screen', 'parent-tools-screen', 'puzzle-source-screen', 'puzzle-frame-screen', 'puzzle-play-screen'];
+
+function dataUrlToBlob(dataUrl) {
+  const [header, payload] = dataUrl.split(',');
+  const mime = /data:([^;]+)/.exec(header)?.[1] || 'application/octet-stream';
+  const bytes = header.includes(';base64') ? Uint8Array.from(atob(payload), (character) => character.charCodeAt(0)) : new TextEncoder().encode(decodeURIComponent(payload));
+  return new Blob([bytes], { type: mime });
+}
+
+function downloadBlob(blob, filename) {
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url; link.download = filename;
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+
+function safeFilename(title) {
+  return String(title || 'my-picture').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'my-picture';
+}
+
+function formatDate(value) {
+  try { return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value)); } catch { return ''; }
+}
+
+export class ImaginariumApp {
+  constructor(root) {
+    this.root = root;
+    this.storage = new ImaginariumStorage();
+    this.history = new PictureHistory(20);
+    this.current = null;
+    this.packs = [];
+    this.category = 'animals';
+    this.rendering = false;
+    this.transformBefore = null;
+    this.autosaveTimer = null;
+    this.toastTimer = null;
+    this.confirmResolver = null;
+    this.gateHeld = new Set();
+    this.gateStart = 0;
+    this.gateTimer = null;
+    this.preferences = { sound: true, haptics: true, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, autosaveMode: DEFAULT_AUTOSAVE_MODE, ...loadPreferences() };
+    this.preferences.autosaveMode = normalizeAutosaveMode(this.preferences.autosaveMode);
+  }
+
+  async mount() {
+    await this.storage.init();
+    this.packs = await this.storage.listPacks();
+    this.cacheElements();
+    this.controls = new ImaginariumControls({
+      root: this.root,
+      preferences: this.preferences,
+      onActivate: (element) => this.activateControl(element).catch((error) => this.handleError(error))
+    });
+    this.controls.upgradeWithin(this.root);
+    this.controls.upgradeSwitch(this.elements.soundSetting.closest('.switch-row'), this.elements.soundSetting, { selected: !!this.preferences.sound });
+    this.controls.upgradeSwitch(this.elements.hapticsSetting.closest('.switch-row'), this.elements.hapticsSetting, { selected: !!this.preferences.haptics });
+    this.controls.upgradeSwitch(this.elements.motionSetting.closest('.switch-row'), this.elements.motionSetting, { selected: !!this.preferences.reducedMotion });
+    this.elements.soundSetting = this.root.querySelector('#sound-setting');
+    this.elements.hapticsSetting = this.root.querySelector('#haptics-setting');
+    this.elements.motionSetting = this.root.querySelector('#motion-setting');
+    this.elements.continueButton = this.root.querySelector('#continue-picture');
+    this.mountCanvas();
+    this.puzzle = new PuzzleController({
+      root: this.root, storage: this.storage, controls: this.controls,
+      showScreen: (id) => this.showScreen(id), showHome: () => this.goHome(),
+      listCreations: () => this.storage.listPictures(), flattenCreation: (id) => this.flattenPictureForPuzzle(id),
+      announce: (message) => this.announce(message), toast: (message) => this.toast(message), cue: (kind) => this.controls.playPuzzleCue(kind)
+    });
+    this.puzzle.mount();
+    this.mountEvents();
+    this.applyPreferences();
+    this.renderLibrary();
+    this.renderBackgrounds();
+    this.renderPackList();
+    await this.refreshContinueButton();
+    this.showScreen('home-screen');
+    this.root.dataset.boot = 'ready';
+    if (this.storage.mode === 'memory') this.toast('Pictures will stay until this tab closes. PNG download still works.');
+  }
+
+  cacheElements() {
+    const $ = (selector) => this.root.querySelector(selector);
+    this.elements = {
+      canvas: $('#picture-canvas'), viewport: $('#page-viewport'), scaler: $('#page-scaler'), frame: $('#page-frame'), empty: $('#empty-invitation'),
+      selection: $('#selection-toolbar'), categories: $('#category-tabs'), stickers: $('#sticker-list'), backgrounds: $('#background-grid'),
+      backgroundSheet: $('#background-sheet'), gallery: $('#gallery-grid'), galleryEmpty: $('#gallery-empty'), galleryNote: $('#gallery-limit-note'),
+      continueButton: $('#continue-picture'), saveStatus: $('#save-status'), ideaCard: $('#idea-card'), ideaText: $('#idea-text'),
+      parentGate: $('#parent-gate-screen'), gateCount: $('#gate-count'), parentTools: $('#parent-tools-screen'),
+      packInput: $('#pack-input'), packList: $('#pack-list'), importStatus: $('#import-status'), importReport: $('#import-report'), importDetails: $('#import-report-details'),
+      importCategory: $('#import-category'), customCategoryRow: $('#custom-category-row'), customCategory: $('#custom-category'),
+      recoveryInput: $('#recovery-input'), storageSummary: $('#storage-summary'), soundSetting: $('#sound-setting'), hapticsSetting: $('#haptics-setting'), motionSetting: $('#motion-setting'),
+      confirmSheet: $('#confirm-sheet'), confirmMessage: $('#confirm-message'), toast: $('#toast'), live: $('#live-region')
+    };
+  }
+
+  mountCanvas() {
+    const objectPrototype = fabricNS.FabricObject?.prototype;
+    if (objectPrototype) {
+      objectPrototype.transparentCorners = false;
+      objectPrototype.borderColor = '#ffb23f';
+      objectPrototype.borderScaleFactor = 5;
+      objectPrototype.padding = 14;
+      objectPrototype.cornerStyle = 'circle';
+    }
+    this.canvas = new fabricNS.Canvas(this.elements.canvas, {
+      width: PAGE_WIDTH, height: PAGE_HEIGHT, selection: false, preserveObjectStacking: true,
+      allowTouchScrolling: false, stopContextMenu: true, controlsAboveOverlay: true, renderOnAddRemove: true
+    });
+    this.canvas.upperCanvasEl.style.touchAction = 'none';
+    this.canvas.lowerCanvasEl.style.touchAction = 'none';
+    this.canvas.on('selection:created', () => this.updateSelection());
+    this.canvas.on('selection:updated', () => this.updateSelection());
+    this.canvas.on('selection:cleared', () => this.updateSelection());
+    this.canvas.on('mouse:down', (event) => {
+      if (!this.rendering && event.target) this.transformBefore = this.snapshot();
+    });
+    this.canvas.on('object:moving', (event) => this.clampFabricObject(event.target));
+    this.canvas.on('object:modified', () => {
+      if (!this.rendering && this.transformBefore) this.commit(this.transformBefore, 'Sticker moved.');
+      this.transformBefore = null;
+    });
+    this.history.addEventListener('change', (event) => {
+      this.controls.setEnabled(this.root.querySelector('[data-action="undo"]'), event.detail.canUndo);
+      this.controls.setEnabled(this.root.querySelector('[data-action="redo"]'), event.detail.canRedo);
+    });
+    this.resizeObserver = new ResizeObserver(() => this.fitPage());
+    this.resizeObserver.observe(this.elements.viewport);
+  }
+
+  mountEvents() {
+    this.root.addEventListener('click', (event) => {
+      if (event.target.closest('.sfhs-cf-root')) return;
+      this.activateControl(event.target).catch((error) => this.handleError(error));
+    });
+    this.elements.gallery.addEventListener('change', (event) => {
+      const input = event.target.closest('[data-picture-title]');
+      if (input) this.renamePicture(input.dataset.pictureTitle, input.value).catch((error) => this.handleError(error));
+    });
+    this.elements.packInput.addEventListener('change', () => this.importPack(this.elements.packInput.files?.[0]).catch((error) => this.handleError(error)));
+    this.elements.importCategory.addEventListener('change', () => {
+      this.elements.customCategoryRow.hidden = this.elements.importCategory.value !== 'custom';
+      if (!this.elements.customCategoryRow.hidden) this.elements.customCategory.focus();
+    });
+    this.elements.recoveryInput.addEventListener('change', () => this.importRecovery(this.elements.recoveryInput.files?.[0]).catch((error) => this.handleError(error)));
+    this.root.querySelectorAll('[data-gate-star]').forEach((button) => {
+      const visualRoot = button.closest('.sfhs-cf-root') || button;
+      const hold = (event) => { event.preventDefault(); button.setPointerCapture?.(event.pointerId); this.gateHeld.add(button.dataset.gateStar); visualRoot.classList.add('is-held'); this.updateGate(); };
+      const release = () => { this.gateHeld.delete(button.dataset.gateStar); visualRoot.classList.remove('is-held'); this.updateGate(); };
+      button.addEventListener('pointerdown', hold); button.addEventListener('pointerup', release); button.addEventListener('pointercancel', release); button.addEventListener('lostpointercapture', release);
+    });
+    window.addEventListener('keydown', (event) => {
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'g' && !this.elements.parentGate.hidden) { event.preventDefault(); this.openParentTools(); }
+    });
+    window.addEventListener('resize', () => this.fitPage(), { passive: true });
+    window.visualViewport?.addEventListener('resize', () => this.fitPage(), { passive: true });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && this.current) this.saveCurrent({ quiet: true }).catch(() => {}); });
+  }
+
+  async activateControl(target) {
+    const actionElement = target.closest?.('[data-action]');
+    if (actionElement) await this.handleAction(actionElement.dataset.action, actionElement);
+    const stickerButton = target.closest?.('[data-sticker-id]');
+    if (stickerButton) await this.addSticker(stickerButton.dataset.stickerId);
+    const categoryButton = target.closest?.('[data-category]');
+    if (categoryButton) { this.category = categoryButton.dataset.category; this.renderLibrary(); }
+    const backgroundButton = target.closest?.('[data-background-id]');
+    if (backgroundButton) await this.setBackground(backgroundButton.dataset.backgroundId);
+    const galleryAction = target.closest?.('[data-gallery-action]');
+    if (galleryAction) await this.handleGalleryAction(galleryAction.dataset.galleryAction, galleryAction.dataset.pictureId);
+    const packRemove = target.closest?.('[data-remove-pack]');
+    if (packRemove) await this.removePack(packRemove.dataset.removePack);
+  }
+
+  async handleAction(action, actionElement) {
+    if (await this.puzzle?.handleAction(action, actionElement)) return;
+    const actions = {
+      'new-picture': () => this.startNewPicture(false),
+      'surprise-picture': () => this.startNewPicture(true),
+      'continue-picture': () => this.openPicture(this.current?.id),
+      'show-gallery': () => this.showGallery(),
+      'show-parent-gate': () => this.openParentGate(),
+      'go-home': () => this.goHome(),
+      undo: () => this.undo(), redo: () => this.redo(),
+      'toggle-sound': () => this.updatePreference('sound', !this.preferences.sound),
+      'toggle-haptics': () => this.updatePreference('haptics', !this.preferences.haptics),
+      'toggle-motion': () => this.updatePreference('reducedMotion', !this.preferences.reducedMotion),
+      'set-autosave': () => this.updatePreference('autosaveMode', normalizeAutosaveMode(actionElement?.dataset.autosaveMode)),
+      'done-picture': () => this.donePicture(),
+      'show-backgrounds': () => { this.renderBackgrounds(); this.elements.backgroundSheet.hidden = false; },
+      'close-backgrounds': () => { this.elements.backgroundSheet.hidden = true; },
+      'show-idea': () => this.showIdea(), 'hide-idea': () => { this.elements.ideaCard.hidden = true; },
+      smaller: () => this.resizeSelected(1 / 1.1), bigger: () => this.resizeSelected(1.1), turn: () => this.turnSelected(),
+      flip: () => this.flipSelected(), behind: () => this.moveSelectedDepth(-1), 'in-front': () => this.moveSelectedDepth(1),
+      copy: () => this.copySelected(), trash: () => this.trashSelected(), 'surprise-sticker': () => this.addSurpriseSticker(),
+      'choose-pack': () => this.elements.packInput.click(), 'choose-recovery': () => this.elements.recoveryInput.click(),
+      'export-recovery': () => this.exportRecovery(), 'clear-data': () => this.clearData(),
+      'cancel-confirm': () => this.resolveConfirm(false), 'accept-confirm': () => this.resolveConfirm(true)
+    };
+    if (actions[action]) await actions[action]();
+  }
+
+  showScreen(id) {
+    for (const screenId of SCREEN_IDS) this.root.querySelector(`#${screenId}`).hidden = screenId !== id;
+    window.scrollTo(0, 0);
+    document.body.classList.toggle('editor-open', id === 'editor-screen');
+    document.body.classList.toggle('puzzle-open', id === 'puzzle-play-screen');
+    if (id === 'editor-screen') requestAnimationFrame(() => this.fitPage());
+  }
+
+  async refreshContinueButton() {
+    if (!this.current) {
+      const pictures = await this.storage.listPictures();
+      this.current = pictures[0] || null;
+    }
+    this.elements.continueButton.hidden = !this.current;
+  }
+
+  async startNewPicture(surprise = false) {
+    const pictures = await this.storage.listPictures();
+    if (pictures.length >= GALLERY_LIMIT) {
+      this.toast('Your sticker book is full. Download or delete a picture to make room.');
+      await this.showGallery();
+      return;
+    }
+    const background = surprise ? BUILT_IN_BACKGROUNDS[Math.floor(Math.random() * BUILT_IN_BACKGROUNDS.length)].id : 'background-paper';
+    this.current = createPicture({ title: `My Picture ${pictures.length + 1}`, backgroundAssetId: background });
+    this.history.clear();
+    await this.renderCurrentPicture();
+    this.showScreen('editor-screen');
+    if (surprise) {
+      const choices = BUILT_IN_STICKERS.filter((sticker) => sticker.category !== 'words');
+      await this.addSticker(choices[Math.floor(Math.random() * choices.length)].id, false);
+      this.showIdea();
+    }
+    await this.saveCurrent({ quiet: true });
+  }
+
+  async goHome() {
+    if (this.current) await this.saveCurrent({ quiet: true });
+    this.elements.backgroundSheet.hidden = true;
+    await this.refreshContinueButton();
+    this.showScreen('home-screen');
+  }
+
+  async openPicture(id) {
+    const picture = id ? await this.storage.getPicture(id) : this.current;
+    if (!picture) return;
+    this.current = normalizePicture(picture);
+    this.history.clear();
+    await this.renderCurrentPicture();
+    this.showScreen('editor-screen');
+  }
+
+  getAllPackAssets() { return this.packs.flatMap((pack) => pack.assets || []); }
+
+  getAsset(assetId) {
+    return findBuiltInAsset(assetId)
+      || this.current?.embeddedAssets?.find((asset) => asset.id === assetId)
+      || this.getAllPackAssets().find((asset) => asset.id === assetId)
+      || null;
+  }
+
+  snapshot() {
+    this.syncCurrentFromCanvas();
+    return structuredClone(this.current);
+  }
+
+  syncCurrentFromCanvas() {
+    if (!this.current || this.rendering) return;
+    this.current.stickers = this.canvas.getObjects().map((object, index) => ({
+      layerId: object.imaginariumLayerId,
+      assetId: object.imaginariumAssetId,
+      x: Number(object.left || 0), y: Number(object.top || 0),
+      scaleX: Number(object.scaleX || 1), scaleY: Number(object.scaleY || 1),
+      angle: Number(object.angle || 0), flipX: !!object.flipX, flipY: !!object.flipY,
+      opacity: Number(object.opacity ?? 1), zIndex: index
+    }));
+    const usedIds = new Set([this.current.page.backgroundAssetId, ...this.current.stickers.map((sticker) => sticker.assetId)]);
+    const known = new Map((this.current.embeddedAssets || []).map((asset) => [asset.id, asset]));
+    for (const id of usedIds) {
+      const asset = this.getAsset(id);
+      if (asset && !asset.builtIn) known.set(id, structuredClone(asset));
+    }
+    this.current.embeddedAssets = [...known.values()].filter((asset) => usedIds.has(asset.id));
+  }
+
+  async renderCurrentPicture(selectedLayerId = null) {
+    if (!this.current) return;
+    this.rendering = true;
+    this.canvas.discardActiveObject();
+    this.canvas.clear();
+    this.canvas.setDimensions({ width: PAGE_WIDTH, height: PAGE_HEIGHT });
+    await this.applyBackground(this.current.page.backgroundAssetId);
+    for (const sticker of [...this.current.stickers].sort((a, b) => a.zIndex - b.zIndex)) {
+      const asset = this.getAsset(sticker.assetId);
+      if (!asset) continue;
+      await this.addFabricSticker(asset, sticker);
+    }
+    const selected = selectedLayerId && this.canvas.getObjects().find((object) => object.imaginariumLayerId === selectedLayerId);
+    if (selected) this.canvas.setActiveObject(selected); else this.canvas.discardActiveObject();
+    this.canvas.requestRenderAll();
+    this.rendering = false;
+    this.updateSelection();
+    this.renderBackgrounds();
+    this.fitPage();
+  }
+
+  async applyBackground(assetId) {
+    const asset = this.getAsset(assetId) || BUILT_IN_BACKGROUNDS[0];
+    const image = await fabricNS.FabricImage.fromURL(asset.dataUrl);
+    const layout = computeBackgroundLayout({ ...asset, width: image.width || asset.width, height: image.height || asset.height }, PAGE_WIDTH, PAGE_HEIGHT);
+    image.set({ ...layout, originX: 'left', originY: 'top', selectable: false, evented: false });
+    this.canvas.backgroundImage = image;
+    this.canvas.requestRenderAll();
+  }
+
+  async addFabricSticker(asset, sticker) {
+    const object = asset.kind === 'emoji'
+      ? new fabricNS.Text(asset.glyph, { fontFamily: '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif', fontSize: 320 })
+      : await fabricNS.FabricImage.fromURL(asset.dataUrl);
+    object.set({
+      left: sticker.x, top: sticker.y, originX: 'center', originY: 'center', scaleX: sticker.scaleX, scaleY: sticker.scaleY,
+      angle: sticker.angle, flipX: sticker.flipX, flipY: sticker.flipY, opacity: sticker.opacity,
+      imaginariumLayerId: sticker.layerId, imaginariumAssetId: sticker.assetId,
+      hasControls: false, hasBorders: true, lockScalingX: true, lockScalingY: true, lockRotation: true,
+      borderColor: '#ffb23f', borderScaleFactor: 5, padding: 14
+    });
+    this.canvas.add(object);
+    return object;
+  }
+
+  fitPage() {
+    if (this.root.querySelector('#editor-screen').hidden) return;
+    const rect = this.elements.viewport.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const scale = Math.max(.08, Math.min(1, (rect.width - 42) / PAGE_WIDTH, (rect.height - 42) / PAGE_HEIGHT));
+    this.elements.scaler.style.width = `${PAGE_WIDTH * scale}px`;
+    this.elements.scaler.style.height = `${PAGE_HEIGHT * scale}px`;
+    this.elements.frame.style.transform = `scale(${scale})`;
+  }
+
+  renderLibrary() {
+    const categoryScrollLeft = this.elements.categories.scrollLeft;
+    const imported = this.getAllPackAssets().filter((asset) => asset.kind === 'sticker');
+    const categoryMap = new Map(BUILT_IN_CATEGORIES.map((category) => [category.id, category]));
+    for (const asset of imported) if (!categoryMap.has(asset.category)) categoryMap.set(asset.category, { id: asset.category, title: asset.category.replace(/[-_]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()), color: '#a7d9cc', icon: '＋' });
+    if (!categoryMap.has(this.category)) this.category = categoryMap.keys().next().value;
+    this.controls.destroyWithin(this.elements.categories);
+    this.elements.categories.replaceChildren(...[...categoryMap.values()].map((category) => {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'category-tab'; button.dataset.category = category.id;
+      button.setAttribute('aria-selected', String(category.id === this.category)); button.style.setProperty('--category-color', category.color);
+      const icon = document.createElement('span'); icon.setAttribute('aria-hidden', 'true'); icon.textContent = category.icon;
+      button.append(icon, document.createTextNode(category.title));
+      return this.controls.upgradeButton(button, { family: 'choice', shape: 'capsule', semantic: { kind: 'choice', groupId: 'imaginarium-sticker-category', value: category.id }, selected: category.id === this.category, value: category.id, palette: category.color });
+    }));
+    this.elements.categories.scrollLeft = categoryScrollLeft;
+    const stickers = [...BUILT_IN_STICKERS, ...imported].filter((asset) => asset.category === this.category);
+    this.controls.destroyWithin(this.elements.stickers);
+    this.elements.stickers.replaceChildren(...stickers.map((sticker) => {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'sticker-button'; button.dataset.stickerId = sticker.id; button.dataset.name = sticker.name; button.setAttribute('aria-label', `Add ${sticker.name} sticker`);
+      if (sticker.kind === 'emoji') {
+        const glyph = document.createElement('span'); glyph.className = 'emoji-glyph'; glyph.setAttribute('aria-hidden', 'true'); glyph.textContent = sticker.glyph; button.appendChild(glyph);
+      } else {
+        const image = document.createElement('img'); image.alt = ''; image.src = sticker.dataUrl; button.appendChild(image);
+      }
+      return this.controls.upgradeButton(button, { family: 'tool', shape: 'round-rect', value: sticker.id, palette: 'cream' });
+    }));
+  }
+
+  renderBackgrounds() {
+    const imported = this.getAllPackAssets().filter((asset) => asset.kind === 'background');
+    const embedded = (this.current?.embeddedAssets || []).filter((asset) => asset.kind === 'background');
+    const assets = [...new Map([...BUILT_IN_BACKGROUNDS, ...imported, ...embedded].map((asset) => [asset.id, asset])).values()];
+    this.controls.destroyWithin(this.elements.backgrounds);
+    this.elements.backgrounds.replaceChildren(...assets.map((background) => {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'background-button'; button.dataset.backgroundId = background.id; button.setAttribute('aria-label', `Choose ${background.name} background`); button.setAttribute('aria-pressed', String(this.current?.page.backgroundAssetId === background.id));
+      const image = document.createElement('img'); image.alt = ''; image.src = background.dataUrl;
+      if (background.fit === 'cover') image.style.objectPosition = `${(background.positionX ?? 0.5) * 100}% ${(background.positionY ?? 0.5) * 100}%`;
+      const label = document.createElement('span'); label.className = 'background-label'; label.textContent = background.name; button.append(image, label);
+      return this.controls.upgradeButton(button, { family: 'choice', semantic: { kind: 'choice', groupId: 'imaginarium-background', value: background.id }, selected: this.current?.page.backgroundAssetId === background.id, value: background.id, palette: 'peach' });
+    }));
+  }
+
+  async setBackground(assetId) {
+    if (!this.current || this.current.page.backgroundAssetId === assetId) return;
+    const before = this.snapshot();
+    this.current.page.backgroundAssetId = assetId;
+    await this.applyBackground(assetId);
+    this.commit(before, 'Background changed.');
+    this.renderBackgrounds();
+    this.feedback('turn');
+  }
+
+  async addSticker(assetId, recordHistory = true) {
+    const asset = this.getAsset(assetId);
+    if (!asset || !['sticker', 'emoji'].includes(asset.kind)) throw new Error('That sticker could not be opened.');
+    const before = this.snapshot();
+    const offset = (this.canvas.getObjects().length % 5) * 28;
+    const sticker = createSticker(assetId, { x: PAGE_WIDTH / 2 + offset, y: PAGE_HEIGHT / 2 + offset, scale: Math.min(1, 285 / Math.max(asset.width || 360, asset.height || 360)) });
+    sticker.zIndex = this.canvas.getObjects().length;
+    const image = await this.addFabricSticker(asset, sticker);
+    this.canvas.setActiveObject(image); this.canvas.requestRenderAll();
+    if (recordHistory) this.commit(before, `${asset.name} sticker added.`); else { this.syncCurrentFromCanvas(); this.scheduleAutosave(); }
+    this.updateSelection(); this.feedback('pop');
+  }
+
+  async addSurpriseSticker() {
+    const choices = [...BUILT_IN_STICKERS, ...this.getAllPackAssets().filter((asset) => asset.kind === 'sticker')].filter((asset) => asset.category === this.category);
+    if (!choices.length) return;
+    await this.addSticker(choices[Math.floor(Math.random() * choices.length)].id);
+  }
+
+  activeSticker() { return this.canvas.getActiveObject(); }
+
+  async resizeSelected(factor) {
+    const active = this.activeSticker(); if (!active) return;
+    const before = this.snapshot();
+    const resized = resizeSticker({ scaleX: active.scaleX, scaleY: active.scaleY }, factor);
+    active.set({ scaleX: resized.scaleX, scaleY: resized.scaleY }); active.setCoords(); this.clampFabricObject(active); this.canvas.requestRenderAll();
+    this.commit(before, factor > 1 ? 'Sticker made bigger.' : 'Sticker made smaller.'); this.feedback('turn');
+  }
+
+  async turnSelected() {
+    const active = this.activeSticker(); if (!active) return;
+    const before = this.snapshot(); const turned = rotateSticker({ angle: active.angle || 0 }, 15);
+    active.rotate(turned.angle); active.setCoords(); this.clampFabricObject(active); this.canvas.requestRenderAll();
+    this.commit(before, 'Sticker turned.'); this.feedback('turn');
+  }
+
+  async flipSelected() {
+    const active = this.activeSticker(); if (!active) return;
+    const before = this.snapshot(); const flipped = flipSticker({ flipX: !!active.flipX });
+    active.set({ flipX: flipped.flipX }); active.setCoords(); this.canvas.requestRenderAll();
+    this.commit(before, 'Sticker flipped.'); this.feedback('turn');
+  }
+
+  async moveSelectedDepth(direction) {
+    const active = this.activeSticker(); if (!active) return;
+    const objects = this.canvas.getObjects();
+    const index = objects.indexOf(active); const target = index + (direction < 0 ? -1 : 1);
+    if (index < 0 || target < 0 || target >= objects.length) { this.updateSelection(); return; }
+    const before = this.snapshot();
+    this.canvas.moveObjectTo(active, target); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.commit(before, direction < 0 ? 'Sticker moved behind.' : 'Sticker moved in front.'); this.feedback('turn');
+  }
+
+  async copySelected() {
+    const active = this.activeSticker(); if (!active) return;
+    const before = this.snapshot();
+    const clone = await active.clone();
+    clone.set({ left: (active.left || 0) + 44, top: (active.top || 0) + 44, imaginariumLayerId: createStableId('sticker'), imaginariumAssetId: active.imaginariumAssetId, hasControls: false, lockScalingX: true, lockScalingY: true, lockRotation: true });
+    this.clampFabricObject(clone); this.canvas.add(clone); this.canvas.setActiveObject(clone); this.canvas.requestRenderAll();
+    this.commit(before, 'Sticker copied.'); this.feedback('pop');
+  }
+
+  async trashSelected() {
+    const active = this.activeSticker(); if (!active) return;
+    const before = this.snapshot(); this.canvas.remove(active); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
+    this.commit(before, 'Sticker put in the trash.'); this.feedback('trash');
+  }
+
+  clampFabricObject(object) {
+    if (!object) return;
+    const clamped = clampStickerPosition({ x: Number(object.left || 0), y: Number(object.top || 0) }, object.getScaledWidth(), object.getScaledHeight());
+    object.set({ left: clamped.x, top: clamped.y }); object.setCoords();
+  }
+
+  commit(before, announcement) {
+    this.syncCurrentFromCanvas();
+    const after = JSON.stringify(this.current);
+    if (JSON.stringify(before) !== after) this.history.push(before);
+    this.current.updatedAt = new Date().toISOString();
+    this.scheduleAutosave(); this.announce(announcement); this.updateSelection();
+  }
+
+  async undo() {
+    const selectedLayerId = this.activeSticker()?.imaginariumLayerId || null;
+    const current = this.snapshot(); const prior = this.history.undo(current); if (!prior) return;
+    this.current = prior; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Undid the last change.');
+  }
+
+  async redo() {
+    const selectedLayerId = this.activeSticker()?.imaginariumLayerId || null;
+    const current = this.snapshot(); const next = this.history.redo(current); if (!next) return;
+    this.current = next; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Redid the change.');
+  }
+
+  updateSelection() {
+    const active = this.activeSticker();
+    this.elements.selection.hidden = !active;
+    this.elements.empty.hidden = this.canvas.getObjects().length > 0;
+    const smaller = this.elements.selection.querySelector('[data-action="smaller"]');
+    const bigger = this.elements.selection.querySelector('[data-action="bigger"]');
+    const flip = this.elements.selection.querySelector('[data-action="flip"]');
+    const behind = this.elements.selection.querySelector('[data-action="behind"]');
+    const inFront = this.elements.selection.querySelector('[data-action="in-front"]');
+    const objects = this.canvas.getObjects(); const activeIndex = active ? objects.indexOf(active) : -1;
+    if (smaller) this.controls.setEnabled(smaller, !!active && active.scaleX > MIN_SCALE + .001);
+    if (bigger) this.controls.setEnabled(bigger, !!active && active.scaleX < MAX_SCALE - .001);
+    if (flip) this.controls.setEnabled(flip, !!active);
+    if (behind) this.controls.setEnabled(behind, !!active && activeIndex > 0);
+    if (inFront) this.controls.setEnabled(inFront, !!active && activeIndex >= 0 && activeIndex < objects.length - 1);
+  }
+
+  scheduleAutosave() {
+    clearTimeout(this.autosaveTimer);
+    this.autosaveTimer = null;
+    const policy = autosavePolicy(this.preferences.autosaveMode);
+    this.elements.saveStatus.textContent = policy.pendingLabel;
+    if (policy.delayMs === null) return;
+    this.autosaveTimer = setTimeout(() => this.saveCurrent({ quiet: true }).catch((error) => this.handleError(error)), policy.delayMs);
+  }
+
+  async saveCurrent({ quiet = false } = {}) {
+    if (!this.current) return;
+    clearTimeout(this.autosaveTimer); this.syncCurrentFromCanvas();
+    this.current.updatedAt = new Date().toISOString();
+    const active = this.activeSticker(); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
+    this.current.thumbnail = this.canvas.toDataURL({ format: 'png', multiplier: .18, enableRetinaScaling: false });
+    if (active) this.canvas.setActiveObject(active);
+    await this.storage.putPicture(this.current);
+    this.elements.saveStatus.textContent = 'Saved!';
+    if (!quiet) { this.announce('Picture saved!'); this.feedback('save'); }
+  }
+
+  async donePicture() { await this.saveCurrent(); await this.showGallery(); }
+
+  exportDataUrl() {
+    const active = this.activeSticker(); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
+    const dataUrl = this.canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1, enableRetinaScaling: false });
+    if (active) this.canvas.setActiveObject(active);
+    this.canvas.requestRenderAll(); return dataUrl;
+  }
+
+  async downloadCurrent() {
+    if (!this.current) return;
+    const blob = dataUrlToBlob(this.exportDataUrl()); downloadBlob(blob, `${safeFilename(this.current.title)}.png`);
+    this.toast('Picture downloaded!');
+  }
+
+  async shareCurrent() {
+    if (!this.current) return;
+    const blob = dataUrlToBlob(this.exportDataUrl()); const file = new File([blob], `${safeFilename(this.current.title)}.png`, { type: 'image/png' });
+    if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
+      try { await navigator.share({ title: this.current.title, files: [file] }); return; } catch (error) { if (error.name === 'AbortError') return; }
+    }
+    downloadBlob(blob, file.name); this.toast('Sharing was not available, so the PNG was downloaded.');
+  }
+
+  async showGallery() {
+    if (this.current) await this.saveCurrent({ quiet: true });
+    const pictures = await this.storage.listPictures();
+    this.elements.gallery.replaceChildren(...pictures.map((picture) => this.createGalleryCard(picture)));
+    this.elements.galleryEmpty.hidden = pictures.length > 0;
+    this.elements.galleryNote.hidden = pictures.length < GALLERY_LIMIT - 2;
+    this.elements.galleryNote.textContent = pictures.length >= GALLERY_LIMIT ? 'Your sticker book is full. Download or delete a picture to make room.' : `You have ${GALLERY_LIMIT - pictures.length} picture spaces left.`;
+    this.showScreen('gallery-screen');
+  }
+
+  createGalleryCard(picture) {
+    const card = document.createElement('article'); card.className = 'gallery-card-item';
+    const image = document.createElement('img'); image.className = 'gallery-thumb'; image.alt = picture.title; image.src = picture.thumbnail || BUILT_IN_BACKGROUNDS[0].dataUrl;
+    const body = document.createElement('div'); body.className = 'gallery-card-body';
+    const input = document.createElement('input'); input.className = 'gallery-title-input'; input.value = picture.title; input.maxLength = 48; input.dataset.pictureTitle = picture.id; input.setAttribute('aria-label', `Title for ${picture.title}`);
+    const date = document.createElement('p'); date.className = 'gallery-date'; date.textContent = `Last made ${formatDate(picture.updatedAt)}`;
+    const actions = document.createElement('div'); actions.className = 'gallery-card-actions';
+    for (const [action, label, className] of [['edit', 'Edit', 'edit'], ['puzzle', 'Make Puzzle', 'puzzle'], ['download', 'Download', ''], ['share', 'Share', ''], ['duplicate', 'Duplicate', ''], ['delete', 'Delete', 'delete']]) {
+      const button = document.createElement('button'); button.type = 'button'; button.dataset.galleryAction = action; button.dataset.pictureId = picture.id; button.className = className; button.textContent = label; actions.appendChild(button);
+    }
+    this.controls.upgradeWithin(actions);
+    body.append(input, date, actions); card.append(image, body); return card;
+  }
+
+  async handleGalleryAction(action, pictureId) {
+    if (action === 'edit') return this.openPicture(pictureId);
+    if (action === 'puzzle') return this.puzzle.openCreation(pictureId);
+    const picture = await this.storage.getPicture(pictureId); if (!picture) return;
+    if (action === 'duplicate') {
+      const pictures = await this.storage.listPictures();
+      if (pictures.length >= GALLERY_LIMIT) { this.toast('Your sticker book is full.'); return; }
+      await this.storage.putPicture(duplicatePicture(picture)); this.toast('Picture copied!'); return this.showGallery();
+    }
+    if (action === 'delete') {
+      if (await this.confirm(`Delete “${picture.title}”? This cannot be undone.`, 'Yes, delete')) { await this.storage.deletePicture(pictureId); if (this.current?.id === pictureId) this.current = null; this.toast('Picture deleted.'); await this.showGallery(); }
+      return;
+    }
+    const restore = this.current ? structuredClone(this.current) : null;
+    this.current = normalizePicture(picture); await this.renderCurrentPicture();
+    if (action === 'download') await this.downloadCurrent(); else await this.shareCurrent();
+    this.current = restore; if (restore) await this.renderCurrentPicture();
+  }
+
+  async renamePicture(id, title) {
+    const picture = await this.storage.getPicture(id); if (!picture) return;
+    picture.title = title.trim() || picture.title; picture.updatedAt = new Date().toISOString(); await this.storage.putPicture(picture);
+    if (this.current?.id === id) this.current.title = picture.title;
+    this.announce('Picture title saved.');
+  }
+
+  async flattenPictureForPuzzle(id) {
+    const picture = await this.storage.getPicture(id); if (!picture) throw new Error('That creation could not be opened.');
+    const restore = this.current ? structuredClone(this.current) : null;
+    this.current = normalizePicture(picture); await this.renderCurrentPicture();
+    const dataUrl = this.exportDataUrl(); const title = this.current.title;
+    this.current = restore;
+    if (restore) await this.renderCurrentPicture(); else { this.canvas.clear(); this.canvas.requestRenderAll(); }
+    return { dataUrl, title };
+  }
+
+  showIdea() {
+    this.elements.ideaText.textContent = CREATIVE_PROMPTS[Math.floor(Math.random() * CREATIVE_PROMPTS.length)];
+    this.elements.ideaCard.hidden = false;
+  }
+
+  openParentGate() { this.resetGate(); this.showScreen('parent-gate-screen'); }
+
+  updateGate() {
+    if (this.gateHeld.size === 2 && !this.gateTimer) {
+      this.gateStart = performance.now();
+      this.gateTimer = setInterval(() => {
+        const elapsed = performance.now() - this.gateStart; const ratio = Math.min(1, elapsed / 3000);
+        this.root.querySelector('.gate-stars').style.setProperty('--gate-progress', `${ratio * 100}%`);
+        this.elements.gateCount.textContent = String(Math.max(0, Math.ceil(3 - elapsed / 1000)));
+        if (ratio >= 1) this.openParentTools();
+      }, 50);
+    } else if (this.gateHeld.size < 2) this.resetGate(false);
+  }
+
+  resetGate(clearHeld = true) {
+    clearInterval(this.gateTimer); this.gateTimer = null; this.gateStart = 0;
+    if (clearHeld) { this.gateHeld.clear(); this.root.querySelectorAll('[data-gate-star]').forEach((button) => (button.closest('.sfhs-cf-root') || button).classList.remove('is-held')); }
+    this.root.querySelector('.gate-stars')?.style.setProperty('--gate-progress', '0%');
+    if (this.elements?.gateCount) this.elements.gateCount.textContent = '3';
+  }
+
+  async openParentTools() {
+    this.resetGate(); this.renderPackList(); await this.refreshStorageSummary(); this.showScreen('parent-tools-screen');
+  }
+
+  async importPack(file) {
+    if (!file) return;
+    this.elements.importStatus.textContent = 'Opening sticker pack locally…';
+    const choice = this.elements.importCategory.value;
+    const customName = this.elements.customCategory.value.trim();
+    if (choice === 'custom' && !customName) throw new Error('Give the new sticker category a name first.');
+    const defaultCategory = choice === 'auto' ? null : choice === 'custom' ? safeId(customName, 'imported') : choice;
+    const pack = await processStickerPack(file, { defaultCategory });
+    await this.storage.putPack(pack); this.packs = await this.storage.listPacks();
+    const categoryTitle = defaultCategory ? (choice === 'custom' ? customName : this.elements.importCategory.selectedOptions[0].textContent) : 'the pack categories';
+    this.elements.importStatus.textContent = `${pack.assets.length} item${pack.assets.length === 1 ? '' : 's'} added from ${pack.title} in ${categoryTitle}.`;
+    this.elements.importReport.replaceChildren(...pack.report.map((entry) => { const line = document.createElement('p'); line.textContent = `${entry.status.toUpperCase()} · ${entry.path} · ${entry.reason}`; return line; }));
+    this.elements.importDetails.hidden = false; this.elements.packInput.value = '';
+    this.category = defaultCategory || pack.assets.find((asset) => asset.kind === 'sticker')?.category || this.category;
+    this.renderPackList(); this.renderLibrary(); this.renderBackgrounds(); await this.refreshStorageSummary(); this.toast('Sticker pack ready!');
+  }
+
+  renderPackList() {
+    if (!this.elements?.packList) return;
+    this.controls.destroyWithin(this.elements.packList);
+    if (!this.packs.length) { const empty = document.createElement('p'); empty.textContent = 'No imported packs yet.'; this.elements.packList.replaceChildren(empty); return; }
+    this.elements.packList.replaceChildren(...this.packs.map((pack) => {
+      const item = document.createElement('div'); item.className = 'pack-item';
+      const strong = document.createElement('strong'); strong.textContent = pack.title;
+      const small = document.createElement('small'); const stickers = pack.assets.filter((asset) => asset.kind === 'sticker').length; const backgrounds = pack.assets.filter((asset) => asset.kind === 'background').length; const category = pack.importCategory ? ` · category ${pack.importCategory.replace(/[-_]+/g, ' ')}` : ''; small.textContent = `${pack.version} · ${pack.creator || 'Creator not listed'} · ${stickers} stickers · ${backgrounds} backgrounds${category}`;
+      const button = document.createElement('button'); button.type = 'button'; button.dataset.removePack = pack.id; button.textContent = 'Remove'; item.append(strong, small, this.controls.upgradeButton(button, { family: 'tool', value: `remove-${pack.id}`, palette: 'trash' })); return item;
+    }));
+  }
+
+  async removePack(packId) {
+    const pack = this.packs.find((item) => item.id === packId); if (!pack) return;
+    if (!(await this.confirm(`Remove “${pack.title}”? Saved pictures keep their used stickers.`, 'Remove pack'))) return;
+    if (this.current) this.syncCurrentFromCanvas();
+    await this.storage.deletePack(packId); this.packs = await this.storage.listPacks(); this.renderPackList(); this.renderLibrary(); this.renderBackgrounds(); await this.refreshStorageSummary(); this.toast('Pack removed. Saved pictures are safe.');
+  }
+
+  async refreshStorageSummary() {
+    const usage = await this.storage.usageSummary();
+    this.elements.storageSummary.textContent = `${usage.pictures} of ${GALLERY_LIMIT} pictures · ${usage.packs} imported packs · about ${(usage.bytes / 1024 / 1024).toFixed(1)} MiB · ${usage.mode === 'indexeddb' ? 'saved on this device' : 'temporary session storage'}`;
+  }
+
+  exportRecovery() {
+    if (!this.current) { this.toast('Make or open a picture first.'); return; }
+    this.syncCurrentFromCanvas(); downloadBlob(new Blob([JSON.stringify(this.current, null, 2)], { type: 'application/json' }), `${safeFilename(this.current.title)}-recovery.json`);
+  }
+
+  async importRecovery(file) {
+    if (!file) return;
+    const value = JSON.parse(await file.text()); validatePicture(value); this.current = normalizePicture(value); this.current.id = createStableId('picture'); this.current.updatedAt = new Date().toISOString();
+    await this.storage.putPicture(this.current); await this.renderCurrentPicture(); this.history.clear(); this.elements.recoveryInput.value = ''; this.showScreen('editor-screen'); this.toast('Picture recovery opened.');
+  }
+
+  async clearData() {
+    const typed = prompt('Type CLEAR to erase all local Imaginarium pictures, packs, and settings.');
+    if (typed !== 'CLEAR') { this.toast('Nothing was erased.'); return; }
+    await this.storage.clearAll(); localStorage.removeItem('the-imaginarium.preferences@1'); this.current = null; this.packs = []; this.renderPackList(); this.renderLibrary(); this.toast('Local Imaginarium data cleared.'); await this.goHome();
+  }
+
+  updatePreference(name, value) { this.preferences[name] = value; savePreferences(this.preferences); this.applyPreferences(); this.announce('Setting saved.'); }
+
+  applyPreferences() {
+    document.body.classList.toggle('reduced-motion', !!this.preferences.reducedMotion);
+    for (const control of this.root.querySelectorAll('[data-action="toggle-sound"]')) this.controls?.setSelected(control, !!this.preferences.sound);
+    this.controls?.setSelected(this.elements?.hapticsSetting, !!this.preferences.haptics);
+    this.controls?.setSelected(this.elements?.motionSetting, !!this.preferences.reducedMotion);
+    for (const control of this.root.querySelectorAll('[data-autosave-mode]')) this.controls?.setSelected(control, control.dataset.autosaveMode === this.preferences.autosaveMode);
+    this.controls?.updatePreferences(this.preferences);
+  }
+
+  feedback(kind) {
+    this.controls.playProductCue(kind);
+  }
+
+  confirm(message, acceptLabel) {
+    this.elements.confirmMessage.textContent = message;
+    this.controls.setVisibleLabel(this.elements.confirmSheet.querySelector('[data-action="accept-confirm"]'), acceptLabel);
+    this.elements.confirmSheet.hidden = false;
+    return new Promise((resolve) => { this.confirmResolver = resolve; });
+  }
+
+  resolveConfirm(value) {
+    this.elements.confirmSheet.hidden = true;
+    const resolver = this.confirmResolver; this.confirmResolver = null; resolver?.(value);
+  }
+
+  announce(message) { this.elements.live.textContent = ''; requestAnimationFrame(() => { this.elements.live.textContent = message; }); }
+
+  toast(message) {
+    clearTimeout(this.toastTimer); this.elements.toast.textContent = message; this.elements.toast.hidden = false;
+    this.toastTimer = setTimeout(() => { this.elements.toast.hidden = true; }, 2600);
+  }
+
+  handleError(error) {
+    console.warn('[The Imaginarium]', error);
+    const friendly = mapChildSafeError(error); this.toast(friendly); this.announce(friendly);
+    this.controls?.playProductCue('error');
+    if (this.elements.importStatus && !this.elements.parentTools.hidden) this.elements.importStatus.textContent = error.message || friendly;
+  }
+
+  diagnostics() {
+    return {
+      screen: SCREEN_IDS.find((id) => !this.root.querySelector(`#${id}`).hidden),
+      pictureId: this.current?.id || null,
+      stickers: this.canvas.getObjects().length,
+      background: this.current?.page.backgroundAssetId || null,
+      storageMode: this.storage.mode,
+      controlFeedback: this.controls?.diagnostics() || null,
+      puzzle: this.puzzle?.diagnostics() || null,
+      externalRuntimeUrls: []
+    };
+  }
+}

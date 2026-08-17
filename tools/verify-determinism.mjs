@@ -24,6 +24,7 @@ function parseArguments(argumentsList) {
   const options = {
     artifactFile: undefined,
     offline: false,
+    project: "examples/pixi-minimal",
     reportFile: undefined
   };
   for (let index = 0; index < argumentsList.length; index += 1) {
@@ -35,7 +36,7 @@ function parseArguments(argumentsList) {
       options.offline = true;
       continue;
     }
-    if (argument === "--artifact-file" || argument === "--report-file") {
+    if (argument === "--artifact-file" || argument === "--report-file" || argument === "--project") {
       const value = argumentsList[index + 1];
       if (value === undefined) {
         throw new Error(`${argument} requires a path.`);
@@ -44,8 +45,14 @@ function parseArguments(argumentsList) {
       const resolved = resolve(repositoryRoot, value);
       if (argument === "--artifact-file") {
         options.artifactFile = resolved;
-      } else {
+      } else if (argument === "--report-file") {
         options.reportFile = resolved;
+      } else {
+        const relative = value.replaceAll("\\", "/");
+        if (!relative.startsWith("examples/") || relative.includes("..")) {
+          throw new Error("--project must name a project beneath examples/.");
+        }
+        options.project = relative;
       }
       continue;
     }
@@ -113,7 +120,7 @@ function sha256(bytes) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
-async function buildAndInspect(root, label, sourceRevision, offline) {
+async function buildAndInspect(root, label, sourceRevision, offline, project) {
   const installArguments = ["install", "--frozen-lockfile", "--reporter=append-only"];
   if (offline) {
     installArguments.push("--offline");
@@ -124,9 +131,9 @@ async function buildAndInspect(root, label, sourceRevision, offline) {
   const verifierUrl = pathToFileURL(join(root, "packages", "verifier", "src", "index.ts")).href;
   const { packProject } = await import(packerUrl);
   const { scanPackedBytes } = await import(verifierUrl);
-  const artifact = await packProject(join(root, "examples", "pixi-minimal"), { sourceRevision });
+  const artifact = await packProject(join(root, project), { sourceRevision });
   const scan = scanPackedBytes(artifact.bytes);
-  const outputDirectory = dirname(join(root, "examples", "pixi-minimal", artifact.descriptor.artifact.path));
+  const outputDirectory = dirname(join(root, project, artifact.descriptor.artifact.path));
   const outputEntries = (await readdir(outputDirectory)).sort((left, right) => left.localeCompare(right));
   if (outputEntries.length !== 1 || outputEntries[0] !== "index.html") {
     throw new Error(`Build ${label} emitted unexpected files: ${outputEntries.join(", ")}`);
@@ -174,11 +181,12 @@ async function main() {
       copyTrackedSource(firstRoot, files),
       copyTrackedSource(secondRoot, files)
     ]);
-    const first = await buildAndInspect(firstRoot, "A", sourceRevision, options.offline);
-    const second = await buildAndInspect(secondRoot, "B", sourceRevision, options.offline);
+    const first = await buildAndInspect(firstRoot, "A", sourceRevision, options.offline, options.project);
+    const second = await buildAndInspect(secondRoot, "B", sourceRevision, options.offline, options.project);
     const identical = first.bytes.equals(second.bytes);
     const result = Object.freeze({
       schema: "sfhs.determinism@1",
+      project: options.project,
       sourceRevision,
       environment: Object.freeze({
         platform: process.platform,

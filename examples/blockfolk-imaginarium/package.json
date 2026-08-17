@@ -1,0 +1,28 @@
+{
+  "name": "@sfhs/example-blockfolk-imaginarium",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline, mobile-first BlockFolk sticker-book creator prepared for its future art catalog.",
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "test:source": "node tests/focusedScenarios.mjs && node tools/static-audit.mjs",
+    "test:browser": "node tests/preArtBrowserScenario.mjs",
+    "test:packed": "node tools/packed-audit.mjs"
+  },
+  "dependencies": {
+    "@lucide/icons": "1.16.0",
+    "@sfhs/adapter-dom-canvas-fabric": "workspace:*",
+    "@sfhs/control-feedback-audio-web": "workspace:*",
+    "@sfhs/control-feedback-contract": "workspace:*",
+    "@sfhs/control-feedback-dom": "workspace:*",
+    "@sfhs/control-feedback-haptics-web": "workspace:*",
+    "@sfhs/control-feedback-presets": "workspace:*",
+    "@sfhs/control-feedback-runtime": "workspace:*",
+    "fabric": "7.4.0",
+    "fflate": "0.8.3"
+  }
+}

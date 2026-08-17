@@ -5,15 +5,7 @@ export interface SfhsProjectManifest {
     readonly title: string;
     readonly version: string;
   };
-  readonly adapter: {
-    readonly id: "pixi-v8";
-    readonly versionRange: string;
-    readonly renderer: {
-      readonly required: "webgl";
-      readonly webgpu: "disabled";
-      readonly unsupportedBehavior: "show-capability-page";
-    };
-  };
+  readonly adapter: SfhsProjectAdapter;
   readonly source: {
     readonly html: string;
     readonly entry: string;
@@ -21,7 +13,7 @@ export interface SfhsProjectManifest {
     readonly publicDir: string;
   };
   readonly viewport: {
-    readonly mode: "fixed" | "adaptive" | "fixed-contain" | "fixed-cover";
+    readonly mode: "fixed" | "adaptive" | "fixed-contain" | "fixed-cover" | "responsive-contained-artboard";
     readonly scalePolicy?: "contain" | "cover" | "stretch" | "integer-scale";
     readonly logicalWidth: number;
     readonly logicalHeight: number;
@@ -58,5 +50,27 @@ export interface SfhsProjectManifest {
     readonly viewports: readonly string[];
     readonly screenshots: readonly string[];
     readonly fileProtocolSmoke: boolean;
+  };
+}
+
+export type SfhsProjectAdapter = SfhsPixiV8ProjectAdapter | SfhsDomCanvasFabricProjectAdapter;
+
+export interface SfhsPixiV8ProjectAdapter {
+  readonly id: "pixi-v8";
+  readonly versionRange: string;
+  readonly renderer: {
+    readonly required: "webgl";
+    readonly webgpu: "disabled";
+    readonly unsupportedBehavior: "show-capability-page";
+  };
+}
+
+export interface SfhsDomCanvasFabricProjectAdapter {
+  readonly id: "dom-canvas-fabric";
+  readonly versionRange: string;
+  readonly renderer: {
+    readonly required: "canvas2d";
+    readonly webgpu: "disabled";
+    readonly unsupportedBehavior: "show-capability-page";
   };
 }

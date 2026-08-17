@@ -42,7 +42,7 @@
           "additionalProperties": false,
           "required": ["required", "webgpu", "unsupportedBehavior"],
           "properties": {
-            "required": { "const": "webgl" },
+            "required": { "enum": ["webgl", "canvas2d"] },
             "webgpu": { "const": "disabled" },
             "unsupportedBehavior": { "const": "show-capability-page" }
           }
@@ -65,7 +65,7 @@
       "additionalProperties": false,
       "required": ["mode", "logicalWidth", "logicalHeight", "maxDevicePixelRatio", "orientation"],
       "properties": {
-        "mode": { "enum": ["fixed", "adaptive", "fixed-contain", "fixed-cover"] },
+        "mode": { "enum": ["fixed", "adaptive", "fixed-contain", "fixed-cover", "responsive-contained-artboard"] },
         "scalePolicy": { "enum": ["contain", "cover", "stretch", "integer-scale"] },
         "logicalWidth": { "type": "integer", "minimum": 1 },
         "logicalHeight": { "type": "integer", "minimum": 1 },
@@ -89,7 +89,7 @@
       "additionalProperties": false,
       "required": ["simulationHz", "maximumFrameDeltaMs", "pauseWhenHidden", "domOverlay"],
       "properties": {
-        "simulationHz": { "type": "integer", "minimum": 1 },
+        "simulationHz": { "type": "integer", "minimum": 0 },
         "maximumFrameDeltaMs": { "type": "integer", "minimum": 1 },
         "pauseWhenHidden": { "type": "boolean" },
         "domOverlay": { "type": "boolean" }
