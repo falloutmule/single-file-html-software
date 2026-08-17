@@ -11,7 +11,8 @@ PASS — the isolated BlockFolk sibling now has the six-category contract, nativ
 - Branch: `feature/blockfolk-imaginarium-001`
 - Verified starting HEAD: `f6daec9cbbc563449b8bb835aef35fba2ad82f7c`
 - World-foundation commit: `e10dc04456fb2bcb77b6c210155869c21fc119b6`.
-- Delayed-click deduplication follow-up: the local commit containing the shared adapter repair and regression guard; its exact SHA is recorded in the final handoff because a commit cannot contain its own final object ID.
+- Delayed-click deduplication follow-up: `1d7c57c149fd75687f534335583665d98cea88a9`.
+- Press/release audio follow-up: the local commit containing the cue-role change and regression guard; its exact SHA is recorded in the final handoff because a commit cannot contain its own final object ID.
 - Product: `examples/blockfolk-imaginarium`
 - Upstream: none
 - Remote mutation: none; no push, PR, merge, deployment, release, tag, Pages change, or remote/config change was performed.
@@ -44,6 +45,7 @@ PASS — the isolated BlockFolk sibling now has the six-category contract, nativ
 | Packed identity/catalog/network audit | PASS |
 | Packed Chromium world-foundation scenario | PASS at 400 × 844 and 844 × 400; zero console errors, page errors, or unexpected requests |
 | Delayed compatibility-click regression | PASS: pointer activation + a click delayed 40 ms produces one activation; a genuine detail-0 assistive click remains available |
+| Press/release audio roles | PASS: press emits one downward click, valid release emits one distinct rising tone, and cancellation/outside release emits no release tone or third selection cue |
 | Determinism | PASS: two clean packs byte-identical |
 | Original Imaginarium source | PASS: 81 tracked files, 0 blob mismatches; Git tree `1369fc6e6e76bb204a9cfaf99cb6cb4f3c69d5a7` |
 | Original Imaginarium regression/build | PASS: 11 backgrounds, 114 stickers; canonical artifact unchanged at SHA-256 `7036de95bd8169dd43994eb2c78ea789476ccbd11a170312744b459d0ac4ea2e` |
@@ -53,14 +55,16 @@ The Chromium scenario covers old-save migration, original-namespace sentinels, a
 
 A physical-test follow-up found that delayed mobile compatibility clicks could outlive the adapter’s former zero-delay suppression and activate a control twice. The reusable defect was isolated in `packages/control-feedback-dom`: pointer-origin compatibility clicks are now suppressed for 800 ms, keyboard compatibility clicks use a separate short guard, and detail-0 assistive activation remains available. No Imaginarium product source was modified for this repair.
 
+BlockFolk controls now intentionally distinguish the two halves of a valid tap: contact plays the family’s short downward click and successful release plays the lighter rising `toggle-on` tone. Cancellation and release outside remain silent, choice state changes do not add a third cue, and haptics remain press-only.
+
 The packed audit rejects obsolete `things`, `silly`, and `words` category definitions and controls, inherited Imaginarium IDs/storage keys/art markers, external scripts/styles, and external runtime URLs. `src/assets/manifest.json` remains empty. No JPG/reference-sheet or production art file exists under the product.
 
 ## Artifact
 
 - Path: `examples/blockfolk-imaginarium/dist/index.html`
-- Build ID: `blockfolk-imaginarium-18b807662450`
-- Bytes: 651,351
-- SHA-256: `50fe901870c65bdb2262e9b1e10179cb0d39de0558a36729f31be2bacf844710`
+- Build ID: `blockfolk-imaginarium-40c1f526d135`
+- Bytes: 651,383
+- SHA-256: `3c7824291eab458cb55271923f17e837a949b6266b75ade1417713b73fca3e2a`
 - Portrait evidence: `test-results/world-foundation/portrait-400x844.png`
 - Landscape evidence: `test-results/world-foundation/landscape-844x400.png`
 

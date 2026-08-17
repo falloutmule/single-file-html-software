@@ -38,10 +38,12 @@ assert.equal(result.snapshot.interaction, 'pressed-inside', 'contact must depres
 assert.equal(result.events.some((event) => event.kind === 'cue' && event.cueId === 'plastic-click'), true, 'Big Toy contact must emit plastic-click');
 result = bigRuntime.dispatch({ kind: 'contact-end', sourceId: 'pointer:1', inside: true, atMs: 2 });
 assert.equal(result.events.filter((event) => event.kind === 'activate').length, 1, 'valid release must activate exactly once');
+assert.deepEqual(result.events.filter((event) => event.kind === 'cue').map(({ cueRole, cueId }) => ({ cueRole, cueId })), [{ cueRole: 'activate', cueId: 'toggle-on' }], 'valid release must emit one distinct rising release sound');
 bigRuntime.dispatch({ kind: 'contact-begin', source: 'pointer', sourceId: 'pointer:2', atMs: 3 });
 bigRuntime.dispatch({ kind: 'contact-update', sourceId: 'pointer:2', inside: false, atMs: 4 });
 result = bigRuntime.dispatch({ kind: 'contact-end', sourceId: 'pointer:2', inside: false, atMs: 5 });
 assert.equal(result.events.some((event) => event.kind === 'activate'), false, 'release outside must cancel without activation');
+assert.equal(result.events.some((event) => event.kind === 'cue' && event.cueRole === 'activate'), false, 'release outside must not emit the release sound');
 bigRuntime.dispatch({ kind: 'contact-begin', source: 'pointer', sourceId: 'pointer:reentry', atMs: 5.1 });
 bigRuntime.dispatch({ kind: 'contact-update', sourceId: 'pointer:reentry', inside: false, atMs: 5.2 });
 bigRuntime.dispatch({ kind: 'contact-update', sourceId: 'pointer:reentry', inside: true, atMs: 5.3 });
@@ -62,8 +64,11 @@ choiceRuntime.dispatch({ kind: 'contact-begin', source: 'keyboard', sourceId: 'k
 result = choiceRuntime.dispatch({ kind: 'contact-end', sourceId: 'key:Space', inside: true, atMs: 2 });
 assert.deepEqual(result.events.find((event) => event.kind === 'activate')?.proposal, { kind: 'choice', groupId: 'test-choice', value: 'pink' });
 assert.equal(result.snapshot.reducedMotion, true, 'reduced motion must remain explicit');
-assert.equal(shouldPlayControlCue({ role: 'press', cueId: 'soft-click' }), true, 'contact emits the one control sound');
-for (const role of ['activate', 'select-on', 'select-off', 'cancel']) assert.equal(shouldPlayControlCue({ role }), false, `${role} must not create a second tap sound`);
+assert.equal(choicePreset.cues.press, 'plastic-click', 'choice contact must use a short downward press click');
+assert.equal(choicePreset.cues.activate, 'toggle-on', 'choice release must use the distinct rising release tone');
+assert.equal(shouldPlayControlCue({ role: 'press', cueId: 'soft-click' }), true, 'contact must play the press sound');
+assert.equal(shouldPlayControlCue({ role: 'activate', cueId: 'toggle-on' }), true, 'valid release must play the distinct release sound');
+for (const role of ['select-on', 'select-off', 'cancel']) assert.equal(shouldPlayControlCue({ role }), false, `${role} must not create a third control sound`);
 assert.equal(shouldPlayProductCue('save'), true, 'real save completion keeps its success cue');
 assert.equal(shouldPlayProductCue('error'), true, 'real errors keep their cue');
 for (const kind of ['turn', 'pop', 'trash']) assert.equal(shouldPlayProductCue(kind), false, `${kind} action feedback must not duplicate its control press cue`);

@@ -145,7 +145,8 @@ export function createBlockFolkControlPreset({ family = 'tool', palette = PALETT
     semantic: Object.freeze(semantic),
     visuals: Object.freeze(visuals),
     cues: Object.freeze({
-      press: family === 'big' ? 'plastic-click' : family === 'choice' ? 'toggle-on' : 'soft-click',
+      press: family === 'big' || family === 'choice' ? 'plastic-click' : 'soft-click',
+      activate: 'toggle-on',
       success: 'success',
       error: 'error'
     }),
@@ -161,7 +162,7 @@ function visibleLabel(button) {
   return clone.textContent.replace(/\s+/g, ' ').trim() || 'Button';
 }
 
-export function shouldPlayControlCue(cue) { return cue?.role === 'press'; }
+export function shouldPlayControlCue(cue) { return cue?.role === 'press' || cue?.role === 'activate'; }
 export function shouldPlayProductCue(kind) { return kind === 'save' || kind === 'error'; }
 
 function inferredPalette(button, family) {
