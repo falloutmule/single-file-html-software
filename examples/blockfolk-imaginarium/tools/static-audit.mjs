@@ -44,11 +44,13 @@ const expectedCategoryDefinitions = [
 for (const definition of expectedCategoryDefinitions) if (!librarySource.includes(definition)) throw new Error(`Missing category definition: ${definition}`);
 if (/id:\s*['"](?:things|silly|words)['"]/.test(librarySource)) throw new Error('An obsolete category definition remains in the built-in library.');
 if (!/BUILT_IN_STICKERS\s*=\s*Object\.freeze\(\[\]\)/.test(librarySource)) throw new Error('The production sticker catalog must remain empty.');
-if (!/BUILT_IN_BACKGROUNDS\s*=\s*Object\.freeze\(\[DEBUG_WORLD_ASSET\]\)/.test(librarySource)) throw new Error('The built-in library must expose exactly the one debug world.');
+if (!/BUILT_IN_BACKGROUNDS\s*=\s*Object\.freeze\(\[BLOCKFOLK_VALLEY_ASSET\]\)/.test(librarySource)) throw new Error('The built-in library must expose exactly the one production world.');
 const worldSource = readFileSync(join(src, 'model', 'worldModel.js'), 'utf8');
-for (const marker of ['4096', 'DEBUG WORLD • NOT PRODUCTION', 'OCEAN BAY', 'MOUNTAIN SOURCE', 'FOREST RIVER', 'PLAINS BEND']) if (!worldSource.includes(marker)) throw new Error(`Debug world contract marker is missing: ${marker}`);
+for (const marker of ['4096', 'worldAssetUrl', 'BLOCKFOLK_VALLEY_ASSET', 'production: true', 'debug: false']) if (!worldSource.includes(marker)) throw new Error(`Production world contract marker is missing: ${marker}`);
+for (const forbidden of ['DEBUG WORLD • NOT PRODUCTION', 'debugWorldSvg', 'OCEAN BAY']) if (worldSource.includes(forbidden)) throw new Error(`Debug world payload remains: ${forbidden}`);
 const htmlInputs = [...combined.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)].map((match) => match[1]);
 if (htmlInputs.some((value) => /^https?:/i.test(value))) throw new Error('Runtime source includes an external network dependency.');
 const manifest = JSON.parse(readFileSync(join(src, 'assets', 'manifest.json'), 'utf8'));
-if (manifest.bundles.length !== 0) throw new Error('Pre-art asset manifest must stay empty.');
-console.log('BLOCKFOLK_IMAGINARIUM_STATIC_AUDIT PASS offline source, isolated identity, six categories, one debug world, empty production catalog, pinned Fabric/fflate/Lucide, no dynamic code or inline handlers');
+const manifestAssets = manifest.bundles.flatMap((bundle) => bundle.assets || []);
+if (manifest.bundles.length !== 1 || manifestAssets.length !== 1 || manifestAssets[0].alias !== 'blockfolk-valley' || manifestAssets[0].src !== 'backgrounds/blockfolk-valley.webp') throw new Error('The asset manifest must contain only the production BlockFolk Valley world.');
+console.log('BLOCKFOLK_IMAGINARIUM_STATIC_AUDIT PASS offline source, isolated identity, six categories, one production world, empty sticker catalog, pinned Fabric/fflate/Lucide, no dynamic code or inline handlers');

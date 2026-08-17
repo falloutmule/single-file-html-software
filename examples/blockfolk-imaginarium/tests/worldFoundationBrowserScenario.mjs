@@ -1,4 +1,4 @@
-/* global Buffer, document, Image, indexedDB, localStorage, MouseEvent, PointerEvent, setTimeout, structuredClone, window */
+/* global Buffer, document, Image, indexedDB, localStorage, MouseEvent, performance, PointerEvent, setTimeout, structuredClone, window */
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -69,7 +69,10 @@ async function delayedCompatibilityTap(selector) {
   }, selector);
 }
 
+const bootStarted = performance.now();
 await boot();
+const bootMs = Math.round(performance.now() - bootStarted);
+assert.ok(bootMs < 5000, `embedded 4096 world boot took too long: ${bootMs} ms`);
 
 // Seed both the original product and the old BlockFolk selection vocabulary.
 await page.evaluate(async () => {
@@ -117,6 +120,10 @@ assert.deepEqual(await page.evaluate(() => {
   const diagnostic = window.BlockFolkImaginarium.diagnostics();
   return { background: diagnostic.background, stickers: diagnostic.stickers, world: diagnostic.world.size };
 }), { background: 'blockfolk-valley', stickers: 0, world: 4096 });
+assert.deepEqual(await page.evaluate(() => {
+  const image = window.BlockFolkImaginarium.app.canvas.backgroundImage._element;
+  return { width: image.naturalWidth, height: image.naturalHeight, webp: image.src.startsWith('data:image/webp;base64,') };
+}), { width: 4096, height: 4096, webp: true }, 'the sole runtime world must be the embedded 4096 WebP');
 assert.deepEqual(await page.evaluate(() => ({ innerWidth: window.innerWidth, editorWidth: document.querySelector('#editor-screen').getBoundingClientRect().width, canvasWidth: window.BlockFolkImaginarium.diagnostics().world.viewport.width })), { innerWidth: 400, editorWidth: 400, canvasWidth: 380 }, 'portrait world shell must stay inside the 400px viewport');
 assert.deepEqual(await delayedCompatibilityTap('[data-action="camera-fit"]'), { physicalActivations: 1, assistiveActivations: 1 }, 'one physical tap must activate once while a genuine assistive click remains available');
 
@@ -226,9 +233,13 @@ for (let locationIndex = 0; locationIndex < locationTitles.length; locationIndex
   await page.locator('[data-action="show-world-locations"]').click();
   assert.deepEqual(await page.locator('#location-grid [data-location-id]').evaluateAll((buttons) => buttons.map((button) => button.closest('.sfhs-cf-root').textContent.trim())), locationTitles);
   assert.equal(await page.locator('#location-grid canvas').count(), 5, 'bookmarks must derive runtime previews from the one world');
-  if (locationIndex === 0) assert.ok(await page.locator('#location-grid canvas').first().evaluate((canvas) => canvas.toDataURL().length) > 1000, 'runtime bookmark crop must contain pixels from the one world');
+  if (locationIndex === 0) {
+    assert.ok(await page.locator('#location-grid canvas').first().evaluate((canvas) => canvas.toDataURL().length) > 1000, 'runtime bookmark crop must contain pixels from the one world');
+    await page.locator('#world-sheet').screenshot({ path: resolve(evidenceDirectory, 'bookmark-previews-400x844.png') });
+  }
   await page.locator(`#location-grid [data-location-id="${locationIds[locationIndex]}"]`).click();
   assert.equal(await page.locator('#world-sheet').getAttribute('hidden'), '');
+  await page.screenshot({ path: resolve(evidenceDirectory, `bookmark-${locationIds[locationIndex]}-400x844.png`) });
 }
 assert.deepEqual((await stickerState()).map((sticker) => sticker.sourceEmoji), emojiSequences, 'bookmarks must not move or delete stickers');
 
@@ -315,5 +326,5 @@ assert.equal(JSON.parse(originalNamespace.preference).sentinel, 'original-only')
 assert.equal(originalNamespace.picture.title, 'Original Imaginarium only');
 assert.deepEqual(runtimeRequests, []);
 assert.deepEqual(failures, []);
-console.log('BLOCKFOLK_IMAGINARIUM_WORLD_FOUNDATION_BROWSER PASS', JSON.stringify({ categoryMetrics, nativeGlyphProof, persistenceProof, portrait: '400x844', landscape: '844x400', runtimeRequests: 0, evidenceDirectory }));
+console.log('BLOCKFOLK_IMAGINARIUM_WORLD_FOUNDATION_BROWSER PASS', JSON.stringify({ bootMs, categoryMetrics, nativeGlyphProof, persistenceProof, portrait: '400x844', landscape: '844x400', runtimeRequests: 0, evidenceDirectory }));
 await browser.close();

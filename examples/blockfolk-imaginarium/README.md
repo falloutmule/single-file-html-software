@@ -4,7 +4,7 @@ BlockFolk Imaginarium is the isolated pre-art descendant of the accepted Imagina
 
 The six built-in category seams are Animals, People, Building, Nature, Magic, and Emoji. The first five are intentionally empty. Emoji accepts one genuine Unicode grapheme from the device keyboard and retains that exact sequence in the saved picture. The temporary category navigation uses bundled Lucide icon data; no production sticker artwork is present.
 
-The editor uses one 4096 × 4096 logical world, one deterministic engineering-only BlockFolk Valley SVG, persistent world-space sticker positions, and a saved camera center/zoom. Empty-space drag pans, sticker drag moves, and two-pointer pinch zooms around its midpoint. Five starting locations are camera bookmarks derived from the one world rather than alternate backgrounds. See `DESIGN-ART-CONTRACT.md` for the future production terrain contract and the single replacement seam.
+The editor uses one 4096 × 4096 logical world and the user-approved BlockFolk Valley production background, with persistent world-space sticker positions and a saved camera center/zoom. Empty-space drag pans, sticker drag moves, and two-pointer pinch zooms around its midpoint. Five starting locations are camera bookmarks derived from the one world rather than alternate backgrounds. See `DESIGN-ART-CONTRACT.md` for the retained terrain contract and source lineage.
 
 The product uses its own project ID, document schema, IndexedDB database, preference key, generated build ID, global diagnostics object, control IDs, record-ID prefixes, and export filenames. It does not read, migrate, overwrite, or delete the original product's local data.
 

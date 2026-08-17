@@ -1,4 +1,11 @@
 {
   "version": 1,
-  "bundles": []
+  "bundles": [
+    {
+      "name": "blockfolk-world",
+      "assets": [
+        { "alias": "blockfolk-valley", "src": "backgrounds/blockfolk-valley.webp" }
+      ]
+    }
+  ]
 }

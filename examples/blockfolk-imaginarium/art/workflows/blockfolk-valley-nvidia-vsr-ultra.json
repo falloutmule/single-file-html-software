@@ -1,0 +1,60 @@
+{
+  "schema": "blockfolk.comfyui-upscale-workflow@1",
+  "authority": {
+    "path": "../source/blockfolk-valley-authority-1280.jpg",
+    "encoding": "JPEG/JFIF",
+    "width": 1280,
+    "height": 1280,
+    "sha256": "4aa0bb1fb66e3c4101a0e4aa2dad1cf0ebf6adf7a5b484453a9cddd9bb0d7911"
+  },
+  "environment": {
+    "comfyuiVersion": "0.28.3",
+    "comfyuiCommit": "34d0629452cac83dc20aa3d84e45c9b60d9e36b3",
+    "nodePackage": "comfyui_nvidia_rtx_nodes",
+    "nodePackageVersion": "0.1.3",
+    "nodeCommit": "892515e3eb9a4920a131a502a047e47adca9eb0d",
+    "nodeType": "RTXVideoSuperResolution",
+    "nodeSourceSha256": "c7e653e5700c80d253fc36830c6e508bf45aab48050154dca1bc4998ef0624bc",
+    "engine": "NVIDIA RTX Video Super Resolution / NVIDIA VFX SDK 1.2.0.0",
+    "pythonPackage": "nvidia-vfx 0.1.0.1",
+    "engineHashes": {
+      "nvngx_vsr.dll": "dcd47a599d3ec250ca4f9c70e14cd7475e2fefb7f1c3dc81a0ca6490b32a1458",
+      "nvVFXVideoSuperRes.dll": "f3aa3ae514d2618d70d79c2730f8d1add5d04ab76bdb2b0a43cfdac63d4975c9",
+      "NVVideoEffects.dll": "dcc876d883d7ffdf1bee8492f933d40d3ba2e93eaf9e174e139cd9e6d93c961c"
+    },
+    "gpu": "NVIDIA GeForce RTX 4080 SUPER",
+    "driver": "591.86"
+  },
+  "processing": {
+    "scaleBehavior": "exact target dimensions (3.2x in each dimension)",
+    "targetWidth": 4096,
+    "targetHeight": 4096,
+    "quality": "ULTRA",
+    "colorPath": "ComfyUI LoadImage decoded sRGB JPEG to float RGB [0,1]; RTX VSR returned float RGB; SaveImage wrote PNG",
+    "diffusion": false,
+    "denoise": false,
+    "prompt": false,
+    "sampler": false,
+    "sharpening": false
+  },
+  "apiPrompt": {
+    "1": { "class_type": "LoadImage", "inputs": { "image": "BlockFolkValley/blockfolk-valley-authority-1280.jpg" } },
+    "2": {
+      "class_type": "RTXVideoSuperResolution",
+      "inputs": {
+        "images": ["1", 0],
+        "resize_type": "target dimensions",
+        "resize_type.width": 4096,
+        "resize_type.height": 4096,
+        "quality": "ULTRA"
+      }
+    },
+    "3": { "class_type": "SaveImage", "inputs": { "images": ["2", 0], "filename_prefix": "BlockFolkValley/blockfolk-valley-4096" } }
+  },
+  "observed": {
+    "runOneSeconds": 2.443,
+    "freshRunSeconds": 2.24,
+    "decodedRunsPixelEqual": true,
+    "peakVram": "not reported by the node; system_stats before/after showed approximately 39.8 MB less free VRAM after run one"
+  }
+}

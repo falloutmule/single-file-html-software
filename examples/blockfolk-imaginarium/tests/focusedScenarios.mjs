@@ -88,6 +88,13 @@ assert.deepEqual(STARTING_LOCATIONS.map(({ id, title }) => ({ id, title })), [
   { id: 'forest-river', title: 'Forest River' }, { id: 'plains-bend', title: 'Plains Bend' },
   { id: 'world-center', title: 'World Center' }
 ]);
+assert.deepEqual(STARTING_LOCATIONS, [
+  { id: 'coast', title: 'Coast', centerX: 760, centerY: 1040, zoom: 2.4 },
+  { id: 'mountain-source', title: 'Mountain Source', centerX: 3030, centerY: 760, zoom: 2.65 },
+  { id: 'forest-river', title: 'Forest River', centerX: 2930, centerY: 2460, zoom: 2.4 },
+  { id: 'plains-bend', title: 'Plains Bend', centerX: 1760, centerY: 2260, zoom: 2.3 },
+  { id: 'world-center', title: 'World Center', centerX: 2048, centerY: 2048, zoom: 1.35 }
+]);
 assert.equal(migrateBuiltInCategory('things'), 'building');
 assert.equal(migrateBuiltInCategory('silly'), 'magic');
 assert.equal(migrateBuiltInCategory('words'), 'emoji');
@@ -113,6 +120,7 @@ const zoomedCamera = zoomCameraAt(DEFAULT_CAMERA, 3.4, zoomAnchor.x, zoomAnchor.
 const worldAfterZoom = screenToWorld(zoomedCamera, 400, 844, zoomAnchor.x, zoomAnchor.y);
 assert.equal(Math.abs(worldBeforeZoom.x - worldAfterZoom.x) < 0.001, true, 'midpoint zoom must preserve its world-space X anchor');
 assert.equal(Math.abs(worldBeforeZoom.y - worldAfterZoom.y) < 0.001, true, 'midpoint zoom must preserve its world-space Y anchor');
+for (const [width, height] of [[400, 844], [844, 400]]) assert.ok(cameraTransform({ ...DEFAULT_CAMERA, zoom: CAMERA_MAX_ZOOM }, width, height).scale <= 1, 'the 4096 source must remain at or below native pixel scale at maximum phone zoom');
 assert.equal(DEFAULT_DIFFICULTY, 'fun');
 for (const [difficulty, count] of [['easy', 4], ['fun', 9], ['tricky', 16]]) {
   const grid = buildPuzzleGrid(PUZZLE_WIDTH, PUZZLE_HEIGHT, difficulty);
@@ -182,7 +190,7 @@ assert.notEqual(createStableId('picture'), createStableId('picture'), 'stable ID
 
 const picture = createPicture({ id: 'picture-a', title: 'My Picture 1', now: '2026-08-04T00:00:00.000Z' });
 assert.equal(picture.schema, PAGE_SCHEMA);
-assert.equal(picture.page.backgroundAssetId, WORLD_BACKGROUND_ID, 'a new world board must use the one engineering world');
+assert.equal(picture.page.backgroundAssetId, WORLD_BACKGROUND_ID, 'a new world board must use the one production world');
 assert.deepEqual(picture.page.camera, DEFAULT_CAMERA);
 assert.equal(picture.ui.category, 'animals');
 assert.equal(validatePicture(picture), true);
@@ -281,8 +289,8 @@ assert.deepEqual(BUILT_IN_CATEGORIES.map(({ id, title }) => ({ id, title })), [
   { id: 'nature', title: 'Nature' }, { id: 'magic', title: 'Magic' }, { id: 'emoji', title: 'Emoji' }
 ]);
 assert.equal(BUILT_IN_CATEGORIES.every((category) => category.icon?.node?.length > 0), true, 'every temporary category control must use Lucide icon data');
-assert.equal(BUILT_IN_BACKGROUNDS.length, 1); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, true); assert.deepEqual(BUILT_IN_STICKERS, []);
-assert.deepEqual(assetManifest.bundles, [], 'the pre-art asset manifest must contain no inherited payloads');
+assert.equal(BUILT_IN_BACKGROUNDS.length, 1); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].production, true); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, false); assert.match(BUILT_IN_BACKGROUNDS[0].dataUrl, /^data:image\/webp;base64,/); assert.deepEqual(BUILT_IN_STICKERS, []);
+assert.deepEqual(assetManifest.bundles, [{ name: 'blockfolk-world', assets: [{ alias: 'blockfolk-valley', src: 'backgrounds/blockfolk-valley.webp' }] }], 'the asset manifest must contain only the production world');
 
 assert.equal(normalizeArchivePath('../bad/cat.png'), null);
 assert.equal(normalizeArchivePath('Pack\\stickers\\animals\\cat.png'), 'Pack/stickers/animals/cat.png');

@@ -16,7 +16,7 @@ for (const marker of [
   '<title>BlockFolk Imaginarium</title>', 'blockfolk-imaginarium-library-v1',
   'blockfolk-imaginarium.preferences@1', 'blockfolk-imaginarium.page@2',
   'blockfolk-imaginarium.sticker-pack@1', 'blockfolk-imaginarium.puzzle@1',
-  'BlockFolk are coming soon', 'blockfolk-valley', 'DEBUG WORLD \\u2022 NOT PRODUCTION',
+  'BlockFolk are coming soon', 'blockfolk-valley', 'BlockFolk Valley',
   'show-world-locations', 'camera-zoom-in', 'camera-zoom-out', 'camera-fit', 'Add Emoji'
 ]) assert.equal(artifact.includes(marker), true, `packed artifact must contain ${marker}`);
 for (const obsoleteDefinition of [
@@ -29,4 +29,6 @@ for (const obsoleteDefinition of [
 assert.equal(/<script[^>]+src=/i.test(artifact), false, 'packed artifact must not load an external script');
 assert.equal(/<link[^>]+rel=["']?stylesheet/i.test(artifact), false, 'packed artifact must not load an external stylesheet');
 assert.equal(/(?:src|href)=["']https?:/i.test(artifact), false, 'packed artifact must not request runtime network resources');
-console.log('BLOCKFOLK_IMAGINARIUM_PACKED_AUDIT PASS isolated identity, six-category contract, one debug world, empty inherited catalog, no external script or stylesheet');
+if (artifact.includes('DEBUG WORLD • NOT PRODUCTION') || artifact.includes('OCEAN BAY')) throw new Error('Debug world payload remains in the packed product.');
+if (!artifact.includes('data:image/webp;base64,')) throw new Error('Packed production world WebP is missing.');
+console.log('BLOCKFOLK_IMAGINARIUM_PACKED_AUDIT PASS isolated identity, six-category contract, one production world, empty inherited catalog, no external script or stylesheet');

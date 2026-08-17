@@ -1,0 +1,166 @@
+{
+  "source": {
+    "path": "examples\\blockfolk-imaginarium\\art\\source\\blockfolk-valley-authority-1280.jpg",
+    "dimensions": [
+      1280,
+      1280
+    ],
+    "bytes": 293332,
+    "sha256": "4aa0bb1fb66e3c4101a0e4aa2dad1cf0ebf6adf7a5b484453a9cddd9bb0d7911",
+    "decodedPixelSha256": "d0525c34e834d4cac94557ac00544f7371e2f0e61debee021b42f338f330366d"
+  },
+  "master": {
+    "path": "examples\\blockfolk-imaginarium\\art\\master\\blockfolk-valley-4096.png",
+    "dimensions": [
+      4096,
+      4096
+    ],
+    "bytes": 20577460,
+    "sha256": "e5ea7c4077ddfac7c343fd7b1b4a903774bfeb59f4dbd9c28bf12cf630ad9933",
+    "decodedPixelSha256": "ee83c4f299835bbfdeffa73e74cdc6e3f2b26e62124e859ebd3ef2826799fd8a"
+  },
+  "repeat": {
+    "path": "examples\\blockfolk-imaginarium\\test-results\\valley-integration\\blockfolk-valley-4096-run2-fresh.png",
+    "dimensions": [
+      4096,
+      4096
+    ],
+    "bytes": 20577475,
+    "sha256": "0d481cd2f746aabd766cca0329828fa5178a3fff8a74ca15640173b62210765d",
+    "decodedPixelSha256": "ee83c4f299835bbfdeffa73e74cdc6e3f2b26e62124e859ebd3ef2826799fd8a"
+  },
+  "repeatability": {
+    "mse": 0.0,
+    "mae": 0.0,
+    "channelMaeRgb": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "maxAbsoluteError": 0,
+    "psnrDb": null,
+    "pixelEqual": true
+  },
+  "masterReducedToSource": {
+    "mse": 10.490792274475098,
+    "mae": 2.3504300117492676,
+    "channelMaeRgb": [
+      2.2376744747161865,
+      2.0458984375,
+      2.7677173614501953
+    ],
+    "maxAbsoluteError": 50,
+    "psnrDb": 37.922720731090784,
+    "pixelEqual": false
+  },
+  "webpCandidates": [
+    {
+      "quality": 88,
+      "path": "examples\\blockfolk-imaginarium\\test-results\\valley-integration\\webp-candidates\\blockfolk-valley-q88.webp",
+      "bytes": 1424174,
+      "sha256": "25b795d7b9914b56bd2dfb4a444594f63f4146d8490dd0127850b749b4a2c25c",
+      "comparisonToMaster": {
+        "mse": 4.289373874664307,
+        "mae": 1.5265220403671265,
+        "channelMaeRgb": [
+          1.467804193496704,
+          1.2166762351989746,
+          1.7365227937698364
+        ],
+        "maxAbsoluteError": 27,
+        "psnrDb": 41.80686458572175,
+        "pixelEqual": false
+      }
+    },
+    {
+      "quality": 90,
+      "path": "examples\\blockfolk-imaginarium\\test-results\\valley-integration\\webp-candidates\\blockfolk-valley-q90.webp",
+      "bytes": 1650468,
+      "sha256": "7b1d01bdbc695c286531669acaf9b9f318f44af35088a8c2e6a35e68b50776cb",
+      "comparisonToMaster": {
+        "mse": 3.915884017944336,
+        "mae": 1.452672004699707,
+        "channelMaeRgb": [
+          1.396376609802246,
+          1.1571743488311768,
+          1.6536598205566406
+        ],
+        "maxAbsoluteError": 27,
+        "psnrDb": 42.202505406358675,
+        "pixelEqual": false
+      }
+    },
+    {
+      "quality": 92,
+      "path": "examples\\blockfolk-imaginarium\\test-results\\valley-integration\\webp-candidates\\blockfolk-valley-q92.webp",
+      "bytes": 1887356,
+      "sha256": "87a00a56f605145bef53cccfde8722f0ca278b524ece72514597b6aead585d9b",
+      "comparisonToMaster": {
+        "mse": 3.422102928161621,
+        "mae": 1.3598798513412476,
+        "channelMaeRgb": [
+          1.3103384971618652,
+          1.093733787536621,
+          1.5432116985321045
+        ],
+        "maxAbsoluteError": 27,
+        "psnrDb": 42.78787292991768,
+        "pixelEqual": false
+      }
+    },
+    {
+      "quality": 94,
+      "path": "examples\\blockfolk-imaginarium\\test-results\\valley-integration\\webp-candidates\\blockfolk-valley-q94.webp",
+      "bytes": 2223920,
+      "sha256": "c1bce0e6a349b1c50685bcbca060fe914c7b991f56bbe44fe271f8331bd5b45c",
+      "comparisonToMaster": {
+        "mse": 2.8077239990234375,
+        "mae": 1.235360026359558,
+        "channelMaeRgb": [
+          1.1991474628448486,
+          1.0014126300811768,
+          1.4133365154266357
+        ],
+        "maxAbsoluteError": 24,
+        "psnrDb": 43.64725946723662,
+        "pixelEqual": false
+      }
+    },
+    {
+      "quality": 96,
+      "path": "examples\\blockfolk-imaginarium\\test-results\\valley-integration\\webp-candidates\\blockfolk-valley-q96.webp",
+      "bytes": 2697628,
+      "sha256": "0a3991a58fd5d7b39b9e83c6966ad90129394275536166151346b8870304d5be",
+      "comparisonToMaster": {
+        "mse": 2.3099472522735596,
+        "mae": 1.1161328554153442,
+        "channelMaeRgb": [
+          1.0969939231872559,
+          0.8989344239234924,
+          1.2819466590881348
+        ],
+        "maxAbsoluteError": 25,
+        "psnrDb": 44.4947829799225,
+        "pixelEqual": false
+      }
+    },
+    {
+      "quality": 98,
+      "path": "examples\\blockfolk-imaginarium\\test-results\\valley-integration\\webp-candidates\\blockfolk-valley-q98.webp",
+      "bytes": 3375174,
+      "sha256": "91fe3994295dbe114ffc323cdb9ae11fcfb21c2ba6351fc34451e304d974ba7b",
+      "comparisonToMaster": {
+        "mse": 1.8724771738052368,
+        "mae": 0.9992485046386719,
+        "channelMaeRgb": [
+          1.0018041133880615,
+          0.7934662699699402,
+          1.168064832687378
+        ],
+        "maxAbsoluteError": 21,
+        "psnrDb": 45.40663828675767,
+        "pixelEqual": false
+      }
+    }
+  ]
+}
