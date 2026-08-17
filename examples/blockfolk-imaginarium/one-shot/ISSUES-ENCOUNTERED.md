@@ -37,3 +37,13 @@
 - Expected: two clean isolated builds from the same tracked and untracked source set.
 - Resolution: reran the official harness with the approved network boundary and a process-local Git safe-directory setting. No dependency version or lockfile changed.
 - Verification: builds A and B are byte-identical at 8,769,364 bytes and SHA-256 `8b830d36cee776cf74512f1e31b624e0615fa2a6cefb3c648ea1a92a40850de3`.
+
+## BFP-003 — Initial Pages read preceded propagation
+
+- Phase: live verification
+- Status: `RESOLVED`
+- Severity: environment-only
+- Observed: the first HTTPS read of the newly added BlockFolk subpath returned 404 immediately after the Pages push.
+- Expected: GitHub Pages serves the exact accepted artifact without changing the root route.
+- Resolution: allowed normal Pages propagation, then downloaded and exercised the unmodified route.
+- Verification: the live response is 8,769,364 bytes with SHA-256 `8b830d36cee776cf74512f1e31b624e0615fa2a6cefb3c648ea1a92a40850de3`; portrait and landscape Chromium pass with zero console errors, page errors, or unexpected requests, and the Pages root remains byte-identical.

@@ -1,120 +1,113 @@
-# BlockFolk Imaginarium Valley Integration Report
+# BlockFolk Imaginarium First Production Build Report
 
 ## Outcome
 
-PASS — the user-approved BlockFolk Valley is now the sole built-in world. The exact revised 1280 × 1280 JPEG authority is archived, its deterministic NVIDIA VSR result is retained as a 4096 × 4096 lossless master, and one optimized 4096 × 4096 WebP is embedded in the offline artifact. The former debug world and all alternate-background payloads are absent. No sticker art was produced or imported.
+PASS — the first phone-testable production build restores all 30 accepted individual BlockFolk stickers, retains native Unicode emoji and the accepted BlockFolk Valley unchanged, and is published as an isolated offline single-HTML product at:
 
-## Repository state
+`https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/`
+
+The feature branch and dedicated Pages subpath were the only remote mutations. No PR, merge, tag, release, Pages-root replacement, original Imaginarium deployment, or unrelated publication occurred.
+
+## Repository and commits
 
 - Repository: `falloutmule/single-file-html-software`
 - Worktree: `C:\Users\fallo\Documents\Single-File-Html\.worktrees\blockfolk-imaginarium-001`
-- Branch: `feature/blockfolk-imaginarium-001`
-- Verified starting HEAD: `0e9e630241761124b6567cd3cea5153dab1d3ebe`
-- Resulting integration commit: the focused local commit containing this report; its exact object ID is recorded in the final handoff because a commit cannot contain its own final hash.
 - Product: `examples/blockfolk-imaginarium`
-- Upstream: none
-- Existing delayed-click and distinct press/release-audio repairs were retained.
-- No push, PR, merge, deployment, publication, release, tag, Pages, remote, or remote-configuration mutation occurred.
+- Branch: `feature/blockfolk-imaginarium-001`
+- Verified production-catalog starting HEAD: `dbab798992fb491f6942edfc2c09807e475644d1`
+- Sticker implementation commit: `b0111b24a2916ecc779d7eb5e435fc700142f447`
+- Final reporting commit: the focused commit containing this report; its exact object ID is recorded in the completion handoff because a commit cannot contain its own final hash.
+- Pushed upstream: `origin/feature/blockfolk-imaginarium-001`
+- Fetched Pages starting tip: `260829515804fb49dc5ffd56576824d2cd371248`
+- Pages commit: `ebe9a23cb792d774e32e5ff8bd6d591854667059`
 
-## Revised authority and retained assets
+## Restored catalog
 
-The handoff originally described a 1536 × 1536 file named `01-1000017428.png`, but the attachment actually received in this workspace is a JPEG. The user explicitly superseded the earlier identity and designated the received 1280 × 1280 image below as the revised sole authority.
+All PNG files were copied byte-for-byte from `examples/the-imaginarium/src/assets/blockfolk/`. Their source artwork, transparency, colors, pixels, and provenance were not changed. Runtime registration uses the canonical asset manifest; the packed audit decodes every embedded PNG and compares its SHA-256 set with these 30 accepted files.
 
-| Role | Path | Dimensions | Bytes | SHA-256 |
-| --- | --- | ---: | ---: | --- |
-| Byte-identical authority JPEG | `art/source/blockfolk-valley-authority-1280.jpg` | 1280 × 1280 | 293,332 | `4aa0bb1fb66e3c4101a0e4aa2dad1cf0ebf6adf7a5b484453a9cddd9bb0d7911` |
-| Lossless production master PNG | `art/master/blockfolk-valley-4096.png` | 4096 × 4096 | 20,577,460 | `e5ea7c4077ddfac7c343fd7b1b4a903774bfeb59f4dbd9c28bf12cf630ad9933` |
-| Shipping WebP, quality 88 | `src/assets/backgrounds/blockfolk-valley.webp` | 4096 × 4096 | 1,424,174 | `25b795d7b9914b56bd2dfb4a444594f63f4146d8490dd0127850b749b4a2c25c` |
+| Category | Count | Stickers |
+| --- | ---: | --- |
+| Animals | 2 | Wolf, Boar |
+| People | 6 | Farmer, Miner, Knight, Wizard, Ranger, Explorer |
+| Building | 6 | Wooden Door, Stone Door, Square Window, Round Window, Log Block, Brick Block |
+| Nature | 12 | Oak Tree, Pine Tree, Shrub, Berry Bush, Grass Block, Dirt Block, Stone Block, Sand Block, Snow Block, Water Block, Lava Block, Leaves Block |
+| Magic | 4 | Slime, Bat, Golem, Dragon |
+| Emoji | 0 illustrated | Native typed Unicode input |
 
-The archived JPEG is byte-identical to the received attachment. Its decoded RGB pixel SHA-256 is `d0525c34e834d4cac94557ac00544f7371e2f0e61debee021b42f338f330366d`.
+Only Animals, People, Building, Nature, Magic, and Emoji are selectable, in that exact order. Words, Things, Silly, old backgrounds, debug backgrounds, and reference sheets are absent.
 
-## Deterministic NVIDIA upscale
+The restored art uses a 420-world-unit longest edge. This is derived from the accepted original 285-logical-pixel placement at approximately 0.30 phone fit and produces an approximately 85–103 CSS-pixel initial extent at normal Valley bookmark zooms. Imported pictures and emoji retain their established sizing behavior.
 
-- ComfyUI: 0.28.3, commit `34d0629452cac83dc20aa3d84e45c9b60d9e36b3`
-- Node package: `comfyui_nvidia_rtx_nodes` 0.1.3, commit `892515e3eb9a4920a131a502a047e47adca9eb0d`
-- Node type: `RTXVideoSuperResolution`
-- Node source SHA-256: `c7e653e5700c80d253fc36830c6e508bf45aab48050154dca1bc4998ef0624bc`
-- Engine: NVIDIA RTX Video Super Resolution / VFX SDK 1.2.0.0
-- Python package: `nvidia-vfx` 0.1.0.1
-- GPU/driver: NVIDIA GeForce RTX 4080 SUPER / 591.86
-- Processing: exact 4096 × 4096 target dimensions, ULTRA quality, 3.2× per axis; no prompt, diffusion, denoise, sampler, generative repair, or sharpening.
-- Runtime: 2.443 seconds first successful run; 2.24 seconds forced-fresh repeat.
-- Peak VRAM was not reported by the node. ComfyUI system statistics showed approximately 39.8 MB less free VRAM after the first run; this is not a peak measurement.
+No persistence schema or BlockFolk namespace was replaced. A saved empty-world project created before catalog registration reloads successfully and immediately gains catalog access without migration, deletion, or original Imaginarium storage access.
 
-Engine hashes:
+## Preserved product behavior
 
-- `nvngx_vsr.dll`: `dcd47a599d3ec250ca4f9c70e14cd7475e2fefb7f1c3dc81a0ca6490b32a1458`
-- `nvVFXVideoSuperRes.dll`: `f3aa3ae514d2618d70d79c2730f8d1add5d04ab76bdb2b0a43cfdac63d4975c9`
-- `NVVideoEffects.dll`: `dcc876d883d7ffdf1bee8492f933d40d3ba2e93eaf9e174e139cd9e6d93c961c`
+- Native emoji preserves simple, variation-selector, skin-tone, ZWJ, flag, and family sequences through creation, save/reload, editing, and export.
+- All 30 thumbnails decode, and all 30 stickers can be placed.
+- Pan, midpoint pinch zoom, sticker-drag isolation, fit-world, five bookmarks, portrait/landscape continuity, and world-coordinate registration pass.
+- Flip, Behind/In Front, Undo/Redo, Copy, movement, scale, rotation, deletion, save/reload, Import with transparent-edge trimming, My Pictures, puzzle creation, and PNG export pass.
+- PNG export contains the accepted Valley, restored image stickers, and native emoji.
+- The delayed-click/double-activation repair and distinct press/release sounds remain present and tested.
+- Offline operation remains self-contained with no runtime service or unexpected request.
 
-The retained workflow is `art/workflows/blockfolk-valley-nvidia-vsr-ultra.json` (2,371 bytes; SHA-256 `00692bb906f225d54cbf7d0e1a1d9e5585476bc2c94b879e9c3b3e5a336b486b`). Two fresh executions produced pixel-identical 4096 × 4096 RGB data, decoded pixel SHA-256 `ee83c4f299835bbfdeffa73e74cdc6e3f2b26e62124e859ebd3ef2826799fd8a`; their PNG containers differ only in metadata.
+## Background protection
 
-The initial live node import failed because `nvvfx` was missing. With explicit user approval, only `nvidia-vfx` 0.1.0.1 was installed from NVIDIA's package index and the local ComfyUI process restarted. A first attempt through the PyPI source stub failed on `wheel_stub.buildapi`; the package's documented NVIDIA-index wheel path resolved it. No Flux, node pack, pip upgrade, or unrelated model/dependency was installed.
+The production Valley was not recompressed, regenerated, cropped, redrawn, or replaced.
 
-## Comparison and visual acceptance
+| Asset | Dimensions | Bytes | SHA-256 |
+| --- | ---: | ---: | --- |
+| Revised authority JPEG | 1280 × 1280 | 293,332 | `4aa0bb1fb66e3c4101a0e4aa2dad1cf0ebf6adf7a5b484453a9cddd9bb0d7911` |
+| Production master PNG | 4096 × 4096 | 20,577,460 | `e5ea7c4077ddfac7c343fd7b1b4a903774bfeb59f4dbd9c28bf12cf630ad9933` |
+| Sole shipping WebP | 4096 × 4096 | 1,424,174 | `25b795d7b9914b56bd2dfb4a444594f63f4146d8490dd0127850b749b4a2c25c` |
 
-- Master reduced to 1280 × 1280 with Lanczos versus the source decode: PSNR 37.9227 dB, MAE 2.35043, maximum absolute channel error 50.
-- Shipping WebP versus the lossless master: PSNR 41.8069 dB, MAE 1.52652, maximum absolute channel error 27.
-- WebP qualities 88, 90, 92, 94, 96, and 98 were compared; quality 88 was the smallest candidate with no visible degradation at native crop scale.
-- The full-image and named-region comparison sheet is `art/evidence/blockfolk-valley-upscale-comparison.png` (2,035,157 bytes; SHA-256 `c62208354c1c5ab5f8c6f217f4cd42a4adb7a487d0a1dfec63ff2733c7978319`).
-- The WebP comparison sheet is `art/evidence/blockfolk-valley-webp-comparison.png` (3,941,372 bytes; SHA-256 `24b24b0d998cc652d33af28247f125229b468cb9bffd16a341b290b6b544426c`).
-- Visual review found no trail-routing, clearing-area, river-edge, coastline, elevation, or composition drift and no doubled edges, halos, repeated texture, water shimmer, smeared flowers, or invented terrain detail.
+Exactly one WebP background is packed. The five existing runtime bookmark crops and bookmark coordinates are unchanged; no separate crop image, alternate background, or debug-world payload is embedded.
 
-## Product integration
+## Artifact
 
-- `blockfolk-valley` is the only built-in world and maps 1:1 to the 4096 × 4096 logical coordinate system.
-- A small asset registry imports exactly one WebP through the canonical asset manifest and supplies it to the existing camera/editor architecture.
-- The generated debug SVG, its labels, and all alternate portrait/landscape backgrounds are absent from the packed artifact.
-- Stickers remain in persistent world coordinates; background and stickers remain registered during pan, pinch zoom, resize, orientation change, save/reload, puzzle creation, and current-view PNG export.
-- Animals, People, Building, Nature, Magic, and Emoji remain in exact order. Native Unicode emoji, import/trimming, edit/history/layer/copy tools, My Pictures, sound/haptics, focus, and reduced motion remain intact.
-- `DESIGN-ART-CONTRACT.md` records this user-supplied, user-approved authority. Approved narrow natural terrain trails are allowed; constructed roads and paths remain forbidden. No license, generation provider, or public-redistribution right is asserted.
+- Path: `examples/blockfolk-imaginarium/dist/index.html`
+- Build ID: `blockfolk-imaginarium-1558f395ee8f`
+- Source SHA-256: `1558f395ee8f6da44dbe1025f5c2e44e8aede903fd6f1c49907ea0a6cb9506f5`
+- Bytes: 8,769,364
+- SHA-256: `8b830d36cee776cf74512f1e31b624e0615fa2a6cefb3c648ea1a92a40850de3`
 
-### Camera bookmarks
-
-| Bookmark | World X | World Y | Zoom |
-| --- | ---: | ---: | ---: |
-| Coast | 760 | 1040 | 2.40 |
-| Mountain Source | 3030 | 760 | 2.65 |
-| Forest River | 2930 | 2460 | 2.40 |
-| Plains Bend | 1760 | 2260 | 2.30 |
-| World Center | 2048 | 2048 | 1.35 |
-
-Each uses the same world image and generates its preview crop at runtime. Portrait and landscape screenshots confirm the named region remains in bounds with useful placement space and without moving stickers.
+Two isolated canonical builds produced the same Build ID, size, and byte-for-byte SHA-256.
 
 ## Verification
 
 | Lane | Exact result |
 | --- | --- |
-| Authority/asset proof | PASS: JPEG signature, dimensions, bytes, source hash, decoded-pixel identity, exact 4096 master/shipping dimensions, retained hashes |
-| Repeat NVIDIA execution | PASS: decoded 4096 RGB pixels byte-identical |
-| Comparison review | PASS: full image plus coastline, mountain lake/waterfall, mountain trail, central clearing/plains, forest clearing, forest trail, lower trail, and river mouth |
-| Product focused scenarios + static audit | PASS |
-| Repository lint | PASS |
-| Repository TypeScript check | PASS |
-| Repository unit suite | PASS: 46 files; 316 passed, 2 skipped |
-| SFHS inspect + validate | PASS, zero findings |
-| SFHS changed-path check | PASS; one review warning because this sibling path is not in the explicit SFHS path map; lint/typecheck/full unit steps passed |
+| Focused source scenarios and static audit | PASS: 6 categories; counts 2/6/6/12/4/0; 30 exact PNG assets; one unchanged world |
+| Repository lint and TypeScript | PASS |
+| Repository unit suite | PASS: 46 files, 316 passed, 2 skipped |
+| SFHS inspect and validate | PASS, zero findings |
+| SFHS changed-path check | PASS; one expected path-map review warning for the sibling example, with lint/typecheck/full unit steps passing |
 | SFHS project test | PASS |
-| Canonical SFHS pack + verify | PASS, zero findings |
-| Packed identity/catalog/network/asset audit | PASS: one non-empty WebP payload, zero JPEG payloads, exact decoded shipping hash, no debug-world marker |
-| Packed Chromium scenario | PASS at 400 × 844 and 844 × 400; zero console errors, page errors, or unexpected requests; 336 ms observed boot |
-| Editor/camera browser proof | PASS: pan, sticker drag isolation, midpoint pinch, bounds, fit, five bookmarks/previews, rotation continuity, save/reload, emoji/import/puzzle/export |
-| Deterministic canonical builds | PASS: two packs byte-identical |
-| Original Imaginarium isolation | PASS: Git tree remains `1369fc6e6e76bb204a9cfaf99cb6cb4f3c69d5a7`, no source diff; 11 backgrounds and 114 stickers regression-tested |
-| Original Imaginarium build | PASS: Build ID `the-imaginarium-1843671f0e4c`, 10,349,547 bytes, SHA-256 `85ab852ea947b7132877650725cd966383da3a8dfc09dabc4ec70597d5b1a75b` |
+| Canonical pack and exact verify | PASS, zero findings |
+| Packed identity/catalog/network audit | PASS: 30 matching PNGs, one matching WebP, no JPEG/reference sheet, no obsolete background |
+| Two isolated production builds | PASS: byte-identical at 8,769,364 bytes and the artifact SHA-256 above |
+| Local packed Chromium | PASS at 400 × 844 and 844 × 400; zero console errors, page errors, or unexpected requests; 185 ms observed boot |
+| Live HTTPS Chromium | PASS at 400 × 844 and 844 × 400; zero console errors, page errors, or unexpected requests; 3,436 ms observed cold-network boot |
+| Catalog/browser behavior | PASS: every thumbnail decoded; all 30 art stickers placed; native emoji and every required camera/editor/persistence/export lane passed |
+| Original Imaginarium focused regression | PASS: 11 backgrounds and 114 stickers |
+| Original Imaginarium canonical pack/verify | PASS: Build ID `the-imaginarium-1843671f0e4c`; 10,349,547 bytes; SHA-256 `85ab852ea947b7132877650725cd966383da3a8dfc09dabc4ec70597d5b1a75b` |
+| Original save sentinel | PASS: original localStorage and IndexedDB sentinel values remained unchanged during BlockFolk browser tests |
 | Ueye | Absent from this branch and untouched |
 
-## Current artifact
+The original Imaginarium tracked tree remained hash-identical at `1369fc6e6e76bb204a9cfaf99cb6cb4f3c69d5a7` before and after the work.
 
-- Path: `examples/blockfolk-imaginarium/dist/index.html`
-- Build ID: `blockfolk-imaginarium-a42c57ad95c4`
-- Bytes: 2,548,243
-- SHA-256: `3aedc45d6574823eb33b62e8b581302479ef55bc4a3cc8ba73dfd594c2a25cb8`
+## Pages proof
 
-The artifact is a current offline single HTML. Its single decoded WebP payload is byte-identical to the declared shipping asset.
+The Pages commit has parent `260829515804fb49dc5ffd56576824d2cd371248` and changes only `blockfolk-imaginarium/index.html`.
 
-## Remaining uncertainty and phone route
+- Live BlockFolk response: 8,769,364 bytes; SHA-256 exactly `8b830d36cee776cf74512f1e31b624e0615fa2a6cefb3c648ea1a92a40850de3`
+- Pages root `index.html`: blob `1690add7c1d1658e377a7c9531ab740bc027ff7b`; 10,349,488 bytes; SHA-256 `7036de95bd8169dd43994eb2c78ea789476ccbd11a170312744b459d0ac4ea2e`; unchanged from the fetched authority
+- Original Imaginarium route and all pre-existing Pages files were preserved.
 
-Automated Chromium acceptance is complete. Physical-phone feel, memory/decode performance on the target handset, and that handset's installed native emoji glyph coverage remain physical acceptance items; the background was not silently reduced. The NVIDIA node did not expose peak VRAM.
+## Resolved failures and remaining uncertainty
 
-From the worktree, run `python -m http.server 8000 --bind 0.0.0.0`, keep the PC and phone on the same Wi-Fi, and open `http://<PC-LAN-IP>:8000/examples/blockfolk-imaginarium/dist/index.html`. This serves only the local artifact and does not publish or change Pages.
+- The initial packed audit assumed a bundler-composed full sticker-ID literal. It was repaired to validate the ID namespace plus all 30 decoded PNG hashes.
+- One isolated offline install lacked a cached `@eslint/js` tarball. The official clean-build harness was rerun with the approved network boundary; no lockfile or dependency version changed.
+- The first live read briefly returned 404 while GitHub Pages propagated. A subsequent exact-byte download and both phone-sized live browser scenarios passed.
+- A lint failure in the packed audit's explicit `Buffer` use was repaired with a standard import; the complete lint lane then passed.
+
+Automated acceptance is complete. The only remaining physical-phone uncertainty is subjective touch/audio feel, real-device decode performance, and the handset's installed native-emoji glyph coverage. The published HTTPS URL above—not a local Python server—is the user acceptance route.
