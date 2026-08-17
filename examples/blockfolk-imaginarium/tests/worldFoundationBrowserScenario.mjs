@@ -1,4 +1,4 @@
-/* global Buffer, document, Image, indexedDB, localStorage, PointerEvent, structuredClone, window */
+/* global Buffer, document, Image, indexedDB, localStorage, MouseEvent, PointerEvent, setTimeout, structuredClone, window */
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -49,6 +49,26 @@ const stickerState = () => page.evaluate(() => {
   return app.current.stickers.map(({ layerId, assetId, sourceEmoji, x, y, scaleX, scaleY, angle, flipX, zIndex }) => ({ layerId, assetId, sourceEmoji, x, y, scaleX, scaleY, angle, flipX, zIndex }));
 });
 
+async function delayedCompatibilityTap(selector) {
+  return page.evaluate(async (controlSelector) => {
+    const app = window.BlockFolkImaginarium.app; const control = document.querySelector(controlSelector);
+    const before = app.controls.activationCount; const cameraBefore = structuredClone(app.camera); const rect = control.getBoundingClientRect();
+    const eventOptions = { bubbles: true, cancelable: true, pointerId: 91, pointerType: 'touch', isPrimary: true, button: 0, buttons: 1, clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 };
+    control.dispatchEvent(new PointerEvent('pointerdown', eventOptions));
+    control.dispatchEvent(new PointerEvent('pointerup', { ...eventOptions, buttons: 0 }));
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 40));
+    control.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1, clientX: eventOptions.clientX, clientY: eventOptions.clientY }));
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
+    const physicalActivations = app.controls.activationCount - before;
+    const beforeAssistive = app.controls.activationCount;
+    control.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 0 }));
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
+    const assistiveActivations = app.controls.activationCount - beforeAssistive;
+    app.camera = cameraBefore; app.applyCamera(); app.syncCurrentFromCanvas();
+    return { physicalActivations, assistiveActivations };
+  }, selector);
+}
+
 await boot();
 
 // Seed both the original product and the old BlockFolk selection vocabulary.
@@ -98,6 +118,7 @@ assert.deepEqual(await page.evaluate(() => {
   return { background: diagnostic.background, stickers: diagnostic.stickers, world: diagnostic.world.size };
 }), { background: 'blockfolk-valley', stickers: 0, world: 4096 });
 assert.deepEqual(await page.evaluate(() => ({ innerWidth: window.innerWidth, editorWidth: document.querySelector('#editor-screen').getBoundingClientRect().width, canvasWidth: window.BlockFolkImaginarium.diagnostics().world.viewport.width })), { innerWidth: 400, editorWidth: 400, canvasWidth: 380 }, 'portrait world shell must stay inside the 400px viewport');
+assert.deepEqual(await delayedCompatibilityTap('[data-action="camera-fit"]'), { physicalActivations: 1, assistiveActivations: 1 }, 'one physical tap must activate once while a genuine assistive click remains available');
 
 const expectedCategories = [
   ['animals', 'Animals'], ['people', 'People'], ['building', 'Building'],

@@ -16,6 +16,10 @@ import {
   type MountDomControlOptions
 } from "./types.ts";
 
+export function shouldSuppressCompatibilityClick(detail: number, atMs: number, pointerUntilMs: number, keyboardUntilMs: number): boolean {
+  return (detail > 0 && atMs <= pointerUntilMs) || atMs <= keyboardUntilMs;
+}
+
 function originForEvent(event: PointerEvent, target: HTMLElement): ControlFeedbackOrigin {
   const rect = target.getBoundingClientRect();
   if (rect.width <= 0 || rect.height <= 0) return { x: 0.5, y: 0.5 };
@@ -165,7 +169,8 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
     reducedMotion: options.reducedMotion ?? view.matchMedia("(prefers-reduced-motion: reduce)").matches
   });
   let destroyed = false;
-  let suppressClick = false;
+  let suppressPointerClickUntilMs = 0;
+  let suppressKeyboardClickUntilMs = 0;
   let pointerFocusInProgress = false;
   let lastTime = 0;
   const removers: Array<() => void> = [];
@@ -317,10 +322,8 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
   const dispatch = (signal: Parameters<typeof runtime.dispatch>[0]): void => { dispatchResult(signal); };
   const pointerSourceId = (event: PointerEvent): string => `pointer:${event.pointerId}`;
   const keyboardSourceId = (event: KeyboardEvent): string => `key:${event.code}`;
-  const suppressImminentClick = (): void => {
-    suppressClick = true;
-    view.setTimeout(() => { suppressClick = false; }, 0);
-  };
+  const suppressPointerCompatibilityClick = (): void => { suppressPointerClickUntilMs = now() + 800; };
+  const suppressKeyboardCompatibilityClick = (): void => { suppressKeyboardClickUntilMs = now() + 80; };
   const cancel = (reason: ControlFeedbackCancelReason): void => {
     if (runtime.read().owner !== undefined) dispatch({ kind: "contact-cancel", reason, atMs: now() });
   };
@@ -345,7 +348,7 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
     const event = rawEvent as PointerEvent;
     if (runtime.read().owner?.sourceId !== pointerSourceId(event)) return;
     event.preventDefault();
-    suppressImminentClick();
+    suppressPointerCompatibilityClick();
     dispatch({ kind: "contact-end", sourceId: pointerSourceId(event), inside: eventInside(event, elements.interactive), origin: originForEvent(event, elements.interactive), atMs: now() });
     try { elements.interactive.releasePointerCapture(event.pointerId); } catch { /* already released */ }
   });
@@ -375,18 +378,17 @@ export function mountDomControlUnchecked(options: MountDomControlOptions): DomCo
     if (event.code !== "Space" && event.code !== "Enter") return;
     if (runtime.read().owner?.sourceId !== keyboardSourceId(event)) return;
     event.preventDefault();
-    suppressImminentClick();
+    suppressKeyboardCompatibilityClick();
     dispatch({ kind: "contact-end", sourceId: keyboardSourceId(event), inside: true, atMs: now() });
   });
   listen(elements.interactive, "click", (event) => {
     event.preventDefault();
-    if (suppressClick) {
-      suppressClick = false;
+    const atMs = now();
+    if (shouldSuppressCompatibilityClick((event as MouseEvent).detail, atMs, suppressPointerClickUntilMs, suppressKeyboardClickUntilMs)) {
       render(runtime.read());
       return;
     }
     if (!runtime.read().model.enabled) return;
-    const atMs = now();
     dispatch({ kind: "contact-begin", source: "keyboard", sourceId: "assistive:click", atMs });
     dispatch({ kind: "contact-end", sourceId: "assistive:click", inside: true, atMs });
   });

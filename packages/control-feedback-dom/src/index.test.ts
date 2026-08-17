@@ -2,8 +2,16 @@ import { p0ControlPresets } from "@sfhs/control-feedback-contract";
 import { describe, expect, it } from "vitest";
 
 import { controlLengthCss, domControlStyleText, layerStyleToCss, packageIdentity, semanticElementForPreset } from "./index.ts";
+import { shouldSuppressCompatibilityClick } from "./dom.ts";
 
 describe("control feedback DOM adapter", () => {
+  it("deduplicates delayed pointer compatibility clicks without blocking assistive clicks", () => {
+    expect(shouldSuppressCompatibilityClick(1, 740, 800, 0)).toBe(true);
+    expect(shouldSuppressCompatibilityClick(1, 801, 800, 0)).toBe(false);
+    expect(shouldSuppressCompatibilityClick(0, 740, 800, 0)).toBe(false);
+    expect(shouldSuppressCompatibilityClick(0, 60, 0, 80)).toBe(true);
+  });
+
   it("maps semantics to native element roles", () => {
     expect(semanticElementForPreset(p0ControlPresets[0])).toBe("button");
     expect(semanticElementForPreset(p0ControlPresets[3])).toBe("checkbox-switch");
