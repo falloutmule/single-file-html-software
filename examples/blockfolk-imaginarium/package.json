@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test:source": "node tests/focusedScenarios.mjs && node tools/static-audit.mjs",
-    "test:browser": "node tests/preArtBrowserScenario.mjs",
+    "test:browser": "node tests/worldFoundationBrowserScenario.mjs",
     "test:packed": "node tools/packed-audit.mjs"
   },
   "dependencies": {

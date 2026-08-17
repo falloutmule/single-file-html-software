@@ -8,6 +8,8 @@ import { createBlockFolkControlPreset, shouldPlayControlCue, shouldPlayProductCu
 import { AUTOSAVE_MODES, DEFAULT_AUTOSAVE_MODE, autosavePolicy, normalizeAutosaveMode } from '../src/model/autosave.js';
 import { ASSET_LIMITS, mimeFromFilename } from '../src/model/assetModel.js';
 import { BUILT_IN_BACKGROUNDS, BUILT_IN_CATEGORIES, BUILT_IN_STICKERS, validateBuiltInLibrary } from '../src/model/builtInLibrary.js';
+import { migrateAssetCategory, migrateBuiltInCategory } from '../src/model/categoryModel.js';
+import { isNativeEmojiSequence, splitGraphemes, validateNativeEmojiSequence } from '../src/model/emojiModel.js';
 import { PictureHistory } from '../src/model/history.js';
 import { buildPuzzleGrid, createPuzzle, DEFAULT_DIFFICULTY, elapsedRaceTime, formatRaceTime, isPieceCenterInsideDestination, isPuzzleComplete, PUZZLE_HEIGHT, PUZZLE_WIDTH, restartPuzzle, validatePuzzle } from '../src/model/puzzleModel.js';
 import { drawFramedImage, fitGeometry } from '../src/model/puzzleImage.js';
@@ -20,6 +22,7 @@ import {
 import { BlockFolkImaginariumStorage, DB_NAME, PREFERENCE_KEY } from '../src/model/storage.js';
 import { PACK_SCHEMA, inferPackManifest, normalizeArchivePath, resolveImportCategory, safeId, validatePackManifest } from '../src/model/stickerPacks.js';
 import { findAlphaBounds } from '../src/model/trimTransparent.js';
+import { CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, DEFAULT_CAMERA, STARTING_LOCATIONS, WORLD_BACKGROUND_ID, WORLD_SIZE, cameraTransform, clampCamera, panCamera, screenToWorld, zoomCameraAt } from '../src/model/worldModel.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const source = readFileSync(join(root, 'src', 'app', 'ImaginariumApp.js'), 'utf8');
@@ -70,8 +73,41 @@ assert.equal(PREFERENCE_KEY, 'blockfolk-imaginarium.preferences@1');
 assert.notEqual(DB_NAME, 'the-imaginarium-library-v1');
 assert.notEqual(PREFERENCE_KEY, 'the-imaginarium.preferences@1');
 assert.equal(GALLERY_LIMIT, 24);
-assert.equal(PAGE_WIDTH, 1080);
-assert.equal(PAGE_HEIGHT, 1440);
+assert.equal(PAGE_WIDTH, 4096);
+assert.equal(PAGE_HEIGHT, 4096);
+assert.equal(WORLD_SIZE, 4096);
+assert.equal(CAMERA_MIN_ZOOM, 1);
+assert.equal(CAMERA_MAX_ZOOM, 8);
+assert.deepEqual(STARTING_LOCATIONS.map(({ id, title }) => ({ id, title })), [
+  { id: 'coast', title: 'Coast' }, { id: 'mountain-source', title: 'Mountain Source' },
+  { id: 'forest-river', title: 'Forest River' }, { id: 'plains-bend', title: 'Plains Bend' },
+  { id: 'world-center', title: 'World Center' }
+]);
+assert.equal(migrateBuiltInCategory('things'), 'building');
+assert.equal(migrateBuiltInCategory('silly'), 'magic');
+assert.equal(migrateBuiltInCategory('words'), 'emoji');
+assert.equal(migrateBuiltInCategory('unknown'), 'animals');
+assert.equal(migrateAssetCategory('things'), 'building');
+assert.equal(migrateAssetCategory('my-custom-group'), 'my-custom-group');
+for (const emoji of ['🙂', '❤️', '👍🏽', '👩🏽‍🚀', '🇺🇸', '👨‍👩‍👧‍👦', '1️⃣']) {
+  assert.deepEqual(splitGraphemes(emoji), [emoji], `${emoji} must remain one grapheme`);
+  assert.equal(isNativeEmojiSequence(emoji), true, `${emoji} must be accepted as native emoji`);
+  assert.equal(validateNativeEmojiSequence(emoji), emoji, `${emoji} must round-trip byte-for-byte`);
+}
+for (const invalid of ['', 'hello', 'hello🙂', 'A', '🙂 🙂', '🙂🙂']) assert.throws(() => validateNativeEmojiSequence(invalid), /emoji/i, `${JSON.stringify(invalid)} must be rejected`);
+
+const portraitCamera = clampCamera({ centerX: -500, centerY: 9000, zoom: 2 }, 400, 844);
+const portraitTransform = cameraTransform(portraitCamera, 400, 844);
+assert.equal(portraitTransform.scale, 400 / WORLD_SIZE * 2);
+assert.equal(portraitCamera.centerX >= 1024 && portraitCamera.centerX <= 3072, true, 'portrait bounds must keep the world in view');
+const pannedCamera = panCamera(DEFAULT_CAMERA, 80, -40, 400, 844);
+assert.notDeepEqual(pannedCamera, DEFAULT_CAMERA, 'screen-space pan must change the camera in world space');
+const zoomAnchor = { x: 125, y: 260 };
+const worldBeforeZoom = screenToWorld(DEFAULT_CAMERA, 400, 844, zoomAnchor.x, zoomAnchor.y);
+const zoomedCamera = zoomCameraAt(DEFAULT_CAMERA, 3.4, zoomAnchor.x, zoomAnchor.y, 400, 844);
+const worldAfterZoom = screenToWorld(zoomedCamera, 400, 844, zoomAnchor.x, zoomAnchor.y);
+assert.equal(Math.abs(worldBeforeZoom.x - worldAfterZoom.x) < 0.001, true, 'midpoint zoom must preserve its world-space X anchor');
+assert.equal(Math.abs(worldBeforeZoom.y - worldAfterZoom.y) < 0.001, true, 'midpoint zoom must preserve its world-space Y anchor');
 assert.equal(DEFAULT_DIFFICULTY, 'fun');
 for (const [difficulty, count] of [['easy', 4], ['fun', 9], ['tricky', 16]]) {
   const grid = buildPuzzleGrid(PUZZLE_WIDTH, PUZZLE_HEIGHT, difficulty);
@@ -141,18 +177,35 @@ assert.notEqual(createStableId('picture'), createStableId('picture'), 'stable ID
 
 const picture = createPicture({ id: 'picture-a', title: 'My Picture 1', now: '2026-08-04T00:00:00.000Z' });
 assert.equal(picture.schema, PAGE_SCHEMA);
-assert.equal(picture.page.backgroundAssetId, null, 'a new pre-art board must start without inherited background art');
+assert.equal(picture.page.backgroundAssetId, WORLD_BACKGROUND_ID, 'a new world board must use the one engineering world');
+assert.deepEqual(picture.page.camera, DEFAULT_CAMERA);
+assert.equal(picture.ui.category, 'animals');
 assert.equal(validatePicture(picture), true);
 assert.deepEqual(normalizePicture(JSON.parse(JSON.stringify(picture))), picture, 'picture JSON must round-trip');
 assert.throws(() => validatePicture({ ...picture, schema: 'blockfolk-imaginarium.page@99' }), /not supported/);
 assert.throws(() => validatePicture({ ...picture, stickers: [{ layerId: 'x', assetId: 'a', x: NaN, y: 0, scaleX: 1, scaleY: 1, angle: 0 }] }), /invalid sticker/);
 
+const legacyWorldPicture = {
+  ...JSON.parse(JSON.stringify(picture)),
+  schema: 'blockfolk-imaginarium.page@1',
+  page: { width: 1080, height: 1440, backgroundAssetId: null },
+  ui: { selectedCategory: 'words' },
+  stickers: [{ ...createSticker('local-piece', { layerId: 'legacy-layer' }), x: 540, y: 720 }]
+};
+const migratedWorldPicture = normalizePicture(legacyWorldPicture);
+assert.equal(migratedWorldPicture.schema, PAGE_SCHEMA);
+assert.deepEqual(migratedWorldPicture.page, { width: WORLD_SIZE, height: WORLD_SIZE, backgroundAssetId: WORLD_BACKGROUND_ID, camera: DEFAULT_CAMERA });
+assert.equal(migratedWorldPicture.ui.category, 'emoji');
+assert.equal(migratedWorldPicture.stickers[0].x, 2048);
+assert.equal(migratedWorldPicture.stickers[0].y, 2048);
+assert.equal(migratedWorldPicture.stickers[0].assetId, 'local-piece', 'legacy migration must preserve user content');
+
 const sticker = createSticker('pack-local-test-piece', { layerId: 'layer-a', scale: 1 });
 let resized = sticker;
 for (let index = 0; index < 100; index += 1) resized = resizeSticker(resized, 1.1);
-assert.equal(resized.scaleX, MAX_SCALE, 'Bigger must stop at 400%');
+assert.equal(resized.scaleX, MAX_SCALE, 'Bigger must stop at the world-safe maximum');
 for (let index = 0; index < 200; index += 1) resized = resizeSticker(resized, 1 / 1.1);
-assert.equal(resized.scaleX, MIN_SCALE, 'Smaller must stop at 25%');
+assert.equal(resized.scaleX, MIN_SCALE, 'Smaller must stop at the world-safe minimum');
 assert.equal(rotateSticker({ angle: 350 }, 15).angle, 5, 'Turn must use a 15 degree wrapping step');
 const transformedSticker = { ...sticker, x: 100, y: 200, scaleX: 1.4, scaleY: 1.4, angle: 45, flipX: false, zIndex: 2 };
 const flipped = flipSticker(transformedSticker);
@@ -183,8 +236,14 @@ assert.equal(clamped.y, PAGE_HEIGHT + 120, 'at least 10% of sticker height must 
 
 picture.stickers.push(sticker);
 picture.embeddedAssets.push({ id: 'pack-friends-cat', dataUrl: 'data:image/png;base64,AAAA', kind: 'sticker', name: 'Cat' });
+const exactEmoji = '👩🏽‍🚀';
+picture.embeddedAssets.push({ id: 'emoji-proof', kind: 'emoji', name: exactEmoji, glyph: exactEmoji });
+picture.stickers.push(createSticker('emoji-proof', { layerId: 'emoji-layer', sourceEmoji: exactEmoji }));
+const emojiRoundTrip = normalizePicture(JSON.parse(JSON.stringify(picture)));
+assert.equal(emojiRoundTrip.embeddedAssets.find((asset) => asset.id === 'emoji-proof').glyph, exactEmoji, 'emoji asset source must round-trip exactly');
+assert.equal(emojiRoundTrip.stickers.find((item) => item.layerId === 'emoji-layer').sourceEmoji, exactEmoji, 'emoji sticker source must round-trip exactly');
 const duplicate = duplicatePicture(picture, 'My Picture 2', '2026-08-04T01:00:00.000Z');
-assert.notEqual(duplicate.id, picture.id); assert.notEqual(duplicate.stickers[0].layerId, sticker.layerId); assert.equal(duplicate.embeddedAssets.length, 1, 'duplicate must retain used imported assets');
+assert.notEqual(duplicate.id, picture.id); assert.notEqual(duplicate.stickers[0].layerId, sticker.layerId); assert.equal(duplicate.embeddedAssets.length, 2, 'duplicate must retain used imported and emoji assets');
 
 const transformedPicture = createPicture({ id: 'picture-transformed', title: 'Transformed', now: '2026-08-15T00:00:00.000Z' });
 transformedPicture.stickers = moveStickerOneStep([
@@ -211,13 +270,13 @@ assert.deepEqual(history.undo({ value: 4 }), { value: 3 });
 assert.deepEqual(history.redo({ value: 3 }), { value: 4 });
 
 const library = validateBuiltInLibrary();
-assert.deepEqual(library, { backgrounds: 0, stickers: 0, categories: 7 });
+assert.deepEqual(library, { backgrounds: 1, stickers: 0, categories: 6 });
 assert.deepEqual(BUILT_IN_CATEGORIES.map(({ id, title }) => ({ id, title })), [
-  { id: 'animals', title: 'Animals' }, { id: 'people', title: 'People' }, { id: 'things', title: 'Things' },
-  { id: 'nature', title: 'Nature' }, { id: 'silly', title: 'Silly' }, { id: 'words', title: 'Words' }, { id: 'emoji', title: 'Emoji' }
+  { id: 'animals', title: 'Animals' }, { id: 'people', title: 'People' }, { id: 'building', title: 'Building' },
+  { id: 'nature', title: 'Nature' }, { id: 'magic', title: 'Magic' }, { id: 'emoji', title: 'Emoji' }
 ]);
 assert.equal(BUILT_IN_CATEGORIES.every((category) => category.icon?.node?.length > 0), true, 'every temporary category control must use Lucide icon data');
-assert.deepEqual(BUILT_IN_BACKGROUNDS, []); assert.deepEqual(BUILT_IN_STICKERS, []);
+assert.equal(BUILT_IN_BACKGROUNDS.length, 1); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, true); assert.deepEqual(BUILT_IN_STICKERS, []);
 assert.deepEqual(assetManifest.bundles, [], 'the pre-art asset manifest must contain no inherited payloads');
 
 assert.equal(normalizeArchivePath('../bad/cat.png'), null);
@@ -260,7 +319,7 @@ await storage.deletePuzzle(); assert.equal(await storage.getPuzzle(), null);
 
 assert.match(mapChildSafeError(new Error('QuotaExceededError')), /download/);
 assert.match(mapChildSafeError(new Error('bad zip archive')), /grown-up/);
-for (const required of ['new-picture', 'show-gallery', 'show-parent-gate', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front', 'copy', 'trash', 'undo', 'redo', 'download', 'share']) assert.match(`${source}\n${html}`, new RegExp(required), `missing ${required} workflow`);
+for (const required of ['new-picture', 'show-gallery', 'show-parent-gate', 'show-world-locations', 'camera-zoom-out', 'camera-fit', 'camera-zoom-in', 'add-emoji', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front', 'copy', 'trash', 'undo', 'redo', 'download', 'share']) assert.match(`${source}\n${html}`, new RegExp(required), `missing ${required} workflow`);
 assert.match(source, /canvas\.moveObjectTo\(active, target\)/, 'depth controls must use the native canvas object stack');
 assert.match(source, /active\.set\(\{ flipX: flipped\.flipX \}\)/, 'Flip must use the native horizontal mirror property');
 assert.match(html, /data-action="smaller"[\s\S]*data-action="bigger"[\s\S]*data-action="turn"[\s\S]*data-action="flip"[\s\S]*data-action="behind"[\s\S]*data-action="in-front"[\s\S]*data-action="copy"[\s\S]*data-action="trash"/, 'selected-sticker tools must keep the child-facing order');
@@ -281,6 +340,12 @@ assert.match(controlSource, /groupId: 'blockfolk-imaginarium-autosave-mode'/, 'a
 assert.match(html, /role="radiogroup"/); assert.match(html, /data-control-family="big"/);
 assert.match(html, /id="import-category"/); assert.match(html, /Make a new category/); assert.match(source, /processStickerPack\(file, \{ defaultCategory \}\)/);
 assert.match(source, /new fabricNS\.Text\(asset\.glyph/); assert.doesNotMatch(html, /value="community"/);
+assert.match(source, /addEventListener\('pointerdown'/, 'the world must route direct pointer manipulation');
+assert.match(source, /zoomCameraAt\(/, 'pinch and accessible zoom must share midpoint camera math');
+assert.match(source, /pointercancel/, 'camera and sticker contact must handle cancellation');
+assert.match(source, /sourceEmoji/, 'native emoji source must remain authoritative in editor state');
+assert.match(html, /id="world-sheet"/); assert.match(html, /id="location-grid"/);
+assert.doesNotMatch(html, /data-background-id|background-grid|show-backgrounds/, 'the shell must not expose alternate background choices');
 assert.doesNotMatch(html, /\b(asset|layer|artboard|manifest|serialization|opacity|coordinate|MIME|decompression|Fabric object)\b/i, 'child-facing shell must avoid professional editor terms');
 
 assert.match(html, /BlockFolk Imaginarium/); assert.match(source, /BlockFolk are coming soon/);

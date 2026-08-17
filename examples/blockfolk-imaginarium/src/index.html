@@ -4,7 +4,7 @@
     <!-- Fabric.js 7.4.0 is MIT licensed. Temporary category icons are from Lucide under the ISC license. -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <meta name="theme-color" content="#6d4aa5" />
+    <meta name="theme-color" content="#466f3c" />
     <title>BlockFolk Imaginarium</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -15,9 +15,9 @@
         <div class="paper-cloud cloud-b" aria-hidden="true"></div>
         <header class="hero">
           <div class="logo-mark" aria-hidden="true"><span>✦</span><span>●</span><span>★</span></div>
-          <p class="eyebrow">A sticker book for big ideas</p>
+          <p class="eyebrow">BlockFolk Workshop</p>
           <h1 id="home-title">BlockFolk Imaginarium</h1>
-          <p>Add your own pictures now.<br />BlockFolk are coming soon.</p>
+          <p>Build stories across one big world.<br />BlockFolk art is coming later.</p>
         </header>
         <div class="home-actions">
           <button type="button" class="home-card make-card" data-action="new-picture"><span class="card-icon" aria-hidden="true">✂</span><strong>Make a Picture</strong><small>Start with a fresh page</small></button>
@@ -43,18 +43,23 @@
 
         <div class="editor-main">
           <div class="idea-row">
-            <button type="button" class="pill-button" data-action="show-backgrounds"><span aria-hidden="true">▧</span> Background</button>
+            <button type="button" class="pill-button" data-action="show-world-locations"><span aria-hidden="true">⌖</span> Locations</button>
             <button type="button" class="pill-button" data-action="show-idea"><span aria-hidden="true">✦</span> Idea</button>
+            <div class="camera-actions" aria-label="World view controls">
+              <button type="button" data-action="camera-zoom-out" aria-label="Zoom world out">−</button>
+              <button type="button" data-action="camera-fit" aria-label="Fit complete world">□</button>
+              <button type="button" data-action="camera-zoom-in" aria-label="Zoom world in">＋</button>
+            </div>
             <span id="save-status" class="save-status" role="status">Ready!</span>
           </div>
           <div id="idea-card" class="idea-card" hidden><span id="idea-text"></span><button type="button" data-action="hide-idea" aria-label="Hide idea">×</button></div>
           <div id="page-viewport" class="page-viewport" aria-label="Your sticker picture">
             <div id="page-scaler" class="page-scaler">
               <div id="page-frame" class="page-frame">
-                <canvas id="picture-canvas" width="1080" height="1440" aria-label="Picture page"></canvas>
+                <canvas id="picture-canvas" width="390" height="480" aria-label="BlockFolk Valley world. Drag empty ground to pan, drag a sticker to move it, or pinch with two fingers to zoom."></canvas>
               </div>
             </div>
-            <div id="empty-invitation" class="empty-invitation">Import a picture to start your BlockFolk story!</div>
+            <div id="empty-invitation" class="empty-invitation">Drag the world to explore. Import art or add an emoji to begin.</div>
           </div>
           <div id="selection-toolbar" class="selection-toolbar" aria-label="Selected sticker controls" hidden>
             <button type="button" data-action="smaller"><span aria-hidden="true">−</span>Smaller</button>
@@ -106,10 +111,9 @@
                 <option value="auto">Pack folders or instructions</option>
                 <option value="animals">Animals</option>
                 <option value="people">People</option>
-                <option value="things">Things</option>
+                <option value="building">Building</option>
                 <option value="nature">Nature</option>
-                <option value="silly">Silly</option>
-                <option value="words">Words</option>
+                <option value="magic">Magic</option>
                 <option value="emoji">Emoji</option>
                 <option value="imported">Imported</option>
                 <option value="custom">Make a new category…</option>
@@ -174,8 +178,8 @@
         </main>
       </section>
 
-      <div id="background-sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="background-title" hidden>
-        <div class="sheet-panel"><header><div><p class="eyebrow">Pick a place</p><h2 id="background-title">Backgrounds</h2></div><button type="button" data-action="close-backgrounds" data-control-family="big" data-control-tone="purple">Done</button></header><div id="background-grid" class="background-grid" role="radiogroup" aria-label="Picture backgrounds"></div></div>
+      <div id="world-sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="world-title" hidden>
+        <div class="sheet-panel"><header><div><p class="eyebrow">One world, five viewpoints</p><h2 id="world-title">Starting Locations</h2></div><button type="button" data-action="close-world-locations" data-control-family="big" data-control-tone="mint">Done</button></header><p class="world-sheet-note">Locations move only the camera. Your stickers stay exactly where you placed them.</p><div id="location-grid" class="location-grid" role="group" aria-label="Open a starting location"></div></div>
       </div>
 
       <div id="confirm-sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>

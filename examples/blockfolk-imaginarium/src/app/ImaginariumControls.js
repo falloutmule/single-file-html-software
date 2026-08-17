@@ -177,19 +177,17 @@ function inferredPalette(button, family) {
   if (button.classList.contains('trash') || button.classList.contains('delete')) return PALETTES.trash;
   if (button.classList.contains('done-button') || button.classList.contains('primary-button') || button.classList.contains('continue-button') || button.classList.contains('edit')) return PALETTES.purple;
   if (button.classList.contains('category-tab')) return PALETTES.lavender;
-  if (button.classList.contains('background-button')) return PALETTES.peach;
   return family === 'big' ? PALETTES.peach : PALETTES.cream;
 }
 
 function inferControlOptions(button) {
   const isCategory = button.dataset.category !== undefined;
-  const isBackground = button.dataset.backgroundId !== undefined;
   const isAutosave = button.dataset.autosaveMode !== undefined;
   const isPuzzleDifficulty = button.dataset.puzzleDifficulty !== undefined;
   const action = button.dataset.action;
   let family = button.dataset.controlFamily;
   if (!family) {
-    if (isCategory || isBackground || isAutosave || isPuzzleDifficulty) family = 'choice';
+    if (isCategory || isAutosave || isPuzzleDifficulty) family = 'choice';
     else if (button.classList.contains('home-card') || button.classList.contains('primary-button') || button.classList.contains('done-button') || button.classList.contains('continue-button') || button.classList.contains('danger-button') || button.classList.contains('gate-star')) family = 'big';
     else family = 'tool';
   }
@@ -201,10 +199,6 @@ function inferControlOptions(button) {
     value = button.dataset.category;
     semantic = { kind: 'choice', groupId: 'blockfolk-imaginarium-sticker-category', value };
     selected = button.getAttribute('aria-selected') === 'true';
-  } else if (isBackground) {
-    value = button.dataset.backgroundId;
-    semantic = { kind: 'choice', groupId: 'blockfolk-imaginarium-background', value };
-    selected = button.getAttribute('aria-pressed') === 'true';
   } else if (isAutosave) {
     value = button.dataset.autosaveMode;
     semantic = { kind: 'choice', groupId: 'blockfolk-imaginarium-autosave-mode', value };
