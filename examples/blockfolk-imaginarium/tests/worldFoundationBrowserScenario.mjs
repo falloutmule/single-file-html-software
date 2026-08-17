@@ -7,8 +7,9 @@ import { zipSync, strToU8 } from 'fflate';
 import { chromium } from '../../../packages/browser-runner/node_modules/playwright/index.mjs';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const artifactUrl = pathToFileURL(resolve(projectRoot, 'dist/index.html')).href;
-const evidenceDirectory = resolve(projectRoot, 'test-results/world-foundation');
+const artifactUrl = process.env.BLOCKFOLK_ARTIFACT_URL || pathToFileURL(resolve(projectRoot, 'dist/index.html')).href;
+const runKind = process.env.BLOCKFOLK_ARTIFACT_URL ? 'live' : 'local';
+const evidenceDirectory = resolve(projectRoot, process.env.BLOCKFOLK_EVIDENCE_DIRECTORY || `test-results/production-catalog-001/${runKind}`);
 await mkdir(evidenceDirectory, { recursive: true });
 
 const failures = [];
@@ -126,12 +127,24 @@ assert.deepEqual(await page.evaluate(() => {
 }), { width: 4096, height: 4096, webp: true }, 'the sole runtime world must be the embedded 4096 WebP');
 assert.deepEqual(await page.evaluate(() => ({ innerWidth: window.innerWidth, editorWidth: document.querySelector('#editor-screen').getBoundingClientRect().width, canvasWidth: window.BlockFolkImaginarium.diagnostics().world.viewport.width })), { innerWidth: 400, editorWidth: 400, canvasWidth: 380 }, 'portrait world shell must stay inside the 400px viewport');
 assert.deepEqual(await delayedCompatibilityTap('[data-action="camera-fit"]'), { physicalActivations: 1, assistiveActivations: 1 }, 'one physical tap must activate once while a genuine assistive click remains available');
+const existingEmptyPictureId = await page.evaluate(async () => {
+  const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); return app.current.id;
+});
 
 const expectedCategories = [
   ['animals', 'Animals'], ['people', 'People'], ['building', 'Building'],
   ['nature', 'Nature'], ['magic', 'Magic'], ['emoji', 'Emoji']
 ];
+const expectedCatalog = {
+  animals: ['Wolf', 'Boar'],
+  people: ['Farmer', 'Miner', 'Knight', 'Wizard', 'Ranger', 'Explorer'],
+  building: ['Wooden Door', 'Stone Door', 'Square Window', 'Round Window', 'Log Block', 'Brick Block'],
+  nature: ['Oak Tree', 'Pine Tree', 'Shrub', 'Berry Bush', 'Grass Block', 'Dirt Block', 'Stone Block', 'Sand Block', 'Snow Block', 'Water Block', 'Lava Block', 'Leaves Block'],
+  magic: ['Slime', 'Bat', 'Golem', 'Dragon'],
+  emoji: []
+};
 assert.deepEqual(await page.locator('#category-tabs [data-category]').evaluateAll((buttons) => buttons.map((button) => [button.dataset.category, button.closest('.sfhs-cf-root')?.textContent.trim()])), expectedCategories);
+let placedCatalogCount = 0;
 for (const [id, title] of expectedCategories) {
   const button = page.locator(`#category-tabs [data-category="${id}"]`);
   await button.scrollIntoViewIfNeeded(); await button.click();
@@ -142,10 +155,25 @@ for (const [id, title] of expectedCategories) {
     await page.locator('#emoji-input').waitFor();
     assert.equal(await page.getByRole('button', { name: 'Add Emoji' }).count(), 1);
   } else {
-    assert.equal(await page.locator('#sticker-list [data-sticker-id]').count(), 0);
-    assert.equal(await page.locator('#sticker-list .empty-strip-message').textContent(), 'BlockFolk are coming soon');
+    const stickerButtons = page.locator('#sticker-list [data-sticker-id]');
+    assert.equal(await stickerButtons.count(), expectedCatalog[id].length);
+    assert.deepEqual(await stickerButtons.evaluateAll((buttons) => buttons.map((button) => button.dataset.name)), expectedCatalog[id]);
+    assert.equal(await stickerButtons.locator('img').evaluateAll((images) => images.every((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0)), true, `${title} thumbnails must all decode`);
+    for (let index = 0; index < expectedCatalog[id].length; index += 1) {
+      await stickerButtons.nth(index).click(); placedCatalogCount += 1;
+      await page.waitForFunction((count) => window.BlockFolkImaginarium.diagnostics().stickers === count, placedCatalogCount);
+    }
   }
 }
+assert.equal(placedCatalogCount, 30); assert.equal((await stickerState()).length, 30);
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => Math.abs(Math.max(object.getScaledWidth(), object.getScaledHeight()) - 420) < 1)), true, 'restored stickers must retain the accepted apparent phone size at normal bookmark zooms');
+await page.screenshot({ path: resolve(evidenceDirectory, 'catalog-all-30-400x844.png'), fullPage: true });
+await page.evaluate(async (pictureId) => window.BlockFolkImaginarium.app.openPicture(pictureId), existingEmptyPictureId);
+assert.equal((await stickerState()).length, 0, 'a previously saved empty-world picture must reopen without destructive migration');
+await page.locator('[data-category="animals"]').click();
+assert.equal(await page.locator('#sticker-list [data-sticker-id]').count(), 2, 'the reopened empty-world picture must gain the restored catalog');
+await page.evaluate(async () => window.BlockFolkImaginarium.app.startNewPicture(false));
+await page.locator('[data-category="emoji"]').click(); await page.locator('#emoji-input').waitFor();
 assert.equal(await page.locator('[data-category="things"], [data-category="silly"], [data-category="words"]').count(), 0);
 const categoryMetrics = await page.locator('#category-tabs [data-category]').evaluateAll((buttons) => ({
   minimumWidth: Math.min(...buttons.map((button) => button.closest('.sfhs-cf-root').getBoundingClientRect().width)),
@@ -174,6 +202,15 @@ assert.equal(nativeGlyphProof.type, 'text'); assert.equal(nativeGlyphProof.text,
 assert.ok(nativeGlyphProof.opaque > 100 && nativeGlyphProof.colors > 3, 'native emoji must paint visible color pixels, not a blank glyph');
 const exportAfterEmoji = await page.evaluate(() => window.BlockFolkImaginarium.app.exportDataUrl());
 assert.notEqual(exportAfterEmoji, exportBeforeEmoji, 'current-view PNG must visibly include native emoji');
+await page.locator('[data-category="animals"]').click();
+await page.locator('[data-sticker-id="sticker-blockfolk-wolf"]').click();
+await page.waitForFunction((count) => window.BlockFolkImaginarium.diagnostics().stickers === count, emojiSequences.length + 1);
+assert.deepEqual(await page.evaluate(() => {
+  const object = window.BlockFolkImaginarium.app.canvas.getObjects().at(-1);
+  return { assetId: object.blockfolkAssetId, type: object.type, longestExtent: Math.max(object.getScaledWidth(), object.getScaledHeight()) };
+}), { assetId: 'sticker-blockfolk-wolf', type: 'image', longestExtent: 420 });
+const exportAfterSticker = await page.evaluate(() => window.BlockFolkImaginarium.app.exportDataUrl());
+assert.notEqual(exportAfterSticker, exportAfterEmoji, 'current-view PNG must visibly include the accepted background, native emoji, and restored artwork');
 
 // Sticker direct manipulation must not pan the camera.
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects().at(-1)); app.updateSelection(); });
@@ -241,7 +278,7 @@ for (let locationIndex = 0; locationIndex < locationTitles.length; locationIndex
   assert.equal(await page.locator('#world-sheet').getAttribute('hidden'), '');
   await page.screenshot({ path: resolve(evidenceDirectory, `bookmark-${locationIds[locationIndex]}-400x844.png`) });
 }
-assert.deepEqual((await stickerState()).map((sticker) => sticker.sourceEmoji), emojiSequences, 'bookmarks must not move or delete stickers');
+assert.deepEqual((await stickerState()).map((sticker) => sticker.sourceEmoji).filter(Boolean), emojiSequences, 'bookmarks must not move or delete stickers');
 
 // Emoji stickers keep all applicable image-sticker tools, history, stack, copy, and deletion.
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[2]); app.updateSelection(); });
@@ -254,7 +291,8 @@ await page.locator('[data-action="redo"]').click(); toolAfter = (await stickerSt
 const orderBefore = (await stickerState()).map((sticker) => sticker.layerId);
 await page.locator('[data-action="behind"]').click(); assert.notDeepEqual((await stickerState()).map((sticker) => sticker.layerId), orderBefore);
 await page.locator('[data-action="in-front"]').click(); assert.deepEqual((await stickerState()).map((sticker) => sticker.layerId), orderBefore);
-await page.locator('[data-action="copy"]').click(); const copiedCount = (await stickerState()).length; assert.equal(copiedCount, emojiSequences.length + 1);
+const countBeforeCopy = (await stickerState()).length;
+await page.locator('[data-action="copy"]').click(); const copiedCount = (await stickerState()).length; assert.equal(copiedCount, countBeforeCopy + 1);
 await page.locator('[data-action="trash"]').click(); assert.equal((await stickerState()).length, copiedCount - 1);
 await page.locator('[data-action="undo"]').click(); assert.equal((await stickerState()).length, copiedCount, 'deletion must participate in Undo');
 
@@ -326,5 +364,5 @@ assert.equal(JSON.parse(originalNamespace.preference).sentinel, 'original-only')
 assert.equal(originalNamespace.picture.title, 'Original Imaginarium only');
 assert.deepEqual(runtimeRequests, []);
 assert.deepEqual(failures, []);
-console.log('BLOCKFOLK_IMAGINARIUM_WORLD_FOUNDATION_BROWSER PASS', JSON.stringify({ bootMs, categoryMetrics, nativeGlyphProof, persistenceProof, portrait: '400x844', landscape: '844x400', runtimeRequests: 0, evidenceDirectory }));
+console.log('BLOCKFOLK_IMAGINARIUM_FIRST_PRODUCTION_BROWSER PASS', JSON.stringify({ runKind, artifactUrl, bootMs, categoryMetrics, catalogCounts: Object.fromEntries(Object.entries(expectedCatalog).map(([category, items]) => [category, items.length])), placedCatalogCount, nativeGlyphProof, persistenceProof, portrait: '400x844', landscape: '844x400', runtimeRequests: 0, evidenceDirectory }));
 await browser.close();

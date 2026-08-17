@@ -34,7 +34,7 @@ if (/\bUeye\b/.test(html)) throw new Error('Ueye must not appear in the child-fa
 if (!/<title>BlockFolk Imaginarium<\/title>/.test(html)) throw new Error('BlockFolk page identity is missing.');
 const combined = sourceFiles.map((path) => readFileSync(path, 'utf8')).join('\n');
 if (/the-imaginarium-library-v1|the-imaginarium\.preferences@1|window\.Imaginarium\b/.test(combined)) throw new Error('Inherited runtime identity remains in BlockFolk source.');
-if (/background-blockfolk-valley|sticker-blockfolk-|paper-cut sticker|paper-cut background/.test(combined)) throw new Error('Inherited built-in art metadata remains in BlockFolk source.');
+if (/background-blockfolk-valley|paper-cut sticker|paper-cut background/.test(combined)) throw new Error('Unrelated inherited built-in art metadata remains in BlockFolk source.');
 if (/\bMinecraft\b/i.test(combined)) throw new Error('Unapproved third-party product naming is present.');
 const librarySource = readFileSync(join(src, 'model', 'builtInLibrary.js'), 'utf8');
 const expectedCategoryDefinitions = [
@@ -43,7 +43,7 @@ const expectedCategoryDefinitions = [
 ];
 for (const definition of expectedCategoryDefinitions) if (!librarySource.includes(definition)) throw new Error(`Missing category definition: ${definition}`);
 if (/id:\s*['"](?:things|silly|words)['"]/.test(librarySource)) throw new Error('An obsolete category definition remains in the built-in library.');
-if (!/BUILT_IN_STICKERS\s*=\s*Object\.freeze\(\[\]\)/.test(librarySource)) throw new Error('The production sticker catalog must remain empty.');
+if (!/BUILT_IN_STICKERS\s*=\s*BLOCKFOLK_STICKERS/.test(librarySource)) throw new Error('The accepted BlockFolk sticker catalog is not connected.');
 if (!/BUILT_IN_BACKGROUNDS\s*=\s*Object\.freeze\(\[BLOCKFOLK_VALLEY_ASSET\]\)/.test(librarySource)) throw new Error('The built-in library must expose exactly the one production world.');
 const worldSource = readFileSync(join(src, 'model', 'worldModel.js'), 'utf8');
 for (const marker of ['4096', 'worldAssetUrl', 'BLOCKFOLK_VALLEY_ASSET', 'production: true', 'debug: false']) if (!worldSource.includes(marker)) throw new Error(`Production world contract marker is missing: ${marker}`);
@@ -52,5 +52,12 @@ const htmlInputs = [...combined.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi
 if (htmlInputs.some((value) => /^https?:/i.test(value))) throw new Error('Runtime source includes an external network dependency.');
 const manifest = JSON.parse(readFileSync(join(src, 'assets', 'manifest.json'), 'utf8'));
 const manifestAssets = manifest.bundles.flatMap((bundle) => bundle.assets || []);
-if (manifest.bundles.length !== 1 || manifestAssets.length !== 1 || manifestAssets[0].alias !== 'blockfolk-valley' || manifestAssets[0].src !== 'backgrounds/blockfolk-valley.webp') throw new Error('The asset manifest must contain only the production BlockFolk Valley world.');
-console.log('BLOCKFOLK_IMAGINARIUM_STATIC_AUDIT PASS offline source, isolated identity, six categories, one production world, empty sticker catalog, pinned Fabric/fflate/Lucide, no dynamic code or inline handlers');
+if (manifest.bundles.length !== 2 || manifestAssets.length !== 31 || manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley.webp').length !== 1 || manifestAssets.filter((asset) => /^blockfolk\/[^/]+\.png$/.test(asset.src)).length !== 30) throw new Error('The asset manifest must contain one production world and exactly 30 BlockFolk PNG stickers.');
+if (new Set(manifestAssets.map((asset) => asset.alias)).size !== manifestAssets.length || new Set(manifestAssets.map((asset) => asset.src)).size !== manifestAssets.length) throw new Error('The BlockFolk manifest contains duplicate asset references.');
+const productStickerRoot = join(src, 'assets', 'blockfolk');
+const acceptedStickerRoot = join(root, '..', 'the-imaginarium', 'src', 'assets', 'blockfolk');
+const productPngs = readdirSync(productStickerRoot).filter((name) => name.endsWith('.png')).sort();
+const acceptedPngs = readdirSync(acceptedStickerRoot).filter((name) => name.endsWith('.png')).sort();
+if (productPngs.length !== 30 || JSON.stringify(productPngs) !== JSON.stringify(acceptedPngs)) throw new Error('The product must contain exactly the 30 accepted individual PNG filenames.');
+for (const filename of productPngs) if (!readFileSync(join(productStickerRoot, filename)).equals(readFileSync(join(acceptedStickerRoot, filename)))) throw new Error(`${filename} differs from the accepted original Imaginarium asset.`);
+console.log('BLOCKFOLK_IMAGINARIUM_STATIC_AUDIT PASS offline source, isolated identity, six categories, one production world, 30 byte-identical accepted PNG stickers, pinned Fabric/fflate/Lucide, no dynamic code or inline handlers');

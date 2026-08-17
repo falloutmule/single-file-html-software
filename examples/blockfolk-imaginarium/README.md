@@ -2,7 +2,7 @@
 
 BlockFolk Imaginarium is the isolated pre-art descendant of the accepted Imaginarium. It preserves the offline, phone-first editor, local ZIP import, transparent-edge trimming, My Pictures, puzzle, copy/export, Flip, Behind, In Front, Undo/Redo, clicky controls, sound, haptics, focus, and reduced-motion behavior.
 
-The six built-in category seams are Animals, People, Building, Nature, Magic, and Emoji. The first five are intentionally empty. Emoji accepts one genuine Unicode grapheme from the device keyboard and retains that exact sequence in the saved picture. The temporary category navigation uses bundled Lucide icon data; no production sticker artwork is present.
+The six built-in categories are Animals, People, Building, Nature, Magic, and Emoji. The first five contain the 30 accepted transparent BlockFolk stickers in counts 2, 6, 6, 12, and 4. Emoji accepts one genuine Unicode grapheme from the device keyboard and retains that exact sequence in the saved picture. Category navigation uses bundled Lucide icon data.
 
 The editor uses one 4096 × 4096 logical world and the user-approved BlockFolk Valley production background, with persistent world-space sticker positions and a saved camera center/zoom. Empty-space drag pans, sticker drag moves, and two-pointer pinch zooms around its midpoint. Five starting locations are camera bookmarks derived from the one world rather than alternate backgrounds. See `DESIGN-ART-CONTRACT.md` for the retained terrain contract and source lineage.
 

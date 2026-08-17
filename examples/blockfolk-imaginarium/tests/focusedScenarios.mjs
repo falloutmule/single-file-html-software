@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateControlPreset } from '@sfhs/control-feedback-contract';
@@ -29,6 +29,8 @@ const source = readFileSync(join(root, 'src', 'app', 'ImaginariumApp.js'), 'utf8
 const controlSource = readFileSync(join(root, 'src', 'app', 'ImaginariumControls.js'), 'utf8');
 const html = readFileSync(join(root, 'src', 'index.html'), 'utf8');
 const assetManifest = JSON.parse(readFileSync(join(root, 'src', 'assets', 'manifest.json'), 'utf8'));
+const acceptedStickerRoot = join(root, '..', 'the-imaginarium', 'src', 'assets', 'blockfolk');
+const productStickerRoot = join(root, 'src', 'assets', 'blockfolk');
 
 const bigControlPreset = createBlockFolkControlPreset({ family: 'big', palette: 'yellow', value: 'test-big' });
 assert.equal(validateControlPreset(bigControlPreset).valid, true, 'Big Toy preset must satisfy the SFHS control contract');
@@ -283,14 +285,29 @@ assert.deepEqual(history.undo({ value: 4 }), { value: 3 });
 assert.deepEqual(history.redo({ value: 3 }), { value: 4 });
 
 const library = validateBuiltInLibrary();
-assert.deepEqual(library, { backgrounds: 1, stickers: 0, categories: 6 });
+assert.deepEqual(library, { backgrounds: 1, stickers: 30, categories: 6 });
 assert.deepEqual(BUILT_IN_CATEGORIES.map(({ id, title }) => ({ id, title })), [
   { id: 'animals', title: 'Animals' }, { id: 'people', title: 'People' }, { id: 'building', title: 'Building' },
   { id: 'nature', title: 'Nature' }, { id: 'magic', title: 'Magic' }, { id: 'emoji', title: 'Emoji' }
 ]);
 assert.equal(BUILT_IN_CATEGORIES.every((category) => category.icon?.node?.length > 0), true, 'every temporary category control must use Lucide icon data');
-assert.equal(BUILT_IN_BACKGROUNDS.length, 1); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].production, true); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, false); assert.match(BUILT_IN_BACKGROUNDS[0].dataUrl, /^data:image\/webp;base64,/); assert.deepEqual(BUILT_IN_STICKERS, []);
-assert.deepEqual(assetManifest.bundles, [{ name: 'blockfolk-world', assets: [{ alias: 'blockfolk-valley', src: 'backgrounds/blockfolk-valley.webp' }] }], 'the asset manifest must contain only the production world');
+assert.equal(BUILT_IN_BACKGROUNDS.length, 1); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].production, true); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, false); assert.match(BUILT_IN_BACKGROUNDS[0].dataUrl, /^data:image\/webp;base64,/);
+assert.deepEqual(Object.fromEntries(BUILT_IN_CATEGORIES.map((category) => [category.id, BUILT_IN_STICKERS.filter((sticker) => sticker.category === category.id).length])), { animals: 2, people: 6, building: 6, nature: 12, magic: 4, emoji: 0 });
+assert.deepEqual(BUILT_IN_STICKERS.map(({ name, category }) => ({ name, category })), [
+  { name: 'Wolf', category: 'animals' }, { name: 'Boar', category: 'animals' },
+  { name: 'Farmer', category: 'people' }, { name: 'Miner', category: 'people' }, { name: 'Knight', category: 'people' }, { name: 'Wizard', category: 'people' }, { name: 'Ranger', category: 'people' }, { name: 'Explorer', category: 'people' },
+  { name: 'Wooden Door', category: 'building' }, { name: 'Stone Door', category: 'building' }, { name: 'Square Window', category: 'building' }, { name: 'Round Window', category: 'building' }, { name: 'Log Block', category: 'building' }, { name: 'Brick Block', category: 'building' },
+  { name: 'Oak Tree', category: 'nature' }, { name: 'Pine Tree', category: 'nature' }, { name: 'Shrub', category: 'nature' }, { name: 'Berry Bush', category: 'nature' }, { name: 'Grass Block', category: 'nature' }, { name: 'Dirt Block', category: 'nature' }, { name: 'Stone Block', category: 'nature' }, { name: 'Sand Block', category: 'nature' }, { name: 'Snow Block', category: 'nature' }, { name: 'Water Block', category: 'nature' }, { name: 'Lava Block', category: 'nature' }, { name: 'Leaves Block', category: 'nature' },
+  { name: 'Slime', category: 'magic' }, { name: 'Bat', category: 'magic' }, { name: 'Golem', category: 'magic' }, { name: 'Dragon', category: 'magic' }
+]);
+assert.equal(BUILT_IN_STICKERS.every((sticker) => sticker.builtIn && sticker.kind === 'sticker' && sticker.defaultWorldExtent === 420), true, 'all accepted stickers must use the derived world extent');
+const acceptedFiles = readdirSync(acceptedStickerRoot).filter((name) => name.endsWith('.png')).sort();
+const productFiles = readdirSync(productStickerRoot).filter((name) => name.endsWith('.png')).sort();
+assert.equal(productFiles.length, 30); assert.deepEqual(productFiles, acceptedFiles);
+for (const filename of productFiles) assert.deepEqual(readFileSync(join(productStickerRoot, filename)), readFileSync(join(acceptedStickerRoot, filename)), `${filename} must remain byte-identical to the accepted individual asset`);
+assert.deepEqual(assetManifest.bundles[0], { name: 'blockfolk-world', assets: [{ alias: 'blockfolk-valley', src: 'backgrounds/blockfolk-valley.webp' }] }, 'the production world bundle must remain unchanged');
+const manifestAssets = assetManifest.bundles.flatMap((bundle) => bundle.assets || []);
+assert.equal(assetManifest.bundles.length, 2); assert.equal(manifestAssets.length, 31); assert.equal(manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley.webp').length, 1); assert.equal(manifestAssets.filter((asset) => /^blockfolk\/[^/]+\.png$/.test(asset.src)).length, 30);
 
 assert.equal(normalizeArchivePath('../bad/cat.png'), null);
 assert.equal(normalizeArchivePath('Pack\\stickers\\animals\\cat.png'), 'Pack/stickers/animals/cat.png');
@@ -361,6 +378,6 @@ assert.match(html, /id="world-sheet"/); assert.match(html, /id="location-grid"/)
 assert.doesNotMatch(html, /data-background-id|background-grid|show-backgrounds/, 'the shell must not expose alternate background choices');
 assert.doesNotMatch(html, /\b(asset|layer|artboard|manifest|serialization|opacity|coordinate|MIME|decompression|Fabric object)\b/i, 'child-facing shell must avoid professional editor terms');
 
-assert.match(html, /BlockFolk Imaginarium/); assert.match(source, /BlockFolk are coming soon/);
+assert.match(html, /BlockFolk Imaginarium/); assert.match(source, /asset\.defaultWorldExtent \|\| 720/);
 assert.doesNotMatch(`${source}\n${controlSource}`, /the-imaginarium-library-v1|the-imaginarium\.preferences@1/);
 console.log('BLOCKFOLK_IMAGINARIUM_SOURCE_FOCUSED_SCENARIOS PASS', JSON.stringify({ library, galleryLimit: GALLERY_LIMIT, storage: storage.mode, packInference: { stickers: inferred.stickers.length, backgrounds: inferred.backgrounds.length } }));

@@ -1,9 +1,9 @@
-# Acceptance Criteria — PASS
+# Acceptance Criteria — IN PROGRESS
 
-- Exact authority bytes archived; master and shipping asset are 4096 × 4096.
-- One production world replaces the debug SVG with no alternate background payload.
-- Trails, clearings, river, coastline, terrain, color, and composition remain visibly registered.
-- Five bookmarks frame the approved regions in portrait and landscape.
-- Camera, sticker, emoji, persistence, import, puzzle, and export regressions pass.
-- Canonical SFHS inspect, validate, test/check, pack, verify, browser, packed audit, isolation, and determinism evidence pass.
-- No sticker production or remote mutation occurs.
+- Categories are exactly Animals, People, Building, Nature, Magic, and Emoji, with artwork counts 2, 6, 6, 12, and 4 plus native emoji input.
+- All 30 accepted PNGs are byte-identical, have working thumbnails, can be placed, and have no missing references; no source sheet or obsolete asset is shipped.
+- The production Valley source/master/shipping WebP and five bookmarks remain hash- and behavior-identical with no alternate/debug background.
+- Empty-world saves remain loadable; camera/sticker persistence, pan/pinch, edits, import, puzzle, PNG export, button deduplication, and distinct press/release cues pass.
+- Canonical SFHS inspect, validate, check, pack, exact verify, packed audit, phone-sized browser proof, and two-build byte determinism pass.
+- Original Imaginarium tracked tree/artifact and original save sentinels remain unchanged; Ueye remains untouched.
+- The pushed feature branch and dedicated Pages subpath serve the exact verified artifact; root Pages bytes remain unchanged and live portrait/landscape proof passes without errors or unexpected requests.

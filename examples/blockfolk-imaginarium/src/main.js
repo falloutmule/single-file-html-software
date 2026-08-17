@@ -1,5 +1,6 @@
 /* global console, document, window */
 import './model/registerWorldAsset.js';
+import './model/registerBlockFolkStickerAssets.js';
 import { BlockFolkImaginariumApp } from './app/ImaginariumApp.js';
 
 const root = document.getElementById('app');

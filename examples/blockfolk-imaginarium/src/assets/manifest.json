@@ -6,6 +6,41 @@
       "assets": [
         { "alias": "blockfolk-valley", "src": "backgrounds/blockfolk-valley.webp" }
       ]
+    },
+    {
+      "name": "blockfolk-stickers",
+      "assets": [
+        { "alias": "blockfolk-bat", "src": "blockfolk/bat.png" },
+        { "alias": "blockfolk-berry-bush", "src": "blockfolk/berry_bush.png" },
+        { "alias": "blockfolk-boar", "src": "blockfolk/boar.png" },
+        { "alias": "blockfolk-brick-block", "src": "blockfolk/brick_stone_block.png" },
+        { "alias": "blockfolk-oak-tree", "src": "blockfolk/broadleaf_tree.png" },
+        { "alias": "blockfolk-shrub", "src": "blockfolk/bush.png" },
+        { "alias": "blockfolk-dirt-block", "src": "blockfolk/dirt_block.png" },
+        { "alias": "blockfolk-farmer", "src": "blockfolk/farmer_pitchfork.png" },
+        { "alias": "blockfolk-grass-block", "src": "blockfolk/grass_dirt_block.png" },
+        { "alias": "blockfolk-knight", "src": "blockfolk/knight_sword_shield.png" },
+        { "alias": "blockfolk-lava-block", "src": "blockfolk/lava_block.png" },
+        { "alias": "blockfolk-leaves-block", "src": "blockfolk/leaf_block.png" },
+        { "alias": "blockfolk-miner", "src": "blockfolk/miner_pickaxe.png" },
+        { "alias": "blockfolk-golem", "src": "blockfolk/moss_golem.png" },
+        { "alias": "blockfolk-pine-tree", "src": "blockfolk/pine_tree.png" },
+        { "alias": "blockfolk-ranger", "src": "blockfolk/ranger_bow_quiver.png" },
+        { "alias": "blockfolk-dragon", "src": "blockfolk/red_dragon.png" },
+        { "alias": "blockfolk-round-window", "src": "blockfolk/round_window.png" },
+        { "alias": "blockfolk-sand-block", "src": "blockfolk/sand_block.png" },
+        { "alias": "blockfolk-slime", "src": "blockfolk/slime_with_droplets.png" },
+        { "alias": "blockfolk-snow-block", "src": "blockfolk/snow_block.png" },
+        { "alias": "blockfolk-square-window", "src": "blockfolk/square_window.png" },
+        { "alias": "blockfolk-stone-block", "src": "blockfolk/stone_block.png" },
+        { "alias": "blockfolk-stone-door", "src": "blockfolk/stone_door.png" },
+        { "alias": "blockfolk-explorer", "src": "blockfolk/traveler_lantern.png" },
+        { "alias": "blockfolk-water-block", "src": "blockfolk/water_block.png" },
+        { "alias": "blockfolk-wizard", "src": "blockfolk/wizard_staff.png" },
+        { "alias": "blockfolk-wolf", "src": "blockfolk/wolf.png" },
+        { "alias": "blockfolk-wooden-door", "src": "blockfolk/wood_door.png" },
+        { "alias": "blockfolk-log-block", "src": "blockfolk/wood_log_block.png" }
+      ]
     }
   ]
 }
