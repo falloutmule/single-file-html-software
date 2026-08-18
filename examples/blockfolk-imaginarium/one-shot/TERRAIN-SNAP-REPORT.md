@@ -42,3 +42,11 @@ On the phone, place two terrain blocks near one another and press **Snap**. They
 - Ignored rendered proof: `test-results/production-catalog-001/local/terrain-isometric-snap-400x844.png`.
 
 **PASS — terrain Snap now uses visible isometric cube geometry.**
+
+## GITHUB PAGES URL
+
+- Feature repair commit: `4a0aa3e60d08c2badc33dcfd3ba0f2a59644ec94` on `feature/blockfolk-imaginarium-001`.
+- Dedicated Pages commit: `b7cee02afb24af67bb29d4011498e07ae96d4e8f`, changing only `blockfolk-imaginarium/index.html`.
+- Live cache-busted URL: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=b7cee02`
+- Live Chromium at `400 × 844` and `844 × 400`: PASS with zero console errors, page errors, or unexpected network requests.
+- Live artifact: `12,270,092` bytes, SHA-256 `b5cd634c942bc6ff42fbe4ece8ba6bc8c658ea6a704db49f66fab6d7f5c0a748`.
