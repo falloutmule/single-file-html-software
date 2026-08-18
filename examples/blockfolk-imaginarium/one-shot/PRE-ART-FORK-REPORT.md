@@ -175,3 +175,13 @@ The expanded phone browser proof waits after Snap, selects and drags the opposit
 The published artifact is Build ID `blockfolk-imaginarium-9f41cbe47b57`, 12,270,994 bytes, SHA-256 `170b85d3ed08d1e995d1e37f8634f7f81cd5e01c7478c61b277005d8b12c5595`. Pages commit `2ad0eca84f7c47f44cd67f61c1b50fad2ed2a8a3` updates only the BlockFolk HTML. The cache-busted phone route is `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=2ad0eca`.
 
 The original Imaginarium tracked files and accepted artifact remain unchanged; Ueye is untouched. See [SNAP-LOCK-REPORT.md](SNAP-LOCK-REPORT.md) for exact evidence and the physical-phone check.
+
+## Physical touch snap-lock repair — PASS
+
+The prior graph-only repair did not own the full physical touch path. Fabric could still transform the active object independently after BlockFolk moved the connected component, so the connection record remained valid while the artwork visibly pulled apart. Implementation commit `cc2f8ed59ba057bde02c4fe25da2c5ad953b90fe` disables Fabric object movement, moves all connected members from immutable gesture origins, and reapplies that rigid result on pointer-up. Assembly edge clamping now uses a shared correction.
+
+The photographed Stone Door / Brick Block order also exposed hidden face artwork. Newly snapped doors and windows are now placed above their supporting block. The exact browser case proves visible landing, painted-face registration, Snap-to-Unsnap replacement, a two-member assembly, front-visible door artwork, resistance to an injected single-member drift, native Chromium touch movement, save/reload, and both phone orientations.
+
+The published artifact is Build ID `blockfolk-imaginarium-e1aaca287e0c`, 12,271,836 bytes, SHA-256 `00ffedbe9c2258bc6782f79282e8ac042696c4a058f4e8b6fccddd2a447c0a90`. Pages commit `0f0f390328db287aed174d0a5d94d183a9f5e776` updates only the BlockFolk HTML. Live URL: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=0f0f390`.
+
+See [SNAP-TOUCH-LOCK-REPORT.md](SNAP-TOUCH-LOCK-REPORT.md) for the failing reproduction and exact live proof.
