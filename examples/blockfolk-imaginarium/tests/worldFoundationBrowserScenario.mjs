@@ -323,7 +323,8 @@ await page.locator('#selection-toolbar [data-action="copy"]').click(); const cop
 await page.locator('#selection-toolbar [data-action="trash"]').click(); assert.equal((await stickerState()).length, copiedCount - 1);
 await page.locator('[data-action="undo"]').click(); assert.equal((await stickerState()).length, copiedCount, 'deletion must participate in Undo');
 
-// Construction snap is opt-in, screen-space tolerant, and persists as one assembly.
+// Construction Snap is an explicit command: dragging remains free, then the
+// user presses Snap to connect a nearby compatible construction piece.
 const emojiPictureState = await page.evaluate(async () => { const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); return { id: app.current.id, stickers: app.current.stickers.length }; });
 await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
@@ -333,8 +334,7 @@ await page.evaluate(async () => {
 });
 let constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5] }; });
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 5, constructionStart.y); await pointer('pointerup', 1, constructionStart.x + 5, constructionStart.y);
-assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'compatible stickers remain independent while Snap is off');
-await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'dragging compatible stickers must remain independent until Snap is pressed');
 const forgivingCatchDistance = await page.evaluate(() => {
   const app = window.BlockFolkImaginarium.app; const [stone, brick] = app.canvas.getObjects();
   // Find a real painted-anchor proposal 60–75 CSS pixels away: this proves
@@ -347,14 +347,16 @@ const forgivingCatchDistance = await page.evaluate(() => {
   return null;
 });
 assert.ok(forgivingCatchDistance >= 60 && forgivingCatchDistance <= 75, `Snap must catch a clearly near, not pixel-perfect, placement: ${forgivingCatchDistance}`);
-constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5] }; });
+constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5], worldX: stone.left, scale: t[0] }; });
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 4, constructionStart.y); await pointer('pointerup', 1, constructionStart.x + 4, constructionStart.y);
-let assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return { snap: app.preferences.snapEnabled, connections: structuredClone(app.current.connections), stickers: structuredClone(app.current.stickers) }; });
-assert.equal(assemblyProof.snap, true); assert.equal(assemblyProof.connections.length, 1, 'Snap must create exactly one persistent connection');
+const freeDragProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return { connections: app.current.connections.length, worldX: app.canvas.getObjects()[0].left }; });
+assert.equal(freeDragProof.connections, 0, 'a nearby construction piece must not auto-snap on release');
+assert.ok(Math.abs(freeDragProof.worldX - constructionStart.worldX - 4 / constructionStart.scale) < .01, 'free drag must not magnetically reposition a piece');
+await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
+let assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return { connections: structuredClone(app.current.connections), stickers: structuredClone(app.current.stickers) }; });
+assert.equal(assemblyProof.connections.length, 1, 'the explicit Snap command must create exactly one persistent connection');
 assert.equal(await page.locator('#selection-toolbar [data-action="unsnap"]').isVisible(), true, 'an assembly selection must offer contextual Unsnap');
 assert.equal(await page.locator('#selection-toolbar [data-action="toggle-snap"]').isVisible(), false, 'Snap and Unsnap must be contextual replacements rather than simultaneous actions');
-await page.evaluate(() => window.BlockFolkImaginarium.app.updatePreference('snapEnabled', false));
-assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 1, 'turning Snap off must not dissolve an existing assembly');
 const moveBeforeAssembly = assemblyProof.stickers.map(({ layerId, x, y }) => ({ layerId, x, y }));
 constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5] }; });
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 30, constructionStart.y + 16); await pointer('pointerup', 1, constructionStart.x + 30, constructionStart.y + 16);
@@ -394,21 +396,19 @@ await page.locator('[data-action="undo"]').click(); assert.equal(await page.eval
 await page.locator('[data-action="redo"]').click(); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'Unsnap must participate in Redo');
 await page.screenshot({ path: resolve(evidenceDirectory, 'construction-toolbar-and-assembly-400x844.png'), fullPage: true });
 
-// A visible building face must also attach directly to the painted face of a block.
+// A visible building face attaches only when the explicit Snap command is pressed.
 await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
   await app.addSticker('sticker-blockfolk-wood-log-block'); await app.addSticker('sticker-blockfolk-wood-door');
   const [log, door] = app.canvas.getObjects(); log.set({ left: 1850, top: 2050 }); door.set({ left: 1854, top: 2050 }); log.setCoords(); door.setCoords(); app.canvas.setActiveObject(door); app.syncCurrentFromCanvas(); app.updateSelection();
 });
-await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
 constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const door = app.canvas.getObjects()[1]; const t = app.canvas.viewportTransform; return { x: door.left * t[0] + t[4], y: door.top * t[3] + t[5] }; });
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 3, constructionStart.y);
-const facePreviewProof = await page.evaluate(() => { const preview = window.BlockFolkImaginarium.app.snapPreview; return preview ? { sourceAnchor: preview.sourceAnchor.id, targetAnchor: preview.targetAnchor.id, toast: document.querySelector('#toast').textContent } : null; });
-assert.deepEqual(facePreviewProof, { sourceAnchor: 'backFace', targetAnchor: 'frontFace', toast: 'Ready to snap' }, 'a nearby painted face must show a clear pre-release snap preview');
-await page.screenshot({ path: resolve(evidenceDirectory, 'face-snap-preview-400x844.png'), fullPage: true });
 await pointer('pointerup', 1, constructionStart.x + 3, constructionStart.y);
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'a face piece must not auto-snap during drag');
+await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
 const faceSnapProof = await page.evaluate(() => ({ connections: structuredClone(window.BlockFolkImaginarium.app.current.connections), toast: document.querySelector('#toast').textContent }));
-assert.equal(faceSnapProof.connections.length, 1, 'a door placed on a log face must create a persistent face-to-face connection');
+assert.equal(faceSnapProof.connections.length, 1, 'a Snap press must attach a door placed near a log face');
 assert.deepEqual([faceSnapProof.connections[0].aAnchorId, faceSnapProof.connections[0].bAnchorId].sort(), ['backFace', 'frontFace'], 'the face snap must use painted-face anchors rather than image bounds');
 assert.equal(faceSnapProof.toast, 'Snapped together', 'release must visibly confirm a successful snap');
 

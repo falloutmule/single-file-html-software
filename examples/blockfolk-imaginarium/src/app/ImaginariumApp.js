@@ -81,7 +81,7 @@ export class BlockFolkImaginariumApp {
     this.gateHeld = new Set();
     this.gateStart = 0;
     this.gateTimer = null;
-    this.preferences = { sound: true, haptics: true, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, autosaveMode: DEFAULT_AUTOSAVE_MODE, snapEnabled: false, ...loadPreferences() };
+    this.preferences = { sound: true, haptics: true, reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, autosaveMode: DEFAULT_AUTOSAVE_MODE, ...loadPreferences() };
     this.preferences.autosaveMode = normalizeAutosaveMode(this.preferences.autosaveMode);
     this.category = migrateBuiltInCategory(this.preferences.category);
     this.preferences.category = this.category;
@@ -190,7 +190,7 @@ export class BlockFolkImaginariumApp {
       const memberIds = target ? this.selectedMemberIds(target) : null;
       const origins = target ? new Map(this.objectsForMemberIds(memberIds).map((object) => [object.blockfolkLayerId, { x: Number(object.left || 0), y: Number(object.top || 0) }])) : null;
       this.worldInteraction = target
-        ? { mode: 'sticker', before, target, memberIds, origins, start: location, last: location, moved: false, snapCandidate: null, snapKey: null }
+        ? { mode: 'sticker', before, target, memberIds, origins, start: location, last: location, moved: false }
         : { mode: 'pan', before, startCamera: structuredClone(this.camera), start: location, last: location, moved: false };
       if (target) { this.canvas.setActiveObject(target); this.canvas.requestRenderAll(); this.updateSelection(); }
     };
@@ -218,13 +218,6 @@ export class BlockFolkImaginariumApp {
           object.set({ left: Number(object.left || 0) + deltaX / scale, top: Number(object.top || 0) + deltaY / scale });
           this.clampFabricObject(object); object.setCoords();
         }
-        interaction.snapCandidate = this.preferences.snapEnabled ? this.proposeSnap(members) : null;
-        this.snapPreview = interaction.snapCandidate;
-        if (interaction.snapCandidate) {
-          const snapKey = `${interaction.snapCandidate.source.blockfolkLayerId}:${interaction.snapCandidate.sourceAnchor.id}:${interaction.snapCandidate.target.blockfolkLayerId}:${interaction.snapCandidate.targetAnchor.id}`;
-          if (interaction.snapKey !== snapKey) { interaction.snapKey = snapKey; this.toast('Ready to snap'); this.announce('Ready to snap.'); }
-          this.translateObjects(members, interaction.snapCandidate.dx, interaction.snapCandidate.dy);
-        } else interaction.snapKey = null;
         this.canvas.requestRenderAll();
       }
     };
@@ -239,11 +232,9 @@ export class BlockFolkImaginariumApp {
       } else if (interaction.mode === 'sticker') {
         if (!interaction.moved) {
           this.moveMembersToEdge(interaction.memberIds, 1);
-        } else if (interaction.snapCandidate) {
-          this.addSnapConnection(interaction.snapCandidate);
         }
         this.snapPreview = null; this.canvas.setActiveObject(interaction.target); interaction.target.setCoords(); this.canvas.requestRenderAll();
-        this.commit(interaction.before, interaction.moved ? (interaction.snapCandidate ? 'Pieces snapped together.' : 'Sticker moved.') : 'Sticker selected.');
+        this.commit(interaction.before, interaction.moved ? 'Sticker moved.' : 'Sticker selected.');
       } else if (interaction.moved) this.commit(interaction.before, interaction.mode === 'pinch' ? 'World view changed.' : 'World moved.');
       this.snapPreview = null; this.worldInteraction = null;
       this.updateSelection();
@@ -319,7 +310,7 @@ export class BlockFolkImaginariumApp {
       'camera-zoom-in': () => this.zoomCamera(1.25), 'camera-zoom-out': () => this.zoomCamera(1 / 1.25), 'camera-fit': () => this.fitWorld(),
       'add-emoji': () => this.addEmojiFromInput(),
       'show-idea': () => this.showIdea(), 'hide-idea': () => { this.elements.ideaCard.hidden = true; },
-      'toggle-snap': () => this.updatePreference('snapEnabled', !this.preferences.snapEnabled), unsnap: () => this.unsnapSelected(),
+      'toggle-snap': () => this.snapSelected(), unsnap: () => this.unsnapSelected(),
       'show-selection-more': () => { this.elements.selectionMore.hidden = false; }, 'close-selection-more': () => { this.elements.selectionMore.hidden = true; },
       smaller: () => this.resizeSelected(1 / 1.1), bigger: () => this.resizeSelected(1.1), turn: () => this.turnSelected(),
       flip: () => this.flipSelected(), behind: () => this.moveSelectedDepth(-1), 'in-front': () => this.moveSelectedDepth(1),
@@ -652,13 +643,20 @@ export class BlockFolkImaginariumApp {
   }
 
   addSnapConnection(candidate) {
-    if (!candidate || !this.preferences.snapEnabled || !this.current) return;
+    if (!candidate || !this.current) return;
     const connections = this.current.connections || [];
     const exists = connections.some((connection) => (connection.aLayerId === candidate.source.blockfolkLayerId && connection.bLayerId === candidate.target.blockfolkLayerId) || (connection.bLayerId === candidate.source.blockfolkLayerId && connection.aLayerId === candidate.target.blockfolkLayerId));
     if (exists) return;
     this.current.connections = [...connections, makeConnection(candidate)];
     this.ensureAssemblyContiguous(this.selectedMemberIds(candidate.source));
     this.toast('Snapped together'); this.announce('Snapped together.'); this.feedback('pop');
+  }
+
+  async snapSelected() {
+    const active = this.activeSticker(); if (!active || !this.current) return;
+    const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const candidate = this.proposeSnap(members);
+    if (!candidate) { this.toast('Move closer to snap'); this.announce('Move closer to a compatible construction piece, then press Snap.'); return; }
+    this.translateObjects(members, candidate.dx, candidate.dy); this.addSnapConnection(candidate); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll(); this.commit(before, 'Pieces snapped together.');
   }
 
   objectGroups() {
@@ -792,7 +790,7 @@ export class BlockFolkImaginariumApp {
     const assembled = hasAssembly(this.current?.connections || [], active?.blockfolkLayerId);
     if (smaller) this.controls.setEnabled(smaller, !!active && active.scaleX > MIN_SCALE + .001);
     if (bigger) this.controls.setEnabled(bigger, !!active && active.scaleX < MAX_SCALE - .001);
-    if (snap) { const root = snap.closest('.sfhs-cf-root'); if (root) root.hidden = assembled; this.controls.setEnabled(snap, !!active && members.some((object) => isSnappableAsset(object.blockfolkAssetId))); this.controls.setSelected(snap, !!this.preferences.snapEnabled); }
+    if (snap) { const root = snap.closest('.sfhs-cf-root'); if (root) root.hidden = assembled; this.controls.setEnabled(snap, !!active && members.some((object) => isSnappableAsset(object.blockfolkAssetId))); }
     if (unsnap) { const root = unsnap.closest('.sfhs-cf-root'); if (root) root.hidden = !assembled; }
     if (flip) this.controls.setEnabled(flip, !!active);
     if (behind) this.controls.setEnabled(behind, !!active && activeIndex > 0);
@@ -993,7 +991,7 @@ export class BlockFolkImaginariumApp {
     await this.storage.clearAll(); localStorage.removeItem(PREFERENCE_KEY); this.current = null; this.packs = []; this.renderPackList(); this.renderLibrary(); this.toast('Local BlockFolk Imaginarium data cleared.'); await this.goHome();
   }
 
-  updatePreference(name, value) { this.preferences[name] = value; savePreferences(this.preferences); this.applyPreferences(); this.updateSelection(); const message = name === 'snapEnabled' ? (value ? 'Snap on — drag pieces together' : 'Snap is off') : 'Setting saved.'; this.announce(message); if (name === 'snapEnabled') this.toast(message); }
+  updatePreference(name, value) { this.preferences[name] = value; savePreferences(this.preferences); this.applyPreferences(); this.updateSelection(); this.announce('Setting saved.'); }
 
   applyPreferences() {
     document.body.classList.toggle('reduced-motion', !!this.preferences.reducedMotion);
@@ -1001,7 +999,6 @@ export class BlockFolkImaginariumApp {
     this.controls?.setSelected(this.elements?.hapticsSetting, !!this.preferences.haptics);
     this.controls?.setSelected(this.elements?.motionSetting, !!this.preferences.reducedMotion);
     for (const control of this.root.querySelectorAll('[data-autosave-mode]')) this.controls?.setSelected(control, control.dataset.autosaveMode === this.preferences.autosaveMode);
-    for (const control of this.root.querySelectorAll('[data-action="toggle-snap"]')) this.controls?.setSelected(control, !!this.preferences.snapEnabled);
     this.controls?.updatePreferences(this.preferences);
   }
 
