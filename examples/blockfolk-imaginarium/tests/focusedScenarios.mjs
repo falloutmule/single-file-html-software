@@ -264,17 +264,20 @@ assert.deepEqual(SNAPPABLE_ASSET_IDS, [
   'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
 ], 'only the approved construction assets may carry snap metadata');
 assert.equal(isSnappableAsset('sticker-blockfolk-wolf'), false, 'animals must remain freely placed');
-const constructionObject = (layerId, assetId, left) => ({ blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top: 700, angle: 0, getScaledWidth: () => 273, getScaledHeight: () => 320 });
+const constructionObject = (layerId, assetId, left, top = 700) => ({ blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top, angle: 0, getScaledWidth: () => 273, getScaledHeight: () => 320 });
 const constructionA = constructionObject('block-a', 'sticker-blockfolk-stone-block', 400);
-const constructionB = constructionObject('block-b', 'sticker-blockfolk-brick-stone-block', 597);
-const constructionCandidate = findSnapCandidate({ movingObjects: [constructionA], stationaryObjects: [constructionB], worldTolerance: 40 });
-assert.ok(constructionCandidate, 'compatible painted construction anchors must propose a snap');
-assert.ok(Math.abs(constructionCandidate.dx) < 40 && Math.abs(constructionCandidate.dy) < 40, 'anchor proposal must be transparent-art-aware rather than image-rectangle-only');
+const constructionB = constructionObject('block-b', 'sticker-blockfolk-brick-stone-block', 510, 764);
+const constructionCandidate = findSnapCandidate({ movingObjects: [constructionA], stationaryObjects: [constructionB], worldTolerance: 4 });
+assert.ok(constructionCandidate, 'compatible isometric terrain sockets must propose a snap');
+assert.deepEqual([constructionCandidate.sourceAnchor.id, constructionCandidate.targetAnchor.id], ['southEast', 'northWest'], 'terrain blocks must use diagonal isometric sockets rather than rectangular edges');
+assert.ok(Math.abs(constructionCandidate.dx) < 4 && Math.abs(constructionCandidate.dy) < 4, 'isometric terrain sockets must align the painted diamond faces');
 const faceCandidate = findSnapCandidate({ movingObjects: [constructionObject('door-a', 'sticker-blockfolk-wood-door', 404)], stationaryObjects: [constructionA], worldTolerance: 12 });
 assert.ok(faceCandidate && faceCandidate.sourceAnchor.id === 'backFace' && faceCandidate.targetAnchor.id === 'frontFace', 'a painted building face must snap to a painted block face');
 const constructionConnection = makeConnection(constructionCandidate);
 const constructionConnections = validConnections([constructionConnection], new Set(['block-a', 'block-b']));
 assert.equal(constructionConnections.length, 1, 'a valid connection must survive normalization');
+const legacyConstructionConnection = { ...constructionConnection, id: 'legacy-connection', aAnchorId: 'right', bAnchorId: 'left' };
+assert.equal(validConnections([legacyConstructionConnection], new Set(['block-a', 'block-b'])).length, 1, 'saved cardinal connections from the earlier build must remain valid without becoming new snap candidates');
 assert.deepEqual([...connectedLayerIds(constructionConnections, 'block-a')].sort(), ['block-a', 'block-b']);
 assert.equal(hasAssembly(constructionConnections, 'block-a'), true, 'a two-member connection is an assembly');
 assert.equal(removeMemberConnections(constructionConnections, 'block-a').length, 0, 'Unsnap removes only the selected member links');

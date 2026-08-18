@@ -15,16 +15,29 @@ const FACE_IDS = [
   'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
 ];
 
-const edgeAnchors = (x, y) => Object.freeze({
-  left: Object.freeze({ x: -x, y: 0, nx: -1, ny: 0 }), right: Object.freeze({ x, y: 0, nx: 1, ny: 0 }),
-  top: Object.freeze({ x: 0, y: -y, nx: 0, ny: -1 }), bottom: Object.freeze({ x: 0, y, nx: 0, ny: 1 })
+const edgeAnchors = (x, y, extra = {}) => Object.freeze({
+  left: Object.freeze({ x: -x, y: 0, nx: -1, ny: 0, mate: 'right', ...extra }), right: Object.freeze({ x, y: 0, nx: 1, ny: 0, mate: 'left', ...extra }),
+  top: Object.freeze({ x: 0, y: -y, nx: 0, ny: -1, mate: 'bottom', ...extra }), bottom: Object.freeze({ x: 0, y, nx: 0, ny: 1, mate: 'top', ...extra })
 });
 
 // These center anchors describe the painted front of a block and the painted
 // back of a door/window, so compatible faces can attach without treating the
 // transparent source rectangle as visible artwork.
-const blockAnchors = Object.freeze({ ...edgeAnchors(.72, .66), frontFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: 1 }) });
-const buildingFaceAnchors = Object.freeze({ ...edgeAnchors(.68, .84), backFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: -1 }) });
+// A BlockFolk cube is an isometric terrain cell, not a rectangular tile. The
+// four diamond sockets share the painted top-face edges; stackTop/stackBase
+// align the visible vertical cube height. The old cardinal sockets remain only
+// so pictures saved by the earlier implementation retain valid assemblies.
+const blockAnchors = Object.freeze({
+  ...edgeAnchors(.72, .66, { legacy: true }),
+  northWest: Object.freeze({ x: -.4, y: -.2, nx: -1, ny: -1, mate: 'southEast' }),
+  northEast: Object.freeze({ x: .4, y: -.2, nx: 1, ny: -1, mate: 'southWest' }),
+  southWest: Object.freeze({ x: -.4, y: .2, nx: -1, ny: 1, mate: 'northEast' }),
+  southEast: Object.freeze({ x: .4, y: .2, nx: 1, ny: 1, mate: 'northWest' }),
+  stackTop: Object.freeze({ x: 0, y: -.425, nx: 0, ny: -1, mate: 'stackBase' }),
+  stackBase: Object.freeze({ x: 0, y: .425, nx: 0, ny: 1, mate: 'stackTop' }),
+  frontFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: 1, mate: 'backFace' })
+});
+const buildingFaceAnchors = Object.freeze({ ...edgeAnchors(.68, .84), backFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: -1, mate: 'frontFace' }) });
 
 // This is intentionally measured on the screen, not in world units: an 80px
 // magnetic catch area remains equally forgiving at every camera zoom.
@@ -51,12 +64,12 @@ export function objectAnchor(object, anchorId) {
   const height = Math.abs(Number(object.getScaledHeight?.() || 0)) / 2;
   const offset = rotate(anchor.x * width, anchor.y * height, Number(object.angle || 0));
   const normal = rotate(anchor.nx, anchor.ny, Number(object.angle || 0));
-  return { id: anchorId, x: Number(object.left || 0) + offset.x, y: Number(object.top || 0) + offset.y, nx: normal.x, ny: normal.y };
+  return { id: anchorId, mate: anchor.mate, x: Number(object.left || 0) + offset.x, y: Number(object.top || 0) + offset.y, nx: normal.x, ny: normal.y };
 }
 
 export function allObjectAnchors(object) {
   const anchors = anchorsForAsset(object?.blockfolkAssetId);
-  return anchors ? Object.keys(anchors).map((id) => objectAnchor(object, id)).filter(Boolean) : [];
+  return anchors ? Object.entries(anchors).filter(([, anchor]) => !anchor.legacy).map(([id]) => objectAnchor(object, id)).filter(Boolean) : [];
 }
 
 export function connectedLayerIds(connections = [], layerId) {
@@ -98,8 +111,7 @@ export function makeConnection({ source, sourceAnchor, target, targetAnchor }) {
 export function findSnapCandidate({ movingObjects, stationaryObjects, worldTolerance }) {
   let best = null;
   for (const source of movingObjects) for (const sourceAnchor of allObjectAnchors(source)) for (const target of stationaryObjects) for (const targetAnchor of allObjectAnchors(target)) {
-    const opposed = sourceAnchor.nx * targetAnchor.nx + sourceAnchor.ny * targetAnchor.ny < -.7;
-    if (!opposed) continue;
+    if (sourceAnchor.mate !== targetAnchor.id || targetAnchor.mate !== sourceAnchor.id) continue;
     const dx = targetAnchor.x - sourceAnchor.x; const dy = targetAnchor.y - sourceAnchor.y; const distance = Math.hypot(dx, dy);
     if (distance > worldTolerance || (best && distance >= best.distance)) continue;
     best = { source, target, sourceAnchor, targetAnchor, dx, dy, distance };
