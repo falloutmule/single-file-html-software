@@ -165,3 +165,13 @@ The remaining softness is principally the accepted 1280-to-4096 VSR/source chara
 After ordinary GitHub Pages propagation, the cache-busted live download was 8,782,332 bytes with exactly the artifact SHA-256 above. Live Chromium passed at 400 × 844 and 844 × 400 with zero console errors, page errors, and unexpected runtime requests. The Pages commit modifies only `blockfolk-imaginarium/index.html`; the live Pages root remains 10,349,488 bytes with SHA-256 `7036de95bd8169dd43994eb2c78ea789476ccbd11a170312744b459d0ac4ea2e`.
 
 No PR, tag, release, root-route change, original-Imaginarium deployment, remote rewrite, or unrelated remote mutation occurred. The only remaining physical-phone acceptance items are subjective snap feel, toolbar density, audio/haptics, actual-device decode behavior, and installed native-emoji glyph coverage.
+
+## Explicit snap-lock repair — PASS
+
+The repair at implementation commit `3e64042c903026ebed3a0e5d8c42dc1e54f963d8` removes ambiguous Snap success. The command now validates and stores its connection, proves both endpoints resolve to the same assembly, and only then displays `Snapped and locked`. If that invariant fails, it restores the pre-command picture and reports that the pieces could not lock.
+
+The expanded phone browser proof waits after Snap, selects and drags the opposite member, verifies equal world-space movement for both pieces, saves/reloads, and rechecks the assembly from that opposite member. Local and live scenarios pass at `400 × 844` and `844 × 400` with no console errors, page errors, or unexpected requests. Complete repository tests pass (46 files; 316 passed, 2 skipped), as do lint, typecheck, SFHS inspect/validate/check/pack/verify, packed audit, and byte-identical double packing.
+
+The published artifact is Build ID `blockfolk-imaginarium-9f41cbe47b57`, 12,270,994 bytes, SHA-256 `170b85d3ed08d1e995d1e37f8634f7f81cd5e01c7478c61b277005d8b12c5595`. Pages commit `2ad0eca84f7c47f44cd67f61c1b50fad2ed2a8a3` updates only the BlockFolk HTML. The cache-busted phone route is `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=2ad0eca`.
+
+The original Imaginarium tracked files and accepted artifact remain unchanged; Ueye is untouched. See [SNAP-LOCK-REPORT.md](SNAP-LOCK-REPORT.md) for exact evidence and the physical-phone check.
