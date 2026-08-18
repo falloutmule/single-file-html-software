@@ -111,3 +111,57 @@ The Pages commit has parent `260829515804fb49dc5ffd56576824d2cd371248` and chang
 - A lint failure in the packed audit's explicit `Buffer` use was repaired with a standard import; the complete lint lane then passed.
 
 Automated acceptance is complete. The only remaining physical-phone uncertainty is subjective touch/audio feel, real-device decode performance, and the handset's installed native-emoji glyph coverage. The published HTTPS URL above—not a local Python server—is the user acceptance route.
+
+## Construction-focused interaction pass — PASS
+
+This focused construction pass began at feature commit `ad83f52e68207740be6bdb1d13201e0a26e27855` and its implementation commit is `8340d784455555a4fe7d560802ae266f3539de12`. The report/evidence commit follows this publication verification. The pushed branch is `origin/feature/blockfolk-imaginarium-001`; the dedicated Pages commit is `1a24fef073fcc9140c59ba2e142e0b24702962e0` (parent `ebe9a23cb792d774e32e5ff8bd6d591854667059`).
+
+### Smaller construction-unit default
+
+New artwork stickers now use `420 / 1.1^6 = 237.078...` world units for their longest edge. The previous default was 420 world units and the existing Smaller action multiplies scale by `1 / 1.1`; this is therefore exactly six existing reduction steps below the prior default rather than a guessed replacement size. The change is only at creation time: persisted sticker scales remain untouched.
+
+### Assembly model and isolated migration
+
+- Page schema is now `blockfolk-imaginarium.page@3`. The isolated `@2` migration adds an empty `connections` array without changing existing sticker coordinates, scale, flip state, z-order, camera state, bookmarks, or BlockFolk storage namespace.
+- A connection is an explicit, duplicate-safe pair of sticker IDs plus its own ID. Connected-component traversal is loop-safe, so structures containing cycles are valid.
+- The explicit, transparent-art-aware connector metadata is limited to Grass, Dirt, Stone, Sand, Snow, Water, Lava, Log, Leaves, Brick, Wooden Door, Stone Door, Square Window, and Round Window. It uses named visual-edge anchors rather than raw PNG rectangles. All other stickers, imports, and native emoji remain independent.
+- Snap is opt-in. Its 30 CSS-pixel tolerance is converted through the live camera scale. Turning it off blocks new links but retains existing assemblies. There is no background or invisible-map-grid snapping.
+- Drag, resize, flip, copy, delete, Behind/In Front, Undo/Redo, save/reload, and orientation persistence operate on the selected connected component. Copy remaps both sticker and connection IDs. Unsnap removes only the active member's connections and is undoable; any remaining components stay valid assemblies.
+
+### Toolbar and z-order proof
+
+The compact selection toolbar now exposes contextual Snap/Unsnap, Behind, In Front, Flip, Copy, and Delete. Manual Smaller, Bigger, and Turn controls moved to the compact More/Edit sheet. At 400 × 844 and 844 × 400 the browser scenario confirms every control remains reachable.
+
+The former layer action only altered the active canvas object and gave no stateful edge feedback; it could not preserve an assembly as one contiguous layer. The repaired action reorders ordered object groups by exactly one group, preserves internal group order, persists the result, and announces `Moved behind`, `Moved in front`, `Already at back`, or `Already at front`. The rendered-browser test uses three deliberately overlapping distinct stickers and verifies both stored order and PNG output after repeated actions.
+
+### Valley sharpness diagnosis
+
+The production Valley master and shipping WebP remain byte-identical to the accepted assets listed above. The rendering inspection found a 4096 × 4096 natural source, Retina 2× canvas backing at the 400 × 844 phone viewport, and high-quality browser smoothing. The application now explicitly retains that high-quality, Retina rendering policy for both Fabric canvases so a low-resolution intermediate cannot regress the map; no map pixels were changed.
+
+The remaining softness is principally the accepted 1280-to-4096 VSR/source character rather than a second low-resolution application raster. The recorded deterministic NVIDIA VSR workflow remains the applicable upscale authority. No current local ComfyUI installation with an available node/model was found during this pass, and no node, model, or dependency was installed. The committed comparison proof is [blockfolk-valley-sharpness-comparison.png](../art/evidence/blockfolk-valley-sharpness-comparison.png): current shipping WebP, high-quality app canvas, native master, and one conservative unsharp evidence candidate. The candidate is not packed or deployed and requires separate approval before any asset replacement.
+
+### Local verification before publication
+
+| Lane | Result |
+| --- | --- |
+| Focused source and construction scenarios | PASS: default scale, explicit snap metadata, migration, snap/unsnap, group editing, z-order, persistence, emoji independence |
+| Packed phone Chromium | PASS at 400 × 844 and 844 × 400: zero console errors, page errors, and unexpected requests |
+| Background render diagnosis | PASS: 4096 natural background, 2× backing, high-quality smoothing, rendered canvas and browser capture retained under ignored test evidence |
+| Lint, typecheck, complete unit suite | PASS: 46 files, 316 passed, 2 skipped |
+| SFHS inspect, validate, test, pack, verify, packed audit | PASS with zero findings |
+| Isolated deterministic double build | PASS: both builds are `blockfolk-imaginarium-f608fef21d4a`, 8,782,332 bytes, SHA-256 `79b373f74ac0ff3637e0ab0ffa57bccb527bf1ec1d53f53cf15645bacb3722e1` |
+| Original Imaginarium canonical pack/verify | PASS: `the-imaginarium-1843671f0e4c`, 10,349,547 bytes, SHA-256 `85ab852ea947b7132877650725cd966383da3a8dfc09dabc4ec70597d5b1a75b` |
+| Original-product source isolation | PASS: no changed tracked path under `examples/the-imaginarium`; tree remains `1369fc6e6e76bb204a9cfaf99cb6cb4f3c69d5a7`. Ueye is absent from this branch and untouched. |
+
+### Published artifact and Pages proof
+
+- Artifact: `examples/blockfolk-imaginarium/dist/index.html`
+- Build ID: `blockfolk-imaginarium-f608fef21d4a`
+- Source SHA-256: `f608fef21d4a54b8ea9079bb76d199bef65ed7b5addea90fb313d7df2025a7ce`
+- Bytes: `8,782,332`
+- SHA-256: `79b373f74ac0ff3637e0ab0ffa57bccb527bf1ec1d53f53cf15645bacb3722e1`
+- Live phone route: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=1a24fef`
+
+After ordinary GitHub Pages propagation, the cache-busted live download was 8,782,332 bytes with exactly the artifact SHA-256 above. Live Chromium passed at 400 × 844 and 844 × 400 with zero console errors, page errors, and unexpected runtime requests. The Pages commit modifies only `blockfolk-imaginarium/index.html`; the live Pages root remains 10,349,488 bytes with SHA-256 `7036de95bd8169dd43994eb2c78ea789476ccbd11a170312744b459d0ac4ea2e`.
+
+No PR, tag, release, root-route change, original-Imaginarium deployment, remote rewrite, or unrelated remote mutation occurred. The only remaining physical-phone acceptance items are subjective snap feel, toolbar density, audio/haptics, actual-device decode behavior, and installed native-emoji glyph coverage.

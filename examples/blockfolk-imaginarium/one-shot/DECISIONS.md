@@ -8,3 +8,7 @@
 - `VERIFIED`: preserve the established BlockFolk product/storage schema and use BlockFolk-specific built-in IDs, so empty-world saves gain the catalog without migration or deletion.
 - `VERIFIED`: use a 420-world-unit longest edge for restored stickers. This derives from the accepted 285-logical-pixel Imaginarium placement at its approximately 0.30 phone fit scale and retains an approximately 85–103 CSS-pixel starting extent at the Valley's normal bookmark zooms.
 - `VERIFIED`: publish only the exact packed artifact at `/blockfolk-imaginarium/index.html` from the freshly fetched Pages tip; the root `index.html` remains byte-identical.
+- `VERIFIED`: use exactly six existing Smaller steps for new artwork stickers: `420 / 1.1^6 = 237.078...` world units. This changes only creation defaults, never persisted sticker scale.
+- `VERIFIED`: construction snapping is explicit opt-in, limited to the documented construction assets, uses visual-anchor metadata and a 30 CSS-pixel camera-adjusted tolerance, and never targets the background.
+- `VERIFIED`: persist graph connections in the isolated BlockFolk page `@3` schema; group operations use loop-safe connected components and preserve internal z-order.
+- `VERIFIED`: preserve the accepted Valley source/master/shipping bytes. Explicitly enforce Retina high-quality canvas rendering and keep all sharper-map candidates as non-production comparison evidence pending user approval.

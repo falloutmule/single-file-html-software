@@ -47,3 +47,17 @@
 - Expected: GitHub Pages serves the exact accepted artifact without changing the root route.
 - Resolution: allowed normal Pages propagation, then downloaded and exercised the unmodified route.
 - Verification: the live response is 8,769,364 bytes with SHA-256 `8b830d36cee776cf74512f1e31b624e0615fa2a6cefb3c648ea1a92a40850de3`; portrait and landscape Chromium pass with zero console errors, page errors, or unexpected requests, and the Pages root remains byte-identical.
+
+## BFC-001 — Construction layer action was not observable enough
+
+- Phase: construction pass
+- Status: `RESOLVED`
+- Observed: the previous individual-object canvas operation provided no feedback at layer boundaries and could not keep a connected construction contiguous.
+- Resolution: reorder selected connected components one adjacent group at a time, preserve their internal ordering, and provide non-blocking movement/boundary feedback. A three-sticker rendered PNG and stored-order scenario proves the result.
+
+## BFC-002 — Map softness required a rendering/asset split diagnosis
+
+- Phase: construction pass
+- Status: `RESOLVED FOR RENDERING; ASSET REPLACEMENT NOT AUTHORIZED`
+- Observed: the physical phone perceived the accepted Valley as softer than stickers.
+- Resolution: inspect the source, shipping asset, high-DPI canvas backing, smoothing, in-app canvas crop, and browser crop. Enforce high-quality Retina canvas rendering and retain a labeled comparison only. No production map byte changed and no ComfyUI dependency was installed.
