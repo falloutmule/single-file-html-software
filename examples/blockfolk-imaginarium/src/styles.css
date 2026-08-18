@@ -155,6 +155,7 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 .emoji-composer .sfhs-cf-content { padding: 0 10px; }
 .emoji-status { grid-column: 1 / -1; min-height: 14px; color: #4b5b49; font-size: .62rem; font-weight: 800; }
 .world-sheet-note { margin: 0 0 14px; color: #4f5d49; font-weight: 800; line-height: 1.35; }
+.world-section-title { margin: 18px 0 9px; color: var(--purple-dark); font: 900 1.05rem/1 Georgia, serif; }
 .location-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; }
 .location-button.imaginarium-control { min-height: 142px; }
 .location-button > .sfhs-cf-content { display: grid; grid-template-rows: 1fr auto; gap: 7px; height: 100%; padding: 8px; }

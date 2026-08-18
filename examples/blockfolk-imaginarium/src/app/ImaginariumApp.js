@@ -1,6 +1,6 @@
 /* global Blob, File, ResizeObserver, TextEncoder, URL, atob, clearInterval, clearTimeout, console, document, localStorage, matchMedia, navigator, performance, prompt, requestAnimationFrame, setInterval, setTimeout, structuredClone, window */
 import * as fabricNS from 'fabric';
-import { BUILT_IN_CATEGORIES, BUILT_IN_STICKERS, CREATIVE_PROMPTS, findBuiltInAsset } from '../model/builtInLibrary.js';
+import { BUILT_IN_BACKGROUNDS, BUILT_IN_CATEGORIES, BUILT_IN_STICKERS, CREATIVE_PROMPTS, findBuiltInAsset } from '../model/builtInLibrary.js';
 import { migrateAssetCategory, migrateBuiltInCategory } from '../model/categoryModel.js';
 import { validateNativeEmojiSequence } from '../model/emojiModel.js';
 import { DEFAULT_AUTOSAVE_MODE, autosavePolicy, normalizeAutosaveMode } from '../model/autosave.js';
@@ -19,7 +19,7 @@ import {
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
 import {
-  CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, DEFAULT_CAMERA, STARTING_LOCATIONS, WORLD_BACKGROUND_ID, WORLD_SIZE,
+  CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, DEFAULT_CAMERA, STARTING_LOCATIONS, WORLD_BACKGROUND_ID, WORLD_SIZE, isBuiltInWorldBackgroundId,
   cameraMetrics, cameraTransform, clampCamera, normalizeCamera, panCamera, screenToWorld, zoomCameraAt
 } from '../model/worldModel.js';
 
@@ -128,7 +128,7 @@ export class BlockFolkImaginariumApp {
     const $ = (selector) => this.root.querySelector(selector);
     this.elements = {
       canvas: $('#picture-canvas'), viewport: $('#page-viewport'), scaler: $('#page-scaler'), frame: $('#page-frame'), empty: $('#empty-invitation'),
-      selection: $('#selection-toolbar'), selectionMore: $('#selection-more-sheet'), categories: $('#category-tabs'), stickers: $('#sticker-list'), stripTitle: $('#sticker-strip-title'), locations: $('#location-grid'),
+      selection: $('#selection-toolbar'), selectionMore: $('#selection-more-sheet'), categories: $('#category-tabs'), stickers: $('#sticker-list'), stripTitle: $('#sticker-strip-title'), locations: $('#location-grid'), backgrounds: $('#background-grid'),
       worldSheet: $('#world-sheet'), gallery: $('#gallery-grid'), galleryEmpty: $('#gallery-empty'), galleryNote: $('#gallery-limit-note'),
       continueButton: $('#continue-picture'), saveStatus: $('#save-status'), ideaCard: $('#idea-card'), ideaText: $('#idea-text'),
       parentGate: $('#parent-gate-screen'), gateCount: $('#gate-count'), parentTools: $('#parent-tools-screen'),
@@ -314,8 +314,9 @@ export class BlockFolkImaginariumApp {
       'toggle-motion': () => this.updatePreference('reducedMotion', !this.preferences.reducedMotion),
       'set-autosave': () => this.updatePreference('autosaveMode', normalizeAutosaveMode(actionElement?.dataset.autosaveMode)),
       'done-picture': () => this.donePicture(),
-      'show-world-locations': () => { this.renderLocations(); this.elements.worldSheet.hidden = false; },
+      'show-world-locations': () => { this.renderWorldChoices(); this.renderLocations(); this.elements.worldSheet.hidden = false; },
       'close-world-locations': () => { this.elements.worldSheet.hidden = true; },
+      'choose-world': (actionElement) => this.chooseWorld(actionElement?.dataset.backgroundId),
       'camera-zoom-in': () => this.zoomCamera(1.25), 'camera-zoom-out': () => this.zoomCamera(1 / 1.25), 'camera-fit': () => this.fitWorld(),
       'add-emoji': () => this.addEmojiFromInput(),
       'show-idea': () => this.showIdea(), 'hide-idea': () => { this.elements.ideaCard.hidden = true; },
@@ -328,7 +329,7 @@ export class BlockFolkImaginariumApp {
       'export-recovery': () => this.exportRecovery(), 'clear-data': () => this.clearData(),
       'cancel-confirm': () => this.resolveConfirm(false), 'accept-confirm': () => this.resolveConfirm(true)
     };
-    if (actions[action]) await actions[action]();
+    if (actions[action]) await actions[action](actionElement);
   }
 
   showScreen(id) {
@@ -411,7 +412,7 @@ export class BlockFolkImaginariumApp {
       ...(object.blockfolkSourceEmoji ? { sourceEmoji: object.blockfolkSourceEmoji } : {})
     }));
     this.current.connections = validConnections(this.current.connections || [], new Set(this.current.stickers.map((sticker) => sticker.layerId)));
-    this.current.page.backgroundAssetId = WORLD_BACKGROUND_ID;
+    if (!isBuiltInWorldBackgroundId(this.current.page.backgroundAssetId)) this.current.page.backgroundAssetId = WORLD_BACKGROUND_ID;
     this.current.page.camera = normalizeCamera(this.camera);
     this.current.ui = { category: migrateBuiltInCategory(this.category) };
     const usedIds = new Set([this.current.page.backgroundAssetId, ...this.current.stickers.map((sticker) => sticker.assetId)]);
@@ -445,11 +446,15 @@ export class BlockFolkImaginariumApp {
   }
 
   async applyBackground() {
-    const asset = findBuiltInAsset(WORLD_BACKGROUND_ID);
+    const asset = findBuiltInAsset(this.current?.page?.backgroundAssetId || WORLD_BACKGROUND_ID) || findBuiltInAsset(WORLD_BACKGROUND_ID);
     const image = await fabricNS.FabricImage.fromURL(asset.dataUrl);
-    image.set({ left: 0, top: 0, originX: 'left', originY: 'top', scaleX: WORLD_SIZE / (image.width || WORLD_SIZE), scaleY: WORLD_SIZE / (image.height || WORLD_SIZE), selectable: false, evented: false });
+    const scale = asset.presentation === 'contain'
+      ? Math.min(WORLD_SIZE / Math.max(1, image.width || asset.width), WORLD_SIZE / Math.max(1, image.height || asset.height))
+      : WORLD_SIZE / Math.max(1, image.width || WORLD_SIZE);
+    const width = Math.max(1, image.width || asset.width || WORLD_SIZE) * scale; const height = Math.max(1, image.height || asset.height || WORLD_SIZE) * scale;
+    image.set({ left: (WORLD_SIZE - width) / 2, top: (WORLD_SIZE - height) / 2, originX: 'left', originY: 'top', scaleX: scale, scaleY: scale, selectable: false, evented: false });
     this.canvas.backgroundImage = image;
-    this.canvas.backgroundColor = '#d8cfb2';
+    this.canvas.backgroundColor = asset.presentation === 'contain' ? '#f1f0ed' : '#d8cfb2';
     this.canvas.requestRenderAll();
   }
 
@@ -554,12 +559,35 @@ export class BlockFolkImaginariumApp {
       const thumbnail = document.createElement('canvas'); thumbnail.width = 240; thumbnail.height = 150; preview.appendChild(thumbnail);
       const image = this.canvas.backgroundImage?._element; const context = thumbnail.getContext('2d');
       if (image?.naturalWidth && context) {
-        const crop = Math.min(WORLD_SIZE, WORLD_SIZE / Math.max(1, location.zoom)); const sourceX = Math.max(0, Math.min(WORLD_SIZE - crop, location.centerX - crop / 2)); const sourceY = Math.max(0, Math.min(WORLD_SIZE - crop, location.centerY - crop / 2));
-        context.drawImage(image, sourceX, sourceY, crop, crop, 0, 0, thumbnail.width, thumbnail.height);
+        const crop = Math.min(WORLD_SIZE, WORLD_SIZE / Math.max(1, location.zoom)); const worldX = Math.max(0, Math.min(WORLD_SIZE - crop, location.centerX - crop / 2)); const worldY = Math.max(0, Math.min(WORLD_SIZE - crop, location.centerY - crop / 2));
+        const background = this.canvas.backgroundImage; const scaleX = background?.scaleX || 1; const scaleY = background?.scaleY || 1; const left = background?.left || 0; const top = background?.top || 0;
+        const sourceX = (worldX - left) / scaleX; const sourceY = (worldY - top) / scaleY; const sourceWidth = crop / scaleX; const sourceHeight = crop / scaleY;
+        context.fillStyle = '#f1f0ed'; context.fillRect(0, 0, thumbnail.width, thumbnail.height);
+        const clippedX = Math.max(0, sourceX); const clippedY = Math.max(0, sourceY); const clippedRight = Math.min(image.naturalWidth, sourceX + sourceWidth); const clippedBottom = Math.min(image.naturalHeight, sourceY + sourceHeight);
+        if (clippedRight > clippedX && clippedBottom > clippedY) {
+          const targetX = ((clippedX - sourceX) / sourceWidth) * thumbnail.width; const targetY = ((clippedY - sourceY) / sourceHeight) * thumbnail.height;
+          const targetWidth = ((clippedRight - clippedX) / sourceWidth) * thumbnail.width; const targetHeight = ((clippedBottom - clippedY) / sourceHeight) * thumbnail.height;
+          context.drawImage(image, clippedX, clippedY, clippedRight - clippedX, clippedBottom - clippedY, targetX, targetY, targetWidth, targetHeight);
+        }
       }
       const label = document.createElement('strong'); label.textContent = location.title; button.append(preview, label);
       return this.controls.upgradeButton(button, { family: 'choice', semantic: { kind: 'choice', groupId: 'blockfolk-imaginarium-world-location', value: location.id }, value: location.id, palette: 'mint' });
     }));
+  }
+
+  renderWorldChoices() {
+    this.controls.destroyWithin(this.elements.backgrounds);
+    this.elements.backgrounds.replaceChildren(...BUILT_IN_BACKGROUNDS.map((asset) => {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'background-button'; button.dataset.action = 'choose-world'; button.dataset.backgroundId = asset.id; button.setAttribute('aria-label', `Use ${asset.name}`);
+      const image = document.createElement('img'); image.alt = ''; image.src = asset.dataUrl;
+      const label = document.createElement('span'); label.className = 'background-label'; label.textContent = asset.name; button.append(image, label);
+      return this.controls.upgradeButton(button, { family: 'choice', semantic: { kind: 'choice', groupId: 'blockfolk-imaginarium-world-background', value: asset.id }, value: asset.id, palette: asset.id === this.current?.page?.backgroundAssetId ? 'mint' : 'cream' });
+    }));
+  }
+
+  async chooseWorld(backgroundId) {
+    if (!this.current || !isBuiltInWorldBackgroundId(backgroundId) || backgroundId === this.current.page.backgroundAssetId) return;
+    const before = this.snapshot(); this.current.page.backgroundAssetId = backgroundId; await this.applyBackground(); this.renderWorldChoices(); this.renderLocations(); this.commit(before, `${findBuiltInAsset(backgroundId)?.name || 'World'} opened.`); this.toast('World changed — your stickers stayed put');
   }
 
   openStartingLocation(locationId) {

@@ -2,6 +2,7 @@ import { worldAssetUrl } from './worldAssetRegistry.js';
 
 export const WORLD_SIZE = 4096;
 export const WORLD_BACKGROUND_ID = 'blockfolk-valley';
+export const CLASSIC_WORLD_BACKGROUND_ID = 'blockfolk-valley-classic';
 export const CAMERA_MIN_ZOOM = 1;
 export const CAMERA_MAX_ZOOM = 8;
 export const DEFAULT_CAMERA = Object.freeze({ centerX: 1940, centerY: 2180, zoom: 2.15 });
@@ -75,5 +76,24 @@ export const BLOCKFOLK_VALLEY_ASSET = Object.freeze({
   debug: false,
   width: WORLD_SIZE,
   height: WORLD_SIZE,
-  get dataUrl() { return worldAssetUrl(); }
+  get dataUrl() { return worldAssetUrl(WORLD_BACKGROUND_ID); }
 });
+
+// This is the exact earlier BlockFolk Valley PNG retained by the original
+// Imaginarium. It remains landscape-shaped, so the renderer contains it in the
+// square world rather than cropping or stretching its composition.
+export const BLOCKFOLK_CLASSIC_VALLEY_ASSET = Object.freeze({
+  id: CLASSIC_WORLD_BACKGROUND_ID,
+  name: 'Classic BlockFolk Valley',
+  alt: 'Original isometric BlockFolk Valley with grassy terraces, trees, paths, waterfall, and ponds',
+  kind: 'background',
+  builtIn: true,
+  production: false,
+  classic: true,
+  width: 1448,
+  height: 1086,
+  presentation: 'contain',
+  get dataUrl() { return worldAssetUrl(CLASSIC_WORLD_BACKGROUND_ID); }
+});
+
+export function isBuiltInWorldBackgroundId(id) { return id === WORLD_BACKGROUND_ID || id === CLASSIC_WORLD_BACKGROUND_ID; }

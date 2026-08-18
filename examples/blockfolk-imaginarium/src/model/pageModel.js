@@ -1,6 +1,6 @@
 import { createStableId } from './ids.js';
 import { migrateBuiltInCategory } from './categoryModel.js';
-import { DEFAULT_CAMERA, WORLD_BACKGROUND_ID, WORLD_SIZE, normalizeCamera } from './worldModel.js';
+import { DEFAULT_CAMERA, WORLD_BACKGROUND_ID, WORLD_SIZE, isBuiltInWorldBackgroundId, normalizeCamera } from './worldModel.js';
 import { duplicateConnections, validConnections } from './constructionModel.js';
 
 export const PAGE_SCHEMA = 'blockfolk-imaginarium.page@3';
@@ -35,7 +35,7 @@ export function validatePicture(value) {
   const legacy = value.schema === LEGACY_PAGE_SCHEMA;
   const validPage = legacy
     ? value.page?.width === 1080 && value.page?.height === 1440 && (value.page?.backgroundAssetId === null || typeof value.page?.backgroundAssetId === 'string')
-    : value.page?.width === PAGE_WIDTH && value.page?.height === PAGE_HEIGHT && value.page?.backgroundAssetId === WORLD_BACKGROUND_ID && value.page?.camera && Number.isFinite(value.page.camera.centerX) && Number.isFinite(value.page.camera.centerY) && Number.isFinite(value.page.camera.zoom);
+    : value.page?.width === PAGE_WIDTH && value.page?.height === PAGE_HEIGHT && isBuiltInWorldBackgroundId(value.page?.backgroundAssetId) && value.page?.camera && Number.isFinite(value.page.camera.centerX) && Number.isFinite(value.page.camera.centerY) && Number.isFinite(value.page.camera.zoom);
   if (!validPage) throw new Error('Picture page settings are invalid.');
   if (!Array.isArray(value.stickers) || !Array.isArray(value.embeddedAssets || [])) throw new Error('Picture content is invalid.');
   const layerIds = new Set();
@@ -67,7 +67,7 @@ export function normalizePicture(value) {
   const layerIds = new Set((migrated.stickers || []).map((sticker) => sticker.layerId));
   const normalized = {
     ...migrated, schema: PAGE_SCHEMA,
-    page: { ...migrated.page, backgroundAssetId: WORLD_BACKGROUND_ID, camera: normalizeCamera(migrated.page.camera) },
+    page: { ...migrated.page, backgroundAssetId: isBuiltInWorldBackgroundId(migrated.page.backgroundAssetId) ? migrated.page.backgroundAssetId : WORLD_BACKGROUND_ID, camera: normalizeCamera(migrated.page.camera) },
     ui: { category: migrateBuiltInCategory(migrated.ui?.category) },
     stickers: migrated.stickers.map((sticker, index) => ({ ...sticker, flipX: sticker.flipX ?? false, flipY: sticker.flipY ?? false, opacity: sticker.opacity ?? 1, zIndex: sticker.zIndex ?? index })),
     connections: validConnections(migrated.connections || [], layerIds),

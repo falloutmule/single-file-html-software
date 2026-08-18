@@ -24,7 +24,7 @@ import {
 import { BlockFolkImaginariumStorage, DB_NAME, PREFERENCE_KEY } from '../src/model/storage.js';
 import { PACK_SCHEMA, inferPackManifest, normalizeArchivePath, resolveImportCategory, safeId, validatePackManifest } from '../src/model/stickerPacks.js';
 import { findAlphaBounds } from '../src/model/trimTransparent.js';
-import { CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, DEFAULT_CAMERA, STARTING_LOCATIONS, WORLD_BACKGROUND_ID, WORLD_SIZE, cameraTransform, clampCamera, panCamera, screenToWorld, zoomCameraAt } from '../src/model/worldModel.js';
+import { CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, CLASSIC_WORLD_BACKGROUND_ID, DEFAULT_CAMERA, STARTING_LOCATIONS, WORLD_BACKGROUND_ID, WORLD_SIZE, cameraTransform, clampCamera, panCamera, screenToWorld, zoomCameraAt } from '../src/model/worldModel.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const source = readFileSync(join(root, 'src', 'app', 'ImaginariumApp.js'), 'utf8');
@@ -317,13 +317,15 @@ assert.deepEqual(history.undo({ value: 4 }), { value: 3 });
 assert.deepEqual(history.redo({ value: 3 }), { value: 4 });
 
 const library = validateBuiltInLibrary();
-assert.deepEqual(library, { backgrounds: 1, stickers: 30, categories: 6 });
+assert.deepEqual(library, { backgrounds: 2, stickers: 30, categories: 6 });
 assert.deepEqual(BUILT_IN_CATEGORIES.map(({ id, title }) => ({ id, title })), [
   { id: 'animals', title: 'Animals' }, { id: 'people', title: 'People' }, { id: 'building', title: 'Building' },
   { id: 'nature', title: 'Nature' }, { id: 'magic', title: 'Magic' }, { id: 'emoji', title: 'Emoji' }
 ]);
 assert.equal(BUILT_IN_CATEGORIES.every((category) => category.icon?.node?.length > 0), true, 'every temporary category control must use Lucide icon data');
-assert.equal(BUILT_IN_BACKGROUNDS.length, 1); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].production, true); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, false); assert.match(BUILT_IN_BACKGROUNDS[0].dataUrl, /^data:image\/webp;base64,/);
+assert.equal(BUILT_IN_BACKGROUNDS.length, 2); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].production, true); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, false); assert.match(BUILT_IN_BACKGROUNDS[0].dataUrl, /^data:image\/webp;base64,/);
+assert.equal(BUILT_IN_BACKGROUNDS[1].id, CLASSIC_WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[1].presentation, 'contain'); assert.match(BUILT_IN_BACKGROUNDS[1].dataUrl, /^data:image\/png;base64,/);
+assert.deepEqual(readFileSync(join(root, 'src', 'assets', 'backgrounds', 'blockfolk-valley-classic.png')), readFileSync(join(root, '..', 'the-imaginarium', 'src', 'assets', 'backgrounds', 'blockfolk-valley.png')), 'Classic BlockFolk Valley must remain byte-identical to its original Imaginarium asset');
 assert.deepEqual(Object.fromEntries(BUILT_IN_CATEGORIES.map((category) => [category.id, BUILT_IN_STICKERS.filter((sticker) => sticker.category === category.id).length])), { animals: 2, people: 6, building: 6, nature: 12, magic: 4, emoji: 0 });
 assert.deepEqual(BUILT_IN_STICKERS.map(({ name, category }) => ({ name, category })), [
   { name: 'Wolf', category: 'animals' }, { name: 'Boar', category: 'animals' },
@@ -338,9 +340,9 @@ const acceptedFiles = readdirSync(acceptedStickerRoot).filter((name) => name.end
 const productFiles = readdirSync(productStickerRoot).filter((name) => name.endsWith('.png')).sort();
 assert.equal(productFiles.length, 30); assert.deepEqual(productFiles, acceptedFiles);
 for (const filename of productFiles) assert.deepEqual(readFileSync(join(productStickerRoot, filename)), readFileSync(join(acceptedStickerRoot, filename)), `${filename} must remain byte-identical to the accepted individual asset`);
-assert.deepEqual(assetManifest.bundles[0], { name: 'blockfolk-world', assets: [{ alias: 'blockfolk-valley', src: 'backgrounds/blockfolk-valley.webp' }] }, 'the production world bundle must remain unchanged');
+assert.deepEqual(assetManifest.bundles[0], { name: 'blockfolk-world', assets: [{ alias: 'blockfolk-valley', src: 'backgrounds/blockfolk-valley.webp' }, { alias: 'blockfolk-valley-classic', src: 'backgrounds/blockfolk-valley-classic.png' }] }, 'the production and Classic world bundle must retain both declared assets');
 const manifestAssets = assetManifest.bundles.flatMap((bundle) => bundle.assets || []);
-assert.equal(assetManifest.bundles.length, 2); assert.equal(manifestAssets.length, 31); assert.equal(manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley.webp').length, 1); assert.equal(manifestAssets.filter((asset) => /^blockfolk\/[^/]+\.png$/.test(asset.src)).length, 30);
+assert.equal(assetManifest.bundles.length, 2); assert.equal(manifestAssets.length, 32); assert.equal(manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley.webp').length, 1); assert.equal(manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley-classic.png').length, 1); assert.equal(manifestAssets.filter((asset) => /^blockfolk\/[^/]+\.png$/.test(asset.src)).length, 30);
 
 assert.equal(normalizeArchivePath('../bad/cat.png'), null);
 assert.equal(normalizeArchivePath('Pack\\stickers\\animals\\cat.png'), 'Pack/stickers/animals/cat.png');
@@ -409,7 +411,7 @@ assert.match(source, /zoomCameraAt\(/, 'pinch and accessible zoom must share mid
 assert.match(source, /pointercancel/, 'camera and sticker contact must handle cancellation');
 assert.match(source, /sourceEmoji/, 'native emoji source must remain authoritative in editor state');
 assert.match(html, /id="world-sheet"/); assert.match(html, /id="location-grid"/);
-assert.doesNotMatch(html, /data-background-id|background-grid|show-backgrounds/, 'the shell must not expose alternate background choices');
+assert.match(html, /id="background-grid"/); assert.match(source, /chooseWorld\(/, 'the shell must expose the production and Classic world choices');
 assert.doesNotMatch(html, /\b(asset|layer|artboard|manifest|serialization|opacity|coordinate|MIME|decompression|Fabric object)\b/i, 'child-facing shell must avoid professional editor terms');
 
 assert.match(html, /BlockFolk Imaginarium/); assert.match(source, /asset\.defaultWorldExtent \|\| 720/);

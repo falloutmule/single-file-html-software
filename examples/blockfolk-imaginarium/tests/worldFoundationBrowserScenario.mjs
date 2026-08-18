@@ -124,7 +124,7 @@ assert.deepEqual(await page.evaluate(() => {
 assert.deepEqual(await page.evaluate(() => {
   const image = window.BlockFolkImaginarium.app.canvas.backgroundImage._element;
   return { width: image.naturalWidth, height: image.naturalHeight, webp: image.src.startsWith('data:image/webp;base64,') };
-}), { width: 4096, height: 4096, webp: true }, 'the sole runtime world must be the embedded 4096 WebP');
+}), { width: 4096, height: 4096, webp: true }, 'the default runtime world must be the embedded 4096 WebP');
 assert.deepEqual(await page.evaluate(() => ({ innerWidth: window.innerWidth, editorWidth: document.querySelector('#editor-screen').getBoundingClientRect().width, canvasWidth: window.BlockFolkImaginarium.diagnostics().world.viewport.width })), { innerWidth: 400, editorWidth: 400, canvasWidth: 380 }, 'portrait world shell must stay inside the 400px viewport');
 assert.deepEqual(await delayedCompatibilityTap('[data-action="camera-fit"]'), { physicalActivations: 1, assistiveActivations: 1 }, 'one physical tap must activate once while a genuine assistive click remains available');
 const existingEmptyPictureId = await page.evaluate(async () => {
@@ -280,6 +280,30 @@ for (let locationIndex = 0; locationIndex < locationTitles.length; locationIndex
   await page.screenshot({ path: resolve(evidenceDirectory, `bookmark-${locationIds[locationIndex]}-400x844.png`) });
 }
 assert.deepEqual((await stickerState()).map((sticker) => sticker.sourceEmoji).filter(Boolean), emojiSequences, 'bookmarks must not move or delete stickers');
+
+// The exact earlier Imaginarium BlockFolk Valley remains available as a contained Classic world.
+const worldBeforeClassic = { stickers: await stickerState(), camera: (await cameraState()).camera };
+await page.locator('[data-action="show-world-locations"]').click();
+assert.equal(await page.locator('#background-grid [data-background-id]').count(), 2, 'World picker must offer production and Classic BlockFolk Valley');
+assert.deepEqual(await page.locator('#background-grid [data-background-id]').evaluateAll((buttons) => buttons.map((button) => button.dataset.backgroundId)), ['blockfolk-valley', 'blockfolk-valley-classic']);
+await page.locator('#background-grid [data-background-id="blockfolk-valley-classic"]').click();
+await page.waitForFunction(() => {
+  const app = window.BlockFolkImaginarium.app;
+  return app.current.page.backgroundAssetId === 'blockfolk-valley-classic' && app.canvas.backgroundImage?._element?.naturalWidth === 1448;
+});
+assert.deepEqual(await page.evaluate(() => {
+  const app = window.BlockFolkImaginarium.app; const image = app.canvas.backgroundImage._element;
+  return { background: app.current.page.backgroundAssetId, natural: { width: image.naturalWidth, height: image.naturalHeight }, left: app.canvas.backgroundImage.left, top: app.canvas.backgroundImage.top };
+}), { background: 'blockfolk-valley-classic', natural: { width: 1448, height: 1086 }, left: 0, top: 512 }, 'Classic Valley must retain its original landscape pixels inside the square world without cropping');
+assert.deepEqual(await stickerState(), worldBeforeClassic.stickers, 'changing worlds must not move stickers');
+assert.deepEqual((await cameraState()).camera, worldBeforeClassic.camera, 'changing worlds must not move the camera');
+await page.locator('#background-grid [data-background-id="blockfolk-valley"]').click();
+await page.waitForFunction(() => {
+  const app = window.BlockFolkImaginarium.app;
+  return app.current.page.backgroundAssetId === 'blockfolk-valley' && app.canvas.backgroundImage?._element?.naturalWidth === 4096;
+});
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.page.backgroundAssetId), 'blockfolk-valley', 'the production Valley remains selectable after Classic Valley');
+await page.locator('[data-action="close-world-locations"]').click();
 
 // Emoji stickers keep all applicable image-sticker tools, history, stack, copy, and deletion.
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[2]); app.updateSelection(); });

@@ -2,9 +2,11 @@
 
 ## Approved production background
 
-BlockFolk Valley is one square, full-bleed 4096 × 4096 world mapped directly to the product's 4096 × 4096 logical coordinates. The visual source is the user-supplied and user-approved JPEG retained at `art/source/blockfolk-valley-authority-1280.jpg`; this record makes no licensing, generation-provider, or public-redistribution claim.
+BlockFolk Valley is the current production square, full-bleed 4096 × 4096 world mapped directly to the product's 4096 × 4096 logical coordinates. The visual source is the user-supplied and user-approved JPEG retained at `art/source/blockfolk-valley-authority-1280.jpg`; this record makes no licensing, generation-provider, or public-redistribution claim.
 
 The production master is a deterministic NVIDIA RTX Video Super Resolution upscale of that exact source. Its reproducible workflow is retained under `art/workflows/`, and the browser uses one optimized 4096 × 4096 WebP under `src/assets/backgrounds/`. Replacing that single shipping asset must not require changes to camera, sticker, save, puzzle, or export architecture.
+
+The product also retains **Classic BlockFolk Valley** as an explicitly selectable, exact copy of the earlier Imaginarium background (`1448 × 1086` PNG, SHA-256 `72cc98a59b8d4e123f720a84aa1782a3e7928d0697c54f28244562f5683088eb`). It is a legacy creative canvas, not a replacement production-map proposal: the renderer contains its complete landscape composition inside the same 4096 × 4096 logical world without cropping or stretching it. Switching between the two worlds never changes sticker or camera coordinates.
 
 ## Composition invariants
 
