@@ -26,14 +26,22 @@ The previous overlay used Fabric's top canvas after rendering. In a real drag, i
 
 ## REMAINING BLOCKERS
 
-This repair is verified locally and has not been pushed or published. A real-phone pass is still useful after publication because finger feel cannot be fully proved by synthetic input.
+A real-phone pass is still useful because finger feel cannot be fully proved by synthetic input.
 
 ## NEXT ACTIONABLE STEP
 
-Publish this focused repair to the dedicated BlockFolk Pages path, then test a Log Block with a Door or Window, or two blocks, by dragging one close to the other while Snap is on.
+Test a Log Block with a Door or Window, or two blocks, by dragging one close to the other while Snap is on. It should magnetically settle, then show `Snapped together` on release without leaving blue dots.
 
 ## EVIDENCE
 
 Ignored backup: `test-results/snap-clarity-001/ImaginariumApp.before-snap-clarity.js`.
+
+## GITHUB PAGES URL
+
+- Feature commit: `97c8890f11182e9929e68cf3546b38d91c160426` on `feature/blockfolk-imaginarium-001`.
+- Dedicated Pages commit: `ef3763567de421302bfb6d022e4b5f39d3ade521`, changing only `blockfolk-imaginarium/index.html`.
+- Live cache-busted URL: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=ef37635`
+- Live Chromium at `400 × 844` and `844 × 400`: PASS with zero console errors, page errors, or unexpected network requests.
+- Live artifact: `12,270,031` bytes, SHA-256 `96e2c2415b8a46a97de2ccdbf4738050f19de585da4302b826f2a2c92d3f4313`.
 
 **PASS — local snap clarity repair complete.**
