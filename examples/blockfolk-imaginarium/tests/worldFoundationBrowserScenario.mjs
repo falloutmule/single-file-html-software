@@ -166,7 +166,7 @@ for (const [id, title] of expectedCategories) {
   }
 }
 assert.equal(placedCatalogCount, 30); assert.equal((await stickerState()).length, 30);
-assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => Math.abs(Math.max(object.getScaledWidth(), object.getScaledHeight()) - (420 / (1.1 ** 6))) < 1)), true, 'new artwork stickers must spawn exactly six Smaller steps below the previous default');
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => Math.abs(Math.max(object.getScaledWidth(), object.getScaledHeight()) - (420 / (1.1 ** 10))) < 1)), true, 'new artwork stickers must spawn exactly ten Smaller steps below the previous default');
 await page.screenshot({ path: resolve(evidenceDirectory, 'catalog-all-30-400x844.png'), fullPage: true });
 await page.evaluate(async (pictureId) => window.BlockFolkImaginarium.app.openPicture(pictureId), existingEmptyPictureId);
 assert.equal((await stickerState()).length, 0, 'a previously saved empty-world picture must reopen without destructive migration');
@@ -209,7 +209,7 @@ const wolfPlacement = await page.evaluate(() => {
   const object = window.BlockFolkImaginarium.app.canvas.getObjects().at(-1);
   return { assetId: object.blockfolkAssetId, type: object.type, longestExtent: Math.max(object.getScaledWidth(), object.getScaledHeight()) };
 });
-assert.equal(wolfPlacement.assetId, 'sticker-blockfolk-wolf'); assert.equal(wolfPlacement.type, 'image'); assert.ok(Math.abs(wolfPlacement.longestExtent - (420 / (1.1 ** 6))) < .001, 'new Wolf placement must use the exact sixth-step default');
+assert.equal(wolfPlacement.assetId, 'sticker-blockfolk-wolf'); assert.equal(wolfPlacement.type, 'image'); assert.ok(Math.abs(wolfPlacement.longestExtent - (420 / (1.1 ** 10))) < .001, 'new Wolf placement must use the exact tenth-step default');
 const exportAfterSticker = await page.evaluate(() => window.BlockFolkImaginarium.app.exportDataUrl());
 assert.notEqual(exportAfterSticker, exportAfterEmoji, 'current-view PNG must visibly include the accepted background, native emoji, and restored artwork');
 
@@ -357,6 +357,24 @@ assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.c
 await page.locator('[data-action="undo"]').click(); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 1, 'Unsnap must participate in Undo');
 await page.locator('[data-action="redo"]').click(); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'Unsnap must participate in Redo');
 await page.screenshot({ path: resolve(evidenceDirectory, 'construction-toolbar-and-assembly-400x844.png'), fullPage: true });
+
+// A visible building face must also attach directly to the painted face of a block.
+await page.evaluate(async () => {
+  const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
+  await app.addSticker('sticker-blockfolk-wood-log-block'); await app.addSticker('sticker-blockfolk-wood-door');
+  const [log, door] = app.canvas.getObjects(); log.set({ left: 1850, top: 2050 }); door.set({ left: 1854, top: 2050 }); log.setCoords(); door.setCoords(); app.canvas.setActiveObject(door); app.syncCurrentFromCanvas(); app.updateSelection();
+});
+await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
+constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const door = app.canvas.getObjects()[1]; const t = app.canvas.viewportTransform; return { x: door.left * t[0] + t[4], y: door.top * t[3] + t[5] }; });
+await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 3, constructionStart.y);
+const facePreviewProof = await page.evaluate(() => { const preview = window.BlockFolkImaginarium.app.snapPreview; return preview ? { sourceAnchor: preview.sourceAnchor.id, targetAnchor: preview.targetAnchor.id, toast: document.querySelector('#toast').textContent } : null; });
+assert.deepEqual(facePreviewProof, { sourceAnchor: 'backFace', targetAnchor: 'frontFace', toast: 'Ready to snap' }, 'a nearby painted face must show a clear pre-release snap preview');
+await page.screenshot({ path: resolve(evidenceDirectory, 'face-snap-preview-400x844.png'), fullPage: true });
+await pointer('pointerup', 1, constructionStart.x + 3, constructionStart.y);
+const faceSnapProof = await page.evaluate(() => ({ connections: structuredClone(window.BlockFolkImaginarium.app.current.connections), toast: document.querySelector('#toast').textContent }));
+assert.equal(faceSnapProof.connections.length, 1, 'a door placed on a log face must create a persistent face-to-face connection');
+assert.deepEqual([faceSnapProof.connections[0].aAnchorId, faceSnapProof.connections[0].bAnchorId].sort(), ['backFace', 'frontFace'], 'the face snap must use painted-face anchors rather than image bounds');
+assert.equal(faceSnapProof.toast, 'Snapped together', 'release must visibly confirm a successful snap');
 
 // Behind/In Front must change both serialized order and the rendered overlap.
 await page.evaluate(async () => {

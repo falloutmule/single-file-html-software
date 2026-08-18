@@ -14,7 +14,7 @@ import {
 import { createStableId } from '../model/ids.js';
 import {
   SNAP_TOLERANCE_SCREEN_PX, connectedLayerIds, duplicateConnections, findSnapCandidate,
-  hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections
+  hasAssembly, isSnappableAsset, makeConnection, objectAnchor, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
@@ -191,7 +191,7 @@ export class BlockFolkImaginariumApp {
       const memberIds = target ? this.selectedMemberIds(target) : null;
       const origins = target ? new Map(this.objectsForMemberIds(memberIds).map((object) => [object.blockfolkLayerId, { x: Number(object.left || 0), y: Number(object.top || 0) }])) : null;
       this.worldInteraction = target
-        ? { mode: 'sticker', before, target, memberIds, origins, start: location, last: location, moved: false, snapCandidate: null }
+        ? { mode: 'sticker', before, target, memberIds, origins, start: location, last: location, moved: false, snapCandidate: null, snapKey: null }
         : { mode: 'pan', before, startCamera: structuredClone(this.camera), start: location, last: location, moved: false };
       if (target) { this.canvas.setActiveObject(target); this.canvas.requestRenderAll(); this.updateSelection(); }
     };
@@ -221,7 +221,11 @@ export class BlockFolkImaginariumApp {
         }
         interaction.snapCandidate = this.preferences.snapEnabled ? this.proposeSnap(members) : null;
         this.snapPreview = interaction.snapCandidate;
-        if (interaction.snapCandidate) this.translateObjects(members, interaction.snapCandidate.dx, interaction.snapCandidate.dy);
+        if (interaction.snapCandidate) {
+          const snapKey = `${interaction.snapCandidate.source.blockfolkLayerId}:${interaction.snapCandidate.sourceAnchor.id}:${interaction.snapCandidate.target.blockfolkLayerId}:${interaction.snapCandidate.targetAnchor.id}`;
+          if (interaction.snapKey !== snapKey) { interaction.snapKey = snapKey; this.toast('Ready to snap'); this.announce('Ready to snap.'); }
+          this.translateObjects(members, interaction.snapCandidate.dx, interaction.snapCandidate.dy);
+        } else interaction.snapKey = null;
         this.canvas.requestRenderAll();
       }
     };
@@ -627,6 +631,7 @@ export class BlockFolkImaginariumApp {
     if (exists) return;
     this.current.connections = [...connections, makeConnection(candidate)];
     this.ensureAssemblyContiguous(this.selectedMemberIds(candidate.source));
+    this.toast('Snapped together'); this.announce('Snapped together.'); this.feedback('pop');
   }
 
   objectGroups() {
@@ -674,8 +679,10 @@ export class BlockFolkImaginariumApp {
       context.strokeRect(left * transform[0] + transform[4] - 7, top * transform[3] + transform[5] - 7, (right - left) * transform[0] + 14, (bottom - top) * transform[3] + 14); context.restore();
     }
     if (this.snapPreview?.targetAnchor) {
-      const anchor = this.snapPreview.targetAnchor; const x = anchor.x * transform[0] + transform[4]; const y = anchor.y * transform[3] + transform[5];
-      context.save(); context.setTransform(ratio, 0, 0, ratio, 0, 0); context.strokeStyle = '#fff8c9'; context.fillStyle = 'rgba(77,170,209,.32)'; context.lineWidth = 3; context.beginPath(); context.arc(x, y, 13, 0, Math.PI * 2); context.fill(); context.stroke(); context.restore();
+      const target = this.snapPreview.targetAnchor; const source = objectAnchor(this.snapPreview.source, this.snapPreview.sourceAnchor.id) || target;
+      const x = target.x * transform[0] + transform[4]; const y = target.y * transform[3] + transform[5];
+      const sourceX = source.x * transform[0] + transform[4]; const sourceY = source.y * transform[3] + transform[5];
+      context.save(); context.setTransform(ratio, 0, 0, ratio, 0, 0); context.strokeStyle = '#fff8c9'; context.fillStyle = 'rgba(77,170,209,.38)'; context.lineWidth = 3; context.setLineDash([5, 4]); context.beginPath(); context.moveTo(sourceX, sourceY); context.lineTo(x, y); context.stroke(); context.setLineDash([]); context.beginPath(); context.arc(x, y, 14, 0, Math.PI * 2); context.fill(); context.stroke(); context.restore();
     }
   }
 
@@ -978,7 +985,7 @@ export class BlockFolkImaginariumApp {
     await this.storage.clearAll(); localStorage.removeItem(PREFERENCE_KEY); this.current = null; this.packs = []; this.renderPackList(); this.renderLibrary(); this.toast('Local BlockFolk Imaginarium data cleared.'); await this.goHome();
   }
 
-  updatePreference(name, value) { this.preferences[name] = value; savePreferences(this.preferences); this.applyPreferences(); this.updateSelection(); this.announce(name === 'snapEnabled' ? (value ? 'Snap is on.' : 'Snap is off.') : 'Setting saved.'); }
+  updatePreference(name, value) { this.preferences[name] = value; savePreferences(this.preferences); this.applyPreferences(); this.updateSelection(); const message = name === 'snapEnabled' ? (value ? 'Snap on — drag pieces together' : 'Snap is off') : 'Setting saved.'; this.announce(message); if (name === 'snapEnabled') this.toast(message); }
 
   applyPreferences() {
     document.body.classList.toggle('reduced-motion', !!this.preferences.reducedMotion);

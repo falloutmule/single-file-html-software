@@ -258,7 +258,7 @@ const clamped = clampStickerPosition({ x: -999, y: 9999 }, 200, 300);
 assert.equal(clamped.x, -80, 'at least 10% of sticker width must remain visible');
 assert.equal(clamped.y, PAGE_HEIGHT + 120, 'at least 10% of sticker height must remain visible');
 
-assert.equal(SNAP_TOLERANCE_SCREEN_PX, 30, 'construction snap tolerance must remain a screen-space value');
+assert.equal(SNAP_TOLERANCE_SCREEN_PX, 44, 'construction snap tolerance must remain a forgiving screen-space value');
 assert.deepEqual(SNAPPABLE_ASSET_IDS, [
   'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block', 'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block', 'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block', 'sticker-blockfolk-brick-stone-block',
   'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
@@ -270,6 +270,8 @@ const constructionB = constructionObject('block-b', 'sticker-blockfolk-brick-sto
 const constructionCandidate = findSnapCandidate({ movingObjects: [constructionA], stationaryObjects: [constructionB], worldTolerance: 40 });
 assert.ok(constructionCandidate, 'compatible painted construction anchors must propose a snap');
 assert.ok(Math.abs(constructionCandidate.dx) < 40 && Math.abs(constructionCandidate.dy) < 40, 'anchor proposal must be transparent-art-aware rather than image-rectangle-only');
+const faceCandidate = findSnapCandidate({ movingObjects: [constructionObject('door-a', 'sticker-blockfolk-wood-door', 404)], stationaryObjects: [constructionA], worldTolerance: 12 });
+assert.ok(faceCandidate && faceCandidate.sourceAnchor.id === 'backFace' && faceCandidate.targetAnchor.id === 'frontFace', 'a painted building face must snap to a painted block face');
 const constructionConnection = makeConnection(constructionCandidate);
 const constructionConnections = validConnections([constructionConnection], new Set(['block-a', 'block-b']));
 assert.equal(constructionConnections.length, 1, 'a valid connection must survive normalization');
@@ -330,8 +332,8 @@ assert.deepEqual(BUILT_IN_STICKERS.map(({ name, category }) => ({ name, category
   { name: 'Oak Tree', category: 'nature' }, { name: 'Pine Tree', category: 'nature' }, { name: 'Shrub', category: 'nature' }, { name: 'Berry Bush', category: 'nature' }, { name: 'Grass Block', category: 'nature' }, { name: 'Dirt Block', category: 'nature' }, { name: 'Stone Block', category: 'nature' }, { name: 'Sand Block', category: 'nature' }, { name: 'Snow Block', category: 'nature' }, { name: 'Water Block', category: 'nature' }, { name: 'Lava Block', category: 'nature' }, { name: 'Leaves Block', category: 'nature' },
   { name: 'Slime', category: 'magic' }, { name: 'Bat', category: 'magic' }, { name: 'Golem', category: 'magic' }, { name: 'Dragon', category: 'magic' }
 ]);
-assert.equal(BLOCKFOLK_DEFAULT_WORLD_EXTENT, 420 / (1.1 ** 6), 'the new default must equal exactly six Smaller presses below the previous 420-world-unit default');
-assert.equal(BUILT_IN_STICKERS.every((sticker) => sticker.builtIn && sticker.kind === 'sticker' && sticker.defaultWorldExtent === BLOCKFOLK_DEFAULT_WORLD_EXTENT), true, 'all accepted stickers must use the derived sixth-step world extent');
+assert.equal(BLOCKFOLK_DEFAULT_WORLD_EXTENT, 420 / (1.1 ** 10), 'the new default must equal exactly ten Smaller presses below the previous 420-world-unit default');
+assert.equal(BUILT_IN_STICKERS.every((sticker) => sticker.builtIn && sticker.kind === 'sticker' && sticker.defaultWorldExtent === BLOCKFOLK_DEFAULT_WORLD_EXTENT), true, 'all accepted stickers must use the derived tenth-step world extent');
 const acceptedFiles = readdirSync(acceptedStickerRoot).filter((name) => name.endsWith('.png')).sort();
 const productFiles = readdirSync(productStickerRoot).filter((name) => name.endsWith('.png')).sort();
 assert.equal(productFiles.length, 30); assert.deepEqual(productFiles, acceptedFiles);

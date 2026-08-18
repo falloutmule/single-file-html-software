@@ -1,10 +1,10 @@
 import { blockFolkStickerAssetUrl } from './blockfolkStickerAssetRegistry.js';
 
-// The prior 420-world-unit default required six presses of Smaller. Smaller is
-// exactly a 1 / 1.1 multiplier, so use the derived sixth-step value rather
-// than an unrelated estimate. Existing saved scales are serialized per sticker
-// and therefore remain unchanged.
-export const BLOCKFOLK_DEFAULT_WORLD_EXTENT = 420 / (1.1 ** 6);
+// Phone evidence showed the sixth-step default still needed four more presses
+// of Smaller. Smaller is exactly a 1 / 1.1 multiplier, so use the verified
+// tenth-step value. Existing saved scales are serialized per sticker and are
+// therefore never resized by this creation-time default.
+export const BLOCKFOLK_DEFAULT_WORLD_EXTENT = 420 / (1.1 ** 10);
 
 function makeBlockFolkSticker(id, name, category, filename, width, height) {
   return Object.freeze({

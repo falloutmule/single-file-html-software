@@ -20,10 +20,16 @@ const edgeAnchors = (x, y) => Object.freeze({
   top: Object.freeze({ x: 0, y: -y, nx: 0, ny: -1 }), bottom: Object.freeze({ x: 0, y, nx: 0, ny: 1 })
 });
 
-export const SNAP_TOLERANCE_SCREEN_PX = 30;
+// These center anchors describe the painted front of a block and the painted
+// back of a door/window, so compatible faces can attach without treating the
+// transparent source rectangle as visible artwork.
+const blockAnchors = Object.freeze({ ...edgeAnchors(.72, .66), frontFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: 1 }) });
+const buildingFaceAnchors = Object.freeze({ ...edgeAnchors(.68, .84), backFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: -1 }) });
+
+export const SNAP_TOLERANCE_SCREEN_PX = 44;
 export const SNAPPABLE_ASSET_METADATA = Object.freeze(Object.fromEntries([
-  ...BLOCK_IDS.map((id) => [id, Object.freeze({ kind: 'block', anchors: edgeAnchors(.72, .66) })]),
-  ...FACE_IDS.map((id) => [id, Object.freeze({ kind: 'building-face', anchors: edgeAnchors(.68, .84) })])
+  ...BLOCK_IDS.map((id) => [id, Object.freeze({ kind: 'block', anchors: blockAnchors })]),
+  ...FACE_IDS.map((id) => [id, Object.freeze({ kind: 'building-face', anchors: buildingFaceAnchors })])
 ]));
 
 export const SNAPPABLE_ASSET_IDS = Object.freeze(Object.keys(SNAPPABLE_ASSET_METADATA));
