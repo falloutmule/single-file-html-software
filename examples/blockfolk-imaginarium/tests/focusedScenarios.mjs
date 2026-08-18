@@ -258,7 +258,7 @@ const clamped = clampStickerPosition({ x: -999, y: 9999 }, 200, 300);
 assert.equal(clamped.x, -80, 'at least 10% of sticker width must remain visible');
 assert.equal(clamped.y, PAGE_HEIGHT + 120, 'at least 10% of sticker height must remain visible');
 
-assert.equal(SNAP_TOLERANCE_SCREEN_PX, 44, 'construction snap tolerance must remain a forgiving screen-space value');
+assert.equal(SNAP_TOLERANCE_SCREEN_PX, 80, 'construction snap tolerance must remain a forgiving screen-space value');
 assert.deepEqual(SNAPPABLE_ASSET_IDS, [
   'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block', 'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block', 'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block', 'sticker-blockfolk-brick-stone-block',
   'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'

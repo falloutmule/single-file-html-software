@@ -335,6 +335,18 @@ let constructionStart = await page.evaluate(() => { const app = window.BlockFolk
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 5, constructionStart.y); await pointer('pointerup', 1, constructionStart.x + 5, constructionStart.y);
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'compatible stickers remain independent while Snap is off');
 await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
+const forgivingCatchDistance = await page.evaluate(() => {
+  const app = window.BlockFolkImaginarium.app; const [stone, brick] = app.canvas.getObjects();
+  // Find a real painted-anchor proposal 60–75 CSS pixels away: this proves
+  // the phone catch area is forgiving rather than requiring a perfect drop.
+  for (let offset = -560; offset <= 560; offset += 2) {
+    brick.set({ left: 1998 + offset, top: 2050 }); brick.setCoords();
+    const candidate = app.proposeSnap([stone]); const screenDistance = candidate ? candidate.distance * app.canvas.viewportTransform[0] : Infinity;
+    if (screenDistance >= 60 && screenDistance <= 75) { app.canvas.requestRenderAll(); return screenDistance; }
+  }
+  return null;
+});
+assert.ok(forgivingCatchDistance >= 60 && forgivingCatchDistance <= 75, `Snap must catch a clearly near, not pixel-perfect, placement: ${forgivingCatchDistance}`);
 constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5] }; });
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 4, constructionStart.y); await pointer('pointerup', 1, constructionStart.x + 4, constructionStart.y);
 let assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return { snap: app.preferences.snapEnabled, connections: structuredClone(app.current.connections), stickers: structuredClone(app.current.stickers) }; });

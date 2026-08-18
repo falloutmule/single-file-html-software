@@ -14,7 +14,7 @@ import {
 import { createStableId } from '../model/ids.js';
 import {
   SNAP_TOLERANCE_SCREEN_PX, connectedLayerIds, duplicateConnections, findSnapCandidate,
-  hasAssembly, isSnappableAsset, makeConnection, objectAnchor, removeMemberConnections, validConnections
+  hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
@@ -155,7 +155,6 @@ export class BlockFolkImaginariumApp {
     this.canvas.upperCanvasEl.style.touchAction = 'none';
     this.canvas.lowerCanvasEl.style.touchAction = 'none';
     this.setRenderingQuality();
-    this.canvas.on('after:render', () => this.renderConstructionOverlay());
     this.mountWorldPointers();
     this.history.addEventListener('change', (event) => {
       this.controls.setEnabled(this.root.querySelector('[data-action="undo"]'), event.detail.canUndo);
@@ -693,25 +692,6 @@ export class BlockFolkImaginariumApp {
     const selected = groups[index]; groups.splice(index, 1);
     if (direction < 0) groups.unshift(selected); else groups.push(selected);
     this.reorderObjects(groups.flat());
-  }
-
-  renderConstructionOverlay() {
-    const context = this.canvas?.contextTop; const active = this.activeSticker(); if (!context || !active) return;
-    const ratio = this.canvas.getRetinaScaling?.() || 1; const transform = this.canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
-    const members = this.objectsForMemberIds(this.selectedMemberIds(active));
-    if (members.length > 1) {
-      const bounds = members.map((object) => ({ x: Number(object.left || 0), y: Number(object.top || 0), w: object.getScaledWidth(), h: object.getScaledHeight() }));
-      const left = Math.min(...bounds.map((bound) => bound.x - bound.w / 2)); const right = Math.max(...bounds.map((bound) => bound.x + bound.w / 2));
-      const top = Math.min(...bounds.map((bound) => bound.y - bound.h / 2)); const bottom = Math.max(...bounds.map((bound) => bound.y + bound.h / 2));
-      context.save(); context.setTransform(ratio, 0, 0, ratio, 0, 0); context.strokeStyle = '#ffe27a'; context.lineWidth = 3; context.setLineDash([7, 5]);
-      context.strokeRect(left * transform[0] + transform[4] - 7, top * transform[3] + transform[5] - 7, (right - left) * transform[0] + 14, (bottom - top) * transform[3] + 14); context.restore();
-    }
-    if (this.snapPreview?.targetAnchor) {
-      const target = this.snapPreview.targetAnchor; const source = objectAnchor(this.snapPreview.source, this.snapPreview.sourceAnchor.id) || target;
-      const x = target.x * transform[0] + transform[4]; const y = target.y * transform[3] + transform[5];
-      const sourceX = source.x * transform[0] + transform[4]; const sourceY = source.y * transform[3] + transform[5];
-      context.save(); context.setTransform(ratio, 0, 0, ratio, 0, 0); context.strokeStyle = '#fff8c9'; context.fillStyle = 'rgba(77,170,209,.38)'; context.lineWidth = 3; context.setLineDash([5, 4]); context.beginPath(); context.moveTo(sourceX, sourceY); context.lineTo(x, y); context.stroke(); context.setLineDash([]); context.beginPath(); context.arc(x, y, 14, 0, Math.PI * 2); context.fill(); context.stroke(); context.restore();
-    }
   }
 
   async resizeSelected(factor) {

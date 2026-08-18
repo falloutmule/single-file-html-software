@@ -26,7 +26,9 @@ const edgeAnchors = (x, y) => Object.freeze({
 const blockAnchors = Object.freeze({ ...edgeAnchors(.72, .66), frontFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: 1 }) });
 const buildingFaceAnchors = Object.freeze({ ...edgeAnchors(.68, .84), backFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: -1 }) });
 
-export const SNAP_TOLERANCE_SCREEN_PX = 44;
+// This is intentionally measured on the screen, not in world units: an 80px
+// magnetic catch area remains equally forgiving at every camera zoom.
+export const SNAP_TOLERANCE_SCREEN_PX = 80;
 export const SNAPPABLE_ASSET_METADATA = Object.freeze(Object.fromEntries([
   ...BLOCK_IDS.map((id) => [id, Object.freeze({ kind: 'block', anchors: blockAnchors })]),
   ...FACE_IDS.map((id) => [id, Object.freeze({ kind: 'building-face', anchors: buildingFaceAnchors })])
