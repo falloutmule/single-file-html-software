@@ -57,6 +57,38 @@ async function nativeTouchDrag(x1, y1, x2, y2) {
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 }
 
+async function nativeTouchTap(selector) {
+  const rect = await page.locator(selector).boundingBox();
+  assert.ok(rect, `native touch target must have bounds: ${selector}`);
+  const point = { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...point, radiusX: 8, radiusY: 8, force: .8, id: 1 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+}
+
+async function retargetedCompatibilityTap(selector) {
+  return page.evaluate(async (controlSelector) => {
+    const app = window.BlockFolkImaginarium.app;
+    const control = document.querySelector(controlSelector);
+    const root = control.closest('.sfhs-cf-root');
+    const before = app.controls.activationCount;
+    const rect = control.getBoundingClientRect();
+    const options = { bubbles: true, cancelable: true, pointerId: 93, pointerType: 'touch', isPrimary: true, button: 0, buttons: 1, clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 };
+    control.dispatchEvent(new PointerEvent('pointerdown', options));
+    control.dispatchEvent(new PointerEvent('pointerup', { ...options, buttons: 0 }));
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 40));
+    const retarget = document.elementFromPoint(options.clientX, options.clientY);
+    retarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1, clientX: options.clientX, clientY: options.clientY }));
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
+    return {
+      activations: app.controls.activationCount - before,
+      sameRoot: root === window.__blockfolkSnapContextRoot,
+      retargetControlId: retarget.closest('.sfhs-cf-root')?.dataset.sfhsControlId,
+      controlId: root.dataset.sfhsControlId,
+      contextState: root.dataset.contextState
+    };
+  }, selector);
+}
+
 const cameraState = () => page.evaluate(() => structuredClone(window.BlockFolkImaginarium.diagnostics().world));
 const stickerState = () => page.evaluate(() => {
   const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas();
@@ -365,17 +397,33 @@ await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await
 const freeDragProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return { connections: app.current.connections.length, worldX: app.canvas.getObjects()[0].left, worldY: app.canvas.getObjects()[0].top }; });
 assert.equal(freeDragProof.connections, 0, 'a nearby construction piece must not auto-snap on release');
 assert.ok(Math.abs(freeDragProof.worldX - constructionStart.worldX - 4 / constructionStart.scale) < .01, 'free drag must not magnetically reposition a piece');
-await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
-await page.waitForTimeout(350);
-let assemblyProof = await page.evaluate(() => {
+const snapContextIdentity = await page.evaluate(() => {
+  const control = document.querySelector('#selection-toolbar [data-action="snap-context"]');
+  const root = control.closest('.sfhs-cf-root');
+  window.__blockfolkSnapContextRoot = root;
+  return { controlId: root.dataset.sfhsControlId, activations: window.BlockFolkImaginarium.app.controls.activationCount, state: root.dataset.contextState };
+});
+assert.equal(snapContextIdentity.state, 'snap', 'the stable contextual controller must begin in Snap state');
+await nativeTouchTap('#selection-toolbar [data-action="snap-context"]');
+await page.waitForTimeout(900);
+let assemblyProof = await page.evaluate((identity) => {
   const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const [stone, brick] = app.canvas.getObjects();
+  const control = document.querySelector('#selection-toolbar [data-action="snap-context"]'); const root = control.closest('.sfhs-cf-root');
   return {
     connections: structuredClone(app.current.connections), stickers: structuredClone(app.current.stickers),
     sourceMembers: [...app.selectedMemberIds(stone)], targetMembers: [...app.selectedMemberIds(brick)],
-    toast: document.querySelector('#toast').textContent
+    toast: document.querySelector('#toast').textContent,
+    activationDelta: app.controls.activationCount - identity.activations,
+    sameRoot: root === window.__blockfolkSnapContextRoot, controlId: root.dataset.sfhsControlId,
+    contextState: root.dataset.contextState, label: control.getAttribute('aria-label')
   };
-});
+}, snapContextIdentity);
 assert.equal(assemblyProof.connections.length, 1, 'the explicit Snap command must create exactly one persistent connection');
+assert.equal(assemblyProof.activationDelta, 1, 'one native Android-style touch must activate Snap exactly once, including its browser-generated click');
+assert.equal(assemblyProof.sameRoot, true, 'Snap must become Unsnap without replacing its DOM controller');
+assert.equal(assemblyProof.controlId, snapContextIdentity.controlId, 'Snap and Unsnap must retain one stable control ID');
+assert.equal(assemblyProof.contextState, 'unsnap', 'the stable controller must expose Unsnap after locking');
+assert.equal(assemblyProof.label, 'Detach selected sticker from its assembly', 'the stable controller must update its accessible name in place');
 assert.equal(assemblyProof.sourceMembers.length, 2, 'Snap must immediately lock the selected piece into a two-member assembly');
 assert.equal(assemblyProof.targetMembers.length, 2, 'the opposite piece must immediately resolve to the same locked assembly');
 assert.deepEqual(new Set(assemblyProof.sourceMembers), new Set(assemblyProof.targetMembers), 'both sides of a snap must resolve to the identical assembly');
@@ -386,8 +434,8 @@ assert.ok(terrainSnapMovement >= 50, `Snap must create an unmistakable visible t
 assert.equal(['northWest', 'northEast', 'southWest', 'southEast', 'stackTop', 'stackBase'].includes(assemblyProof.connections[0].aAnchorId), true, 'terrain Snap must serialize an isometric socket');
 assert.equal(['left', 'right', 'top', 'bottom'].includes(assemblyProof.connections[0].aAnchorId), false, 'new terrain Snap must not use the obsolete rectangular grid');
 await page.screenshot({ path: resolve(evidenceDirectory, 'terrain-isometric-snap-400x844.png'), fullPage: true });
-assert.equal(await page.locator('#selection-toolbar [data-action="unsnap"]').isVisible(), true, 'an assembly selection must offer contextual Unsnap');
-assert.equal(await page.locator('#selection-toolbar [data-action="toggle-snap"]').isVisible(), false, 'Snap and Unsnap must be contextual replacements rather than simultaneous actions');
+assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').isVisible(), true, 'the stable contextual control must remain visible as Unsnap');
+assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').evaluate((control) => control.closest('.sfhs-cf-root').dataset.contextState), 'unsnap', 'the one controller must identify its current Unsnap state');
 const moveBeforeAssembly = assemblyProof.stickers.map(({ layerId, x, y }) => ({ layerId, x, y }));
 constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const target = app.canvas.getObjects()[1]; app.canvas.setActiveObject(target); app.updateSelection(); const t = app.canvas.viewportTransform; return { x: target.left * t[0] + t[4], y: target.top * t[3] + t[5] }; });
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y);
@@ -433,13 +481,27 @@ await page.waitForFunction((count) => window.BlockFolkImaginarium.app.current.st
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), assemblyCountBeforeCopy, 'Delete must remove the selected copied assembly together');
 await page.locator('[data-action="undo"]').click(); await page.waitForFunction((count) => window.BlockFolkImaginarium.app.canvas.getObjects().length === count, assemblyCountBeforeCopy + 2); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), assemblyCountBeforeCopy + 2, 'assembly delete must undo as one action');
 await page.locator('[data-action="redo"]').click(); await page.waitForFunction((count) => window.BlockFolkImaginarium.app.canvas.getObjects().length === count, assemblyCountBeforeCopy); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), assemblyCountBeforeCopy, 'assembly delete redo must restore the exact result');
-const unsnapState = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[0]); app.updateSelection(); return { connections: structuredClone(app.current.connections), active: app.canvas.getObjects()[0]?.blockfolkLayerId, unsnapHidden: app.root.querySelector('[data-action="unsnap"]')?.closest('.sfhs-cf-root')?.hidden }; });
+const unsnapState = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[0]); app.updateSelection(); const control = app.root.querySelector('[data-action="snap-context"]'); return { connections: structuredClone(app.current.connections), active: app.canvas.getObjects()[0]?.blockfolkLayerId, state: control?.closest('.sfhs-cf-root')?.dataset.contextState, sameRoot: control?.closest('.sfhs-cf-root') === window.__blockfolkSnapContextRoot, activations: app.controls.activationCount }; });
 assert.equal(unsnapState.connections.length, 1, `the original assembly must survive copy/delete history: ${JSON.stringify(unsnapState)}`);
-assert.equal(unsnapState.unsnapHidden, false, `assembly selection must expose Unsnap: ${JSON.stringify(unsnapState)}`);
-await page.locator('#selection-toolbar [data-action="unsnap"]').click();
+assert.equal(unsnapState.state, 'unsnap', `assembly selection must expose Unsnap on the stable controller: ${JSON.stringify(unsnapState)}`);
+assert.equal(unsnapState.sameRoot, true, 'the contextual control must remain the original DOM node through assembly operations');
+await nativeTouchTap('#selection-toolbar [data-action="snap-context"]');
+await page.waitForTimeout(900);
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'Unsnap must detach only the selected member links');
+assert.deepEqual(await page.evaluate((before) => { const app = window.BlockFolkImaginarium.app; const control = app.root.querySelector('[data-action="snap-context"]'); const root = control.closest('.sfhs-cf-root'); return { activationDelta: app.controls.activationCount - before, sameRoot: root === window.__blockfolkSnapContextRoot, state: root.dataset.contextState, toast: document.querySelector('#toast').textContent }; }, unsnapState.activations), { activationDelta: 1, sameRoot: true, state: 'snap', toast: 'Sticker detached' }, 'a deliberate second native touch must Unsnap exactly once and return the same controller to Snap');
 await page.locator('[data-action="undo"]').click(); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 1, 'Unsnap must participate in Undo');
 await page.locator('[data-action="redo"]').click(); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'Unsnap must participate in Redo');
+await page.waitForFunction(() => document.querySelector('#selection-toolbar [data-action="snap-context"]')?.closest('.sfhs-cf-root')?.dataset.contextState === 'snap');
+const keyboardSnapBefore = await page.evaluate(() => window.BlockFolkImaginarium.app.controls.activationCount);
+await page.locator('#selection-toolbar [data-action="snap-context"]').focus();
+await page.locator('#selection-toolbar [data-action="snap-context"]').press('Enter');
+await page.waitForFunction(() => window.BlockFolkImaginarium.app.current.connections.length === 1);
+assert.deepEqual(await page.evaluate((before) => { const app = window.BlockFolkImaginarium.app; const root = app.root.querySelector('[data-action="snap-context"]').closest('.sfhs-cf-root'); return { activationDelta: app.controls.activationCount - before, connections: app.current.connections.length, state: root.dataset.contextState, sameRoot: root === window.__blockfolkSnapContextRoot }; }, keyboardSnapBefore), { activationDelta: 1, connections: 1, state: 'unsnap', sameRoot: true }, 'keyboard activation must Snap once without replacing the contextual controller');
+await page.waitForTimeout(100);
+const assistiveUnsnapBefore = await page.evaluate(() => window.BlockFolkImaginarium.app.controls.activationCount);
+await page.locator('#selection-toolbar [data-action="snap-context"]').evaluate((control) => control.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 0 })));
+await page.waitForFunction(() => window.BlockFolkImaginarium.app.current.connections.length === 0);
+assert.deepEqual(await page.evaluate((before) => { const app = window.BlockFolkImaginarium.app; const root = app.root.querySelector('[data-action="snap-context"]').closest('.sfhs-cf-root'); return { activationDelta: app.controls.activationCount - before, connections: app.current.connections.length, state: root.dataset.contextState, sameRoot: root === window.__blockfolkSnapContextRoot }; }, assistiveUnsnapBefore), { activationDelta: 1, connections: 0, state: 'snap', sameRoot: true }, 'assistive click activation must Unsnap once without replacing the contextual controller');
 await page.screenshot({ path: resolve(evidenceDirectory, 'construction-toolbar-and-assembly-400x844.png'), fullPage: true });
 
 // Reproduce the physical-phone Stone Door / Brick Block report exactly: the
@@ -454,16 +516,18 @@ constructionStart = await page.evaluate(() => { const app = window.BlockFolkImag
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 3, constructionStart.y);
 await pointer('pointerup', 1, constructionStart.x + 3, constructionStart.y);
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'a face piece must not auto-snap during drag');
-await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
-const faceSnapProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const objects = app.canvas.getObjects(); const door = objects.find((object) => object.blockfolkAssetId === 'sticker-blockfolk-stone-door'); const block = objects.find((object) => object.blockfolkAssetId === 'sticker-blockfolk-brick-stone-block'); return { connections: structuredClone(app.current.connections), doorX: door.left, blockX: block.left, doorLayer: objects.indexOf(door), blockLayer: objects.indexOf(block), members: [...app.selectedMemberIds(block)], snapHidden: app.root.querySelector('[data-action="toggle-snap"]')?.closest('.sfhs-cf-root')?.hidden, unsnapHidden: app.root.querySelector('[data-action="unsnap"]')?.closest('.sfhs-cf-root')?.hidden, toast: document.querySelector('#toast').textContent }; });
+const retargetProof = await retargetedCompatibilityTap('#selection-toolbar [data-action="snap-context"]');
+assert.deepEqual(retargetProof, { activations: 1, sameRoot: true, retargetControlId: retargetProof.controlId, controlId: retargetProof.controlId, contextState: 'unsnap' }, 'a delayed coordinate-retargeted click must return to the same controller and be suppressed');
+const faceSnapProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const objects = app.canvas.getObjects(); const door = objects.find((object) => object.blockfolkAssetId === 'sticker-blockfolk-stone-door'); const block = objects.find((object) => object.blockfolkAssetId === 'sticker-blockfolk-brick-stone-block'); const control = app.root.querySelector('[data-action="snap-context"]'); const root = control.closest('.sfhs-cf-root'); return { connections: structuredClone(app.current.connections), doorX: door.left, blockX: block.left, doorLayer: objects.indexOf(door), blockLayer: objects.indexOf(block), members: [...app.selectedMemberIds(block)], contextState: root.dataset.contextState, controlId: root.dataset.sfhsControlId, sameRoot: root === window.__blockfolkSnapContextRoot, toast: document.querySelector('#toast').textContent }; });
 assert.equal(faceSnapProof.connections.length, 1, 'a Snap press must attach the reported Brick Block to the Stone Door face');
 assert.deepEqual([faceSnapProof.connections[0].aAnchorId, faceSnapProof.connections[0].bAnchorId].sort(), ['backFace', 'frontFace'], 'the face snap must use painted-face anchors rather than image bounds');
 assert.ok(Math.abs(faceSnapProof.blockX - constructionStart.worldX) * constructionStart.scale >= 60, 'the reported face case must visibly move into its painted landing');
 assert.ok(Math.abs(faceSnapProof.blockX - faceSnapProof.doorX) < .01, 'the Brick Block and Stone Door painted faces must remain registered after Snap');
 assert.ok(faceSnapProof.doorLayer > faceSnapProof.blockLayer, 'a snapped door/window face must render above its supporting block instead of disappearing behind it');
 assert.equal(faceSnapProof.members.length, 2, 'the reported face case must resolve to one two-member assembly');
-assert.equal(faceSnapProof.snapHidden, true, 'Snap must disappear for the locked Stone Door / Brick Block assembly');
-assert.equal(faceSnapProof.unsnapHidden, false, 'Unsnap must visibly replace Snap for the locked Stone Door / Brick Block assembly');
+assert.equal(faceSnapProof.contextState, 'unsnap', 'Snap must change in place to Unsnap for the locked Stone Door / Brick Block assembly');
+assert.equal(faceSnapProof.sameRoot, true, 'the exact reported face case must keep the same contextual control DOM node');
+assert.equal(faceSnapProof.controlId, snapContextIdentity.controlId, 'the exact reported face case must keep the same contextual control ID');
 assert.equal(faceSnapProof.toast, 'Snapped and locked', 'the command must visibly confirm that a successful snap remains locked');
 await page.screenshot({ path: resolve(evidenceDirectory, 'stone-door-brick-block-locked-400x844.png'), fullPage: true });
 

@@ -362,6 +362,18 @@ export class BlockFolkImaginariumControls {
   setSelected(target, selected) { this.recordFor(target)?.controller.setModel({ selected: !!selected }); }
   setStatus(target, status) { this.recordFor(target)?.controller.setModel({ status }); }
 
+  setContextState(target, { state, icon, label, ariaLabel, title }) {
+    const record = this.recordFor(target);
+    if (!record) return;
+    const iconNode = document.createElement('span');
+    iconNode.setAttribute('aria-hidden', 'true');
+    iconNode.textContent = icon;
+    record.content.replaceChildren(iconNode, document.createTextNode(label));
+    record.root.dataset.contextState = state;
+    record.interactive.setAttribute('aria-label', ariaLabel);
+    record.interactive.setAttribute('title', title || ariaLabel);
+  }
+
   setVisibleLabel(target, label) {
     const record = this.recordFor(target);
     if (!record) return;

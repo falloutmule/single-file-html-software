@@ -321,7 +321,7 @@ export class BlockFolkImaginariumApp {
       'camera-zoom-in': () => this.zoomCamera(1.25), 'camera-zoom-out': () => this.zoomCamera(1 / 1.25), 'camera-fit': () => this.fitWorld(),
       'add-emoji': () => this.addEmojiFromInput(),
       'show-idea': () => this.showIdea(), 'hide-idea': () => { this.elements.ideaCard.hidden = true; },
-      'toggle-snap': () => this.snapSelected(), unsnap: () => this.unsnapSelected(),
+      'snap-context': () => this.snapContextSelected(),
       'show-selection-more': () => { this.elements.selectionMore.hidden = false; }, 'close-selection-more': () => { this.elements.selectionMore.hidden = true; },
       smaller: () => this.resizeSelected(1 / 1.1), bigger: () => this.resizeSelected(1.1), turn: () => this.turnSelected(),
       flip: () => this.flipSelected(), behind: () => this.moveSelectedDepth(-1), 'in-front': () => this.moveSelectedDepth(1),
@@ -699,6 +699,13 @@ export class BlockFolkImaginariumApp {
     this.toast('Snapped and locked'); this.announce('Snapped and locked. Move either piece to move the whole assembly.'); this.feedback('pop');
   }
 
+  async snapContextSelected() {
+    const active = this.activeSticker();
+    if (!active) return;
+    if (hasAssembly(this.current?.connections || [], active.blockfolkLayerId)) await this.unsnapSelected();
+    else await this.snapSelected();
+  }
+
   objectGroups() {
     const objects = this.canvas.getObjects(); const visited = new Set(); const groups = [];
     for (const object of objects) {
@@ -795,7 +802,7 @@ export class BlockFolkImaginariumApp {
 
   async unsnapSelected() {
     const active = this.activeSticker(); if (!active || !hasAssembly(this.current?.connections || [], active.blockfolkLayerId)) return;
-    const before = this.snapshot(); this.current.connections = removeMemberConnections(this.current.connections || [], active.blockfolkLayerId); this.canvas.requestRenderAll(); this.commit(before, 'Sticker detached from its assembly.'); this.feedback('turn');
+    const before = this.snapshot(); this.current.connections = removeMemberConnections(this.current.connections || [], active.blockfolkLayerId); this.canvas.requestRenderAll(); this.commit(before, 'Sticker detached from its assembly.'); this.toast('Sticker detached'); this.feedback('turn');
   }
 
   clampFabricObject(object) {
@@ -831,8 +838,7 @@ export class BlockFolkImaginariumApp {
     this.elements.empty.hidden = this.canvas.getObjects().length > 0;
     const smaller = this.elements.selection.querySelector('[data-action="smaller"]');
     const bigger = this.elements.selection.querySelector('[data-action="bigger"]');
-    const snap = this.elements.selection.querySelector('[data-action="toggle-snap"]');
-    const unsnap = this.elements.selection.querySelector('[data-action="unsnap"]');
+    const snapContext = this.elements.selection.querySelector('[data-action="snap-context"]');
     const flip = this.elements.selection.querySelector('[data-action="flip"]');
     const behind = this.elements.selection.querySelector('[data-action="behind"]');
     const inFront = this.elements.selection.querySelector('[data-action="in-front"]');
@@ -840,8 +846,12 @@ export class BlockFolkImaginariumApp {
     const assembled = hasAssembly(this.current?.connections || [], active?.blockfolkLayerId);
     if (smaller) this.controls.setEnabled(smaller, !!active && active.scaleX > MIN_SCALE + .001);
     if (bigger) this.controls.setEnabled(bigger, !!active && active.scaleX < MAX_SCALE - .001);
-    if (snap) { const root = snap.closest('.sfhs-cf-root'); if (root) root.hidden = assembled; this.controls.setEnabled(snap, !!active && members.some((object) => isSnappableAsset(object.blockfolkAssetId))); }
-    if (unsnap) { const root = unsnap.closest('.sfhs-cf-root'); if (root) root.hidden = !assembled; }
+    if (snapContext) {
+      this.controls.setContextState(snapContext, assembled
+        ? { state: 'unsnap', icon: '⤨', label: 'Unsnap', ariaLabel: 'Detach selected sticker from its assembly', title: 'Detach selected sticker from its assembly' }
+        : { state: 'snap', icon: '⌘', label: 'Snap', ariaLabel: 'Snap selected construction pieces', title: 'Snap selected construction pieces' });
+      this.controls.setEnabled(snapContext, !!active && (assembled || members.some((object) => isSnappableAsset(object.blockfolkAssetId))));
+    }
     if (flip) this.controls.setEnabled(flip, !!active);
     if (behind) this.controls.setEnabled(behind, !!active && activeIndex > 0);
     if (inFront) this.controls.setEnabled(inFront, !!active && activeIndex >= 0 && activeIndex < groups.length - 1);

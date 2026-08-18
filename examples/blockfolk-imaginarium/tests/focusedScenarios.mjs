@@ -387,10 +387,14 @@ await storage.deletePuzzle(); assert.equal(await storage.getPuzzle(), null);
 
 assert.match(mapChildSafeError(new Error('QuotaExceededError')), /download/);
 assert.match(mapChildSafeError(new Error('bad zip archive')), /grown-up/);
-for (const required of ['new-picture', 'show-gallery', 'show-parent-gate', 'show-world-locations', 'camera-zoom-out', 'camera-fit', 'camera-zoom-in', 'add-emoji', 'toggle-snap', 'unsnap', 'show-selection-more', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front', 'copy', 'trash', 'undo', 'redo', 'download', 'share']) assert.match(`${source}\n${html}`, new RegExp(required), `missing ${required} workflow`);
+for (const required of ['new-picture', 'show-gallery', 'show-parent-gate', 'show-world-locations', 'camera-zoom-out', 'camera-fit', 'camera-zoom-in', 'add-emoji', 'snap-context', 'show-selection-more', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front', 'copy', 'trash', 'undo', 'redo', 'download', 'share']) assert.match(`${source}\n${html}`, new RegExp(required), `missing ${required} workflow`);
 assert.match(source, /reorderObjects\(groups\.flat\(\)\)/, 'depth controls must reorder contiguous assembly layers deterministically');
 assert.match(source, /flipX: flipped\.flipX/, 'Flip must use the native horizontal mirror property');
-assert.match(html, /data-action="toggle-snap"[\s\S]*data-action="flip"[\s\S]*data-action="behind"[\s\S]*data-action="in-front"[\s\S]*data-action="copy"[\s\S]*data-action="trash"[\s\S]*data-action="show-selection-more"/, 'primary selected-sticker tools must prioritize construction and layering');
+assert.match(html, /data-action="snap-context"[\s\S]*data-action="flip"[\s\S]*data-action="behind"[\s\S]*data-action="in-front"[\s\S]*data-action="copy"[\s\S]*data-action="trash"[\s\S]*data-action="show-selection-more"/, 'primary selected-sticker tools must prioritize construction and layering');
+assert.equal((html.match(/data-action="snap-context"/g) || []).length, 1, 'Snap and Unsnap must share exactly one stable contextual button');
+assert.doesNotMatch(html, /data-action="(?:toggle-snap|unsnap)"/, 'the superseded sibling Snap and Unsnap controls must not remain');
+assert.match(source, /'snap-context': \(\) => this\.snapContextSelected\(\)/, 'the stable control must resolve its current action in application state');
+assert.match(controlSource, /setContextState[\s\S]*replaceChildren[\s\S]*dataset\.contextState/, 'the contextual control must update content and state without remounting');
 assert.match(html, /id="selection-more-sheet"[\s\S]*data-action="smaller"[\s\S]*data-action="bigger"[\s\S]*data-action="turn"/, 'manual transform tools must remain available in More / Edit');
 for (const required of ['make-puzzle', 'puzzle-photo', 'puzzle-show-creations', 'puzzle-build', 'puzzle-restart', 'puzzle-hint', 'puzzle-race', 'puzzle-snap']) assert.match(html, new RegExp(required), `missing ${required} puzzle workflow`);
 for (const [action, tone] of [['make-puzzle', 'sky'], ['puzzle-photo', 'yellow'], ['puzzle-show-creations', 'mint'], ['puzzle-frame-reset', 'sky'], ['puzzle-hint', 'yellow'], ['puzzle-race', 'pink'], ['puzzle-snap', 'mint'], ['puzzle-restart', 'lilac'], ['puzzle-play-again', 'yellow'], ['puzzle-another', 'sky'], ['puzzle-done', 'purple']]) {
