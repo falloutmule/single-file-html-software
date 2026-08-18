@@ -13,7 +13,7 @@ import {
 } from '../model/pageModel.js';
 import { createStableId } from '../model/ids.js';
 import {
-  SNAP_TOLERANCE_SCREEN_PX, connectedLayerIds, duplicateConnections, findSnapCandidate,
+  SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_METADATA, connectedLayerIds, duplicateConnections, findSnapCandidate,
   hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
@@ -168,6 +168,21 @@ export class BlockFolkImaginariumApp {
     const surface = this.canvas.upperCanvasEl;
     const point = (event) => { const rect = surface.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top }; };
     const stop = (event) => { event.preventDefault(); event.stopImmediatePropagation(); };
+    const placeStickerMembers = (interaction, location) => {
+      const { scale } = cameraMetrics(this.camera, this.canvas.width, this.canvas.height);
+      const dx = (location.x - interaction.start.x) / scale; const dy = (location.y - interaction.start.y) / scale;
+      const members = this.objectsForMemberIds(interaction.memberIds);
+      for (const object of members) {
+        const origin = interaction.origins.get(object.blockfolkLayerId); if (!origin) continue;
+        object.set({ left: origin.x + dx, top: origin.y + dy }); object.setCoords();
+      }
+      const bounds = members.map((object) => object.getBoundingRect());
+      const left = Math.min(...bounds.map((box) => box.left)); const top = Math.min(...bounds.map((box) => box.top));
+      const right = Math.max(...bounds.map((box) => box.left + box.width)); const bottom = Math.max(...bounds.map((box) => box.top + box.height));
+      const correctionX = left < 0 ? -left : right > WORLD_SIZE ? WORLD_SIZE - right : 0;
+      const correctionY = top < 0 ? -top : bottom > WORLD_SIZE ? WORLD_SIZE - bottom : 0;
+      if (correctionX || correctionY) for (const object of members) { object.set({ left: Number(object.left || 0) + correctionX, top: Number(object.top || 0) + correctionY }); object.setCoords(); }
+    };
     const beginPinch = () => {
       const pointers = [...this.worldPointers.values()].slice(0, 2); if (pointers.length !== 2) return;
       if (this.worldInteraction?.mode === 'sticker' && this.worldInteraction.origins) {
@@ -212,12 +227,7 @@ export class BlockFolkImaginariumApp {
       interaction.last = location; interaction.moved = interaction.moved || Math.hypot(location.x - interaction.start.x, location.y - interaction.start.y) > 2;
       if (interaction.mode === 'pan') { this.camera = panCamera(this.camera, deltaX, deltaY, this.canvas.width, this.canvas.height); this.applyCamera(); return; }
       if (interaction.mode === 'sticker') {
-        const { scale } = cameraMetrics(this.camera, this.canvas.width, this.canvas.height);
-        const members = this.objectsForMemberIds(interaction.memberIds);
-        for (const object of members) {
-          object.set({ left: Number(object.left || 0) + deltaX / scale, top: Number(object.top || 0) + deltaY / scale });
-          this.clampFabricObject(object); object.setCoords();
-        }
+        placeStickerMembers(interaction, location);
         this.canvas.requestRenderAll();
       }
     };
@@ -230,6 +240,7 @@ export class BlockFolkImaginariumApp {
         if (interaction.mode === 'sticker' && interaction.origins) for (const object of this.objectsForMemberIds(interaction.memberIds)) { const origin = interaction.origins.get(object.blockfolkLayerId); if (origin) { object.set(origin); object.setCoords(); } }
         this.camera = normalizeCamera(interaction.before?.page?.camera || interaction.startCamera || this.camera); this.applyCamera(); this.canvas.requestRenderAll();
       } else if (interaction.mode === 'sticker') {
+        if (interaction.moved) placeStickerMembers(interaction, point(event));
         if (!interaction.moved) {
           this.moveMembersToEdge(interaction.memberIds, 1);
         }
@@ -456,7 +467,8 @@ export class BlockFolkImaginariumApp {
       left: sticker.x, top: sticker.y, originX: 'center', originY: 'center', scaleX: sticker.scaleX, scaleY: sticker.scaleY,
       angle: sticker.angle, flipX: sticker.flipX, flipY: sticker.flipY, opacity: sticker.opacity,
       blockfolkLayerId: sticker.layerId, blockfolkAssetId: sticker.assetId, blockfolkSourceEmoji: sticker.sourceEmoji || asset.glyph || null,
-      hasControls: false, hasBorders: true, lockScalingX: true, lockScalingY: true, lockRotation: true,
+      selectable: false, hasControls: false, hasBorders: true,
+      lockMovementX: true, lockMovementY: true, lockScalingX: true, lockScalingY: true, lockRotation: true,
       borderColor: '#ffb23f', borderScaleFactor: 5, padding: 14
     });
     this.canvas.add(object);
@@ -656,6 +668,7 @@ export class BlockFolkImaginariumApp {
     const lockedIds = connectedLayerIds(nextConnections, candidate.source.blockfolkLayerId);
     if (!lockedIds.has(candidate.target.blockfolkLayerId)) return null;
     this.ensureAssemblyContiguous(lockedIds);
+    this.ensureBuildingFaceVisible(candidate);
     return stored;
   }
 
@@ -711,6 +724,16 @@ export class BlockFolkImaginariumApp {
     this.reorderObjects([...before, ...selected, ...after]);
   }
 
+  ensureBuildingFaceVisible(candidate) {
+    const pair = [candidate?.source, candidate?.target];
+    const face = pair.find((object) => SNAPPABLE_ASSET_METADATA[object?.blockfolkAssetId]?.kind === 'building-face');
+    const block = pair.find((object) => SNAPPABLE_ASSET_METADATA[object?.blockfolkAssetId]?.kind === 'block');
+    if (!face || !block) return;
+    const ordered = [...this.canvas.getObjects()]; const faceIndex = ordered.indexOf(face); const blockIndex = ordered.indexOf(block);
+    if (faceIndex < 0 || blockIndex < 0 || faceIndex > blockIndex) return;
+    ordered.splice(faceIndex, 1); ordered.splice(ordered.indexOf(block) + 1, 0, face); this.reorderObjects(ordered);
+  }
+
   moveMembersToEdge(memberIds, direction) {
     const groups = this.objectGroups(); const index = groups.findIndex((group) => group.some((object) => memberIds.has(object.blockfolkLayerId)));
     if (index < 0) return;
@@ -757,7 +780,7 @@ export class BlockFolkImaginariumApp {
     const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const idMap = new Map(); let selectedClone = null;
     for (const member of members) {
       const clone = await member.clone(); const layerId = createStableId('blockfolk-sticker'); idMap.set(member.blockfolkLayerId, layerId);
-      clone.set({ left: (member.left || 0) + 110, top: (member.top || 0) + 110, blockfolkLayerId: layerId, blockfolkAssetId: member.blockfolkAssetId, blockfolkSourceEmoji: member.blockfolkSourceEmoji || null, hasControls: false, lockScalingX: true, lockScalingY: true, lockRotation: true });
+      clone.set({ left: (member.left || 0) + 110, top: (member.top || 0) + 110, blockfolkLayerId: layerId, blockfolkAssetId: member.blockfolkAssetId, blockfolkSourceEmoji: member.blockfolkSourceEmoji || null, selectable: false, hasControls: false, lockMovementX: true, lockMovementY: true, lockScalingX: true, lockScalingY: true, lockRotation: true });
       this.clampFabricObject(clone); this.canvas.add(clone); if (member === active) selectedClone = clone;
     }
     this.current.connections = [...(this.current.connections || []), ...duplicateConnections(this.current.connections || [], idMap)]; this.canvas.setActiveObject(selectedClone); this.canvas.requestRenderAll();

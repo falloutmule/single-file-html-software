@@ -25,6 +25,7 @@ await context.route('**/*', async (route) => {
   runtimeRequests.push(url); failures.push(`Unexpected request: ${url}`); return route.abort('blockedbyclient');
 });
 const page = await context.newPage();
+const cdp = await context.newCDPSession(page);
 page.on('pageerror', (error) => failures.push(`Page error: ${error.message}`));
 page.on('console', (message) => { if (message.type() === 'error') failures.push(`Console error: ${message.text()}`); });
 
@@ -42,6 +43,18 @@ async function pointer(type, pointerId, x, y) {
       clientX: rect.left + x, clientY: rect.top + y, buttons: type === 'pointerup' || type === 'pointercancel' ? 0 : 1
     }));
   }, { type, pointerId, x, y });
+}
+
+async function nativeTouchDrag(x1, y1, x2, y2) {
+  const rect = await page.locator('.upper-canvas').boundingBox();
+  const start = { x: rect.x + x1, y: rect.y + y1 };
+  const finish = { x: rect.x + x2, y: rect.y + y2 };
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...start, radiusX: 8, radiusY: 8, force: .8, id: 1 }] });
+  for (let step = 1; step <= 4; step += 1) {
+    const progress = step / 4;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: start.x + (finish.x - start.x) * progress, y: start.y + (finish.y - start.y) * progress, radiusX: 8, radiusY: 8, force: .8, id: 1 }] });
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 }
 
 const cameraState = () => page.evaluate(() => structuredClone(window.BlockFolkImaginarium.diagnostics().world));
@@ -367,6 +380,7 @@ assert.equal(assemblyProof.sourceMembers.length, 2, 'Snap must immediately lock 
 assert.equal(assemblyProof.targetMembers.length, 2, 'the opposite piece must immediately resolve to the same locked assembly');
 assert.deepEqual(new Set(assemblyProof.sourceMembers), new Set(assemblyProof.targetMembers), 'both sides of a snap must resolve to the identical assembly');
 assert.equal(assemblyProof.toast, 'Snapped and locked', 'success must only be reported after the connection is stored and locked');
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => object.selectable === false && object.lockMovementX === true && object.lockMovementY === true)), true, 'Fabric native transforms must be disabled so the BlockFolk gesture path exclusively owns sticker movement');
 const terrainSnapMovement = Math.hypot(assemblyProof.stickers[0].x - freeDragProof.worldX, assemblyProof.stickers[0].y - freeDragProof.worldY) * constructionStart.scale;
 assert.ok(terrainSnapMovement >= 50, `Snap must create an unmistakable visible terrain landing, not only a logical connection: ${terrainSnapMovement}`);
 assert.equal(['northWest', 'northEast', 'southWest', 'southEast', 'stackTop', 'stackBase'].includes(assemblyProof.connections[0].aAnchorId), true, 'terrain Snap must serialize an isometric socket');
@@ -376,12 +390,25 @@ assert.equal(await page.locator('#selection-toolbar [data-action="unsnap"]').isV
 assert.equal(await page.locator('#selection-toolbar [data-action="toggle-snap"]').isVisible(), false, 'Snap and Unsnap must be contextual replacements rather than simultaneous actions');
 const moveBeforeAssembly = assemblyProof.stickers.map(({ layerId, x, y }) => ({ layerId, x, y }));
 constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const target = app.canvas.getObjects()[1]; app.canvas.setActiveObject(target); app.updateSelection(); const t = app.canvas.viewportTransform; return { x: target.left * t[0] + t[4], y: target.top * t[3] + t[5] }; });
-await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 30, constructionStart.y + 16); await pointer('pointerup', 1, constructionStart.x + 30, constructionStart.y + 16);
+await pointer('pointerdown', 1, constructionStart.x, constructionStart.y);
+await pointer('pointermove', 1, constructionStart.x + 30, constructionStart.y + 16);
+// Reproduce the real-phone failure deterministically: Fabric's native touch
+// transform can run after BlockFolk's handler and displace only the active
+// member. Pointer-up must restore the complete assembly from its drag origins.
+await page.evaluate(() => { const active = window.BlockFolkImaginarium.app.activeSticker(); active.set({ left: Number(active.left || 0) + 35 }); active.setCoords(); });
+await pointer('pointerup', 1, constructionStart.x + 30, constructionStart.y + 16);
 assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return structuredClone(app.current); });
 const movedAssembly = assemblyProof.stickers.map(({ layerId, x, y }) => ({ layerId, x, y }));
 const assemblyDeltas = movedAssembly.map((after, index) => ({ x: after.x - moveBeforeAssembly[index].x, y: after.y - moveBeforeAssembly[index].y }));
 assert.ok(Math.hypot(assemblyDeltas[0].x, assemblyDeltas[0].y) > 10, 'assembly drag must move in world coordinates');
 assert.ok(Math.abs(assemblyDeltas[0].x - assemblyDeltas[1].x) < .01 && Math.abs(assemblyDeltas[0].y - assemblyDeltas[1].y) < .01, 'dragging one connected member must translate every member by the same world delta');
+const nativeTouchBefore = movedAssembly;
+constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const target = app.canvas.getObjects()[1]; app.canvas.setActiveObject(target); app.updateSelection(); const t = app.canvas.viewportTransform; return { x: target.left * t[0] + t[4], y: target.top * t[3] + t[5] }; });
+await nativeTouchDrag(constructionStart.x, constructionStart.y, constructionStart.x + 24, constructionStart.y + 12);
+assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return structuredClone(app.current); });
+const nativeTouchDeltas = assemblyProof.stickers.map((after, index) => ({ x: after.x - nativeTouchBefore[index].x, y: after.y - nativeTouchBefore[index].y }));
+assert.ok(Math.hypot(nativeTouchDeltas[0].x, nativeTouchDeltas[0].y) > 5, 'a native Chromium touch drag must move the locked assembly');
+assert.ok(Math.abs(nativeTouchDeltas[0].x - nativeTouchDeltas[1].x) < .01 && Math.abs(nativeTouchDeltas[0].y - nativeTouchDeltas[1].y) < .01, 'native touch must not let Fabric pull one assembly member away from the other');
 const assemblyScaleBefore = assemblyProof.stickers.map((sticker) => sticker.scaleX);
 await page.locator('#selection-toolbar [data-action="show-selection-more"]').click(); await page.locator('#selection-more-sheet [data-action="bigger"]').click(); await page.locator('[data-action="close-selection-more"]').click();
 const assemblyScaleAfter = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return app.current.stickers.map((sticker) => sticker.scaleX); });
@@ -415,21 +442,30 @@ await page.locator('[data-action="undo"]').click(); assert.equal(await page.eval
 await page.locator('[data-action="redo"]').click(); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'Unsnap must participate in Redo');
 await page.screenshot({ path: resolve(evidenceDirectory, 'construction-toolbar-and-assembly-400x844.png'), fullPage: true });
 
-// A visible building face attaches only when the explicit Snap command is pressed.
+// Reproduce the physical-phone Stone Door / Brick Block report exactly: the
+// artwork must visibly land, lock, and expose Unsnap only after button press.
 await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
-  await app.addSticker('sticker-blockfolk-wood-log-block'); await app.addSticker('sticker-blockfolk-wood-door');
-  const [log, door] = app.canvas.getObjects(); log.set({ left: 1850, top: 2050 }); door.set({ left: 1854, top: 2050 }); log.setCoords(); door.setCoords(); app.canvas.setActiveObject(door); app.syncCurrentFromCanvas(); app.updateSelection();
+  await app.addSticker('sticker-blockfolk-stone-door'); await app.addSticker('sticker-blockfolk-brick-stone-block');
+  const [door, block] = app.canvas.getObjects(); const scale = app.canvas.viewportTransform[0];
+  door.set({ left: 1850, top: 2050 }); block.set({ left: 1850 + 65 / scale, top: 2050 }); door.setCoords(); block.setCoords(); app.canvas.setActiveObject(block); app.syncCurrentFromCanvas(); app.updateSelection();
 });
-constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const door = app.canvas.getObjects()[1]; const t = app.canvas.viewportTransform; return { x: door.left * t[0] + t[4], y: door.top * t[3] + t[5] }; });
+constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const block = app.canvas.getObjects()[1]; const t = app.canvas.viewportTransform; return { x: block.left * t[0] + t[4], y: block.top * t[3] + t[5], worldX: block.left, scale: t[0] }; });
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 3, constructionStart.y);
 await pointer('pointerup', 1, constructionStart.x + 3, constructionStart.y);
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'a face piece must not auto-snap during drag');
 await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
-const faceSnapProof = await page.evaluate(() => ({ connections: structuredClone(window.BlockFolkImaginarium.app.current.connections), toast: document.querySelector('#toast').textContent }));
-assert.equal(faceSnapProof.connections.length, 1, 'a Snap press must attach a door placed near a log face');
+const faceSnapProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const objects = app.canvas.getObjects(); const door = objects.find((object) => object.blockfolkAssetId === 'sticker-blockfolk-stone-door'); const block = objects.find((object) => object.blockfolkAssetId === 'sticker-blockfolk-brick-stone-block'); return { connections: structuredClone(app.current.connections), doorX: door.left, blockX: block.left, doorLayer: objects.indexOf(door), blockLayer: objects.indexOf(block), members: [...app.selectedMemberIds(block)], snapHidden: app.root.querySelector('[data-action="toggle-snap"]')?.closest('.sfhs-cf-root')?.hidden, unsnapHidden: app.root.querySelector('[data-action="unsnap"]')?.closest('.sfhs-cf-root')?.hidden, toast: document.querySelector('#toast').textContent }; });
+assert.equal(faceSnapProof.connections.length, 1, 'a Snap press must attach the reported Brick Block to the Stone Door face');
 assert.deepEqual([faceSnapProof.connections[0].aAnchorId, faceSnapProof.connections[0].bAnchorId].sort(), ['backFace', 'frontFace'], 'the face snap must use painted-face anchors rather than image bounds');
+assert.ok(Math.abs(faceSnapProof.blockX - constructionStart.worldX) * constructionStart.scale >= 60, 'the reported face case must visibly move into its painted landing');
+assert.ok(Math.abs(faceSnapProof.blockX - faceSnapProof.doorX) < .01, 'the Brick Block and Stone Door painted faces must remain registered after Snap');
+assert.ok(faceSnapProof.doorLayer > faceSnapProof.blockLayer, 'a snapped door/window face must render above its supporting block instead of disappearing behind it');
+assert.equal(faceSnapProof.members.length, 2, 'the reported face case must resolve to one two-member assembly');
+assert.equal(faceSnapProof.snapHidden, true, 'Snap must disappear for the locked Stone Door / Brick Block assembly');
+assert.equal(faceSnapProof.unsnapHidden, false, 'Unsnap must visibly replace Snap for the locked Stone Door / Brick Block assembly');
 assert.equal(faceSnapProof.toast, 'Snapped and locked', 'the command must visibly confirm that a successful snap remains locked');
+await page.screenshot({ path: resolve(evidenceDirectory, 'stone-door-brick-block-locked-400x844.png'), fullPage: true });
 
 // Behind/In Front must change both serialized order and the rendered overlap.
 await page.evaluate(async () => {
