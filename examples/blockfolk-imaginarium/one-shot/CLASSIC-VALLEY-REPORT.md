@@ -30,6 +30,13 @@
 - Size: `12,271,251` bytes
 - SHA-256: `9a7eaf22ef0f69e6f925d39181e5bc956c1c4d081c6584be6cde3c155f98682b`
 
+## GitHub Pages publication
+
+- Feature commit: `e674996c4ea2ef73c2d5a642f449de3a4998f125` on `feature/blockfolk-imaginarium-001`.
+- Dedicated Pages commit: `71b7c6dbf4c6492c6eb5db74330eb64a66ff22e9`, changing only `blockfolk-imaginarium/index.html`.
+- Live cache-busted URL: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=71b7c6d`
+- Live Chromium proof at `400 × 844` and `844 × 400`: PASS, zero console errors, page errors, or unexpected network requests. The HTTPS download is exactly `12,271,251` bytes with SHA-256 `9a7eaf22ef0f69e6f925d39181e5bc956c1c4d081c6584be6cde3c155f98682b`.
+
 ## Remaining acceptance
 
-The Classic Valley is local and deliberately not published in this card. Physical-phone acceptance is still needed for its visual preference and for any decision to pursue a new NVIDIA sharpening candidate after a local ComfyUI installation is made available. No remote mutation occurred.
+Physical-phone acceptance is still needed for visual preference and for any decision to pursue a new NVIDIA sharpening candidate after a local ComfyUI installation is made available. The approved remote publication changed only the BlockFolk feature branch and its dedicated Pages subpath.
