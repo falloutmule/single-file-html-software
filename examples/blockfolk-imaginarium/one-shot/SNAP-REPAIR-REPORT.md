@@ -32,11 +32,11 @@ Guarded: A (single artifact), B/C (static/packed audit), D/T (small scope), F (e
 
 ## REMAINING BLOCKERS
 
-Physical Samsung acceptance remains required for real-finger snap feel and the new smaller default. This repair is local only; no new push or Pages publication was authorized in this request.
+Physical Samsung acceptance remains required for real-finger snap feel and the new smaller default. Automated live proof is complete; the remaining question is subjective device feel.
 
 ## NEXT ACTIONABLE STEP
 
-Authorize a focused BlockFolk Pages update to publish the verified local artifact, then test the cache-busted live URL on the phone.
+Test the cache-busted live URL on the Samsung device, concentrating on starting with a new Log Block or terrain block and attaching a Door/Window or another block.
 
 ## EVIDENCE
 
@@ -44,6 +44,12 @@ Ignored browser screenshot: `test-results/production-catalog-001/local/face-snap
 
 ## GITHUB PAGES URL
 
-Existing live build only: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/`
+Published feature commit: `958a094ec310524bb1f3a890029adbe670117247`.
 
-**PASS — local repair verified; publication intentionally not performed.**
+Dedicated Pages commit: `9a03897a827de787558cb532ff9916a2bd868efc` (parent `1a24fef073fcc9140c59ba2e142e0b24702962e0`) changes only `blockfolk-imaginarium/index.html`.
+
+Live cache-busted artifact: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=9a03897`
+
+The live download is exactly 8,783,105 bytes with SHA-256 `aead3a14c9509c56659c3fc6f60e8c92298e9719d7f594c608af80c807ef6316`; live 400 × 844 and 844 × 400 Chromium pass with zero console errors, page errors, or unexpected requests. The Pages root remains 10,349,488 bytes with SHA-256 `7036de95bd8169dd43994eb2c78ea789476ccbd11a170312744b459d0ac4ea2e`.
+
+**PASS — repair published and live verification complete.**
