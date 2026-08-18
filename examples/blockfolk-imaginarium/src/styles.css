@@ -172,6 +172,19 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
 .editor-topbar, .idea-row { min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
 .editor-topbar::-webkit-scrollbar, .idea-row::-webkit-scrollbar { display: none; }
 
+/* Construction pass: the primary rail stays one thumb tall. Transform tools
+   live behind More / Edit so Snap, layering, Copy, and Delete remain visible. */
+.selection-toolbar { gap: 2px; width: min(calc(100% - 10px), 620px); padding: 5px; }
+.selection-toolbar .imaginarium-control { flex: 1 0 48px; min-width: 48px; min-height: 50px; font-size: .59rem; }
+.selection-toolbar .imaginarium-control > .sfhs-cf-content { gap: 0; padding: 4px 1px; }
+.selection-toolbar .imaginarium-control > .sfhs-cf-content > span { font-size: 1.08rem; }
+.selection-more-panel { max-width: 460px; align-self: center; }
+.selection-more-panel > p { margin: 0 0 14px; font-weight: 800; line-height: 1.35; }
+.selection-more-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.selection-more-actions .imaginarium-control { min-width: 0; min-height: 62px; }
+.selection-more-actions .sfhs-cf-content { display: grid; place-items: center; gap: 2px; padding: 6px; }
+.selection-more-actions .sfhs-cf-content > span { font-size: 1.35rem; }
+
 @media (max-width: 440px) {
   .editor-topbar { gap: 4px; padding-inline: 5px; }
   .editor-topbar .sound-button { display: none; }
@@ -185,6 +198,7 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
   .camera-actions { gap: 2px; }
   .camera-actions .imaginarium-control { min-width: 44px; width: 44px; }
   .save-status { display: none; }
+  .selection-toolbar .imaginarium-control { flex-basis: 48px; min-width: 48px; }
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
@@ -200,4 +214,6 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
   .emoji-composer { grid-template-rows: 44px 18px; grid-template-columns: minmax(80px, 1fr) auto; }
   .emoji-composer label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
   .emoji-composer input, .emoji-composer .imaginarium-control { min-height: 44px; height: 44px; }
+  .selection-toolbar { bottom: 8px; }
+  .selection-toolbar .imaginarium-control { min-height: 46px; }
 }

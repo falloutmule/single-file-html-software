@@ -113,7 +113,7 @@ await page.evaluate(async () => {
 assert.deepEqual(await page.evaluate(() => {
   const current = window.BlockFolkImaginarium.app.current;
   return { schema: current.schema, width: current.page.width, height: current.page.height, background: current.page.backgroundAssetId, category: current.ui.category };
-}), { schema: 'blockfolk-imaginarium.page@2', width: 4096, height: 4096, background: 'blockfolk-valley', category: 'magic' });
+}), { schema: 'blockfolk-imaginarium.page@3', width: 4096, height: 4096, background: 'blockfolk-valley', category: 'magic' });
 
 await page.evaluate(() => window.BlockFolkImaginarium.app.startNewPicture(false));
 await page.locator('#editor-screen:not([hidden])').waitFor();
@@ -166,7 +166,7 @@ for (const [id, title] of expectedCategories) {
   }
 }
 assert.equal(placedCatalogCount, 30); assert.equal((await stickerState()).length, 30);
-assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => Math.abs(Math.max(object.getScaledWidth(), object.getScaledHeight()) - 420) < 1)), true, 'restored stickers must retain the accepted apparent phone size at normal bookmark zooms');
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => Math.abs(Math.max(object.getScaledWidth(), object.getScaledHeight()) - (420 / (1.1 ** 6))) < 1)), true, 'new artwork stickers must spawn exactly six Smaller steps below the previous default');
 await page.screenshot({ path: resolve(evidenceDirectory, 'catalog-all-30-400x844.png'), fullPage: true });
 await page.evaluate(async (pictureId) => window.BlockFolkImaginarium.app.openPicture(pictureId), existingEmptyPictureId);
 assert.equal((await stickerState()).length, 0, 'a previously saved empty-world picture must reopen without destructive migration');
@@ -205,10 +205,11 @@ assert.notEqual(exportAfterEmoji, exportBeforeEmoji, 'current-view PNG must visi
 await page.locator('[data-category="animals"]').click();
 await page.locator('[data-sticker-id="sticker-blockfolk-wolf"]').click();
 await page.waitForFunction((count) => window.BlockFolkImaginarium.diagnostics().stickers === count, emojiSequences.length + 1);
-assert.deepEqual(await page.evaluate(() => {
+const wolfPlacement = await page.evaluate(() => {
   const object = window.BlockFolkImaginarium.app.canvas.getObjects().at(-1);
   return { assetId: object.blockfolkAssetId, type: object.type, longestExtent: Math.max(object.getScaledWidth(), object.getScaledHeight()) };
-}), { assetId: 'sticker-blockfolk-wolf', type: 'image', longestExtent: 420 });
+});
+assert.equal(wolfPlacement.assetId, 'sticker-blockfolk-wolf'); assert.equal(wolfPlacement.type, 'image'); assert.ok(Math.abs(wolfPlacement.longestExtent - (420 / (1.1 ** 6))) < .001, 'new Wolf placement must use the exact sixth-step default');
 const exportAfterSticker = await page.evaluate(() => window.BlockFolkImaginarium.app.exportDataUrl());
 assert.notEqual(exportAfterSticker, exportAfterEmoji, 'current-view PNG must visibly include the accepted background, native emoji, and restored artwork');
 
@@ -283,18 +284,99 @@ assert.deepEqual((await stickerState()).map((sticker) => sticker.sourceEmoji).fi
 // Emoji stickers keep all applicable image-sticker tools, history, stack, copy, and deletion.
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[2]); app.updateSelection(); });
 const toolBefore = (await stickerState())[2];
-await page.locator('[data-action="bigger"]').click(); await page.locator('[data-action="turn"]').click(); await page.locator('[data-action="flip"]').click();
+await page.locator('[data-action="show-selection-more"]').click();
+await page.locator('#selection-more-sheet [data-action="bigger"]').click(); await page.locator('#selection-more-sheet [data-action="turn"]').click(); await page.locator('[data-action="close-selection-more"]').click(); await page.locator('#selection-toolbar [data-action="flip"]').click();
 let toolAfter = (await stickerState())[2];
-assert.ok(toolAfter.scaleX > toolBefore.scaleX); assert.equal(toolAfter.angle, 15); assert.equal(toolAfter.flipX, true);
-await page.locator('[data-action="undo"]').click(); toolAfter = (await stickerState())[2]; assert.equal(toolAfter.flipX, false);
-await page.locator('[data-action="redo"]').click(); toolAfter = (await stickerState())[2]; assert.equal(toolAfter.flipX, true);
+assert.ok(toolAfter.scaleX > toolBefore.scaleX); assert.notEqual(toolAfter.angle, toolBefore.angle, 'Turn must persist a changed rotation'); assert.equal(toolAfter.flipX, !toolBefore.flipX);
+await page.locator('[data-action="undo"]').click(); toolAfter = (await stickerState())[2]; assert.equal(toolAfter.flipX, toolBefore.flipX);
+await page.locator('[data-action="redo"]').click(); toolAfter = (await stickerState())[2]; assert.equal(toolAfter.flipX, !toolBefore.flipX);
 const orderBefore = (await stickerState()).map((sticker) => sticker.layerId);
-await page.locator('[data-action="behind"]').click(); assert.notDeepEqual((await stickerState()).map((sticker) => sticker.layerId), orderBefore);
-await page.locator('[data-action="in-front"]').click(); assert.deepEqual((await stickerState()).map((sticker) => sticker.layerId), orderBefore);
+await page.locator('#selection-toolbar [data-action="behind"]').click(); assert.notDeepEqual((await stickerState()).map((sticker) => sticker.layerId), orderBefore);
+assert.equal(await page.locator('#toast').textContent(), 'Moved behind');
+await page.locator('#selection-toolbar [data-action="in-front"]').click(); assert.deepEqual((await stickerState()).map((sticker) => sticker.layerId), orderBefore);
 const countBeforeCopy = (await stickerState()).length;
-await page.locator('[data-action="copy"]').click(); const copiedCount = (await stickerState()).length; assert.equal(copiedCount, countBeforeCopy + 1);
-await page.locator('[data-action="trash"]').click(); assert.equal((await stickerState()).length, copiedCount - 1);
+await page.locator('#selection-toolbar [data-action="copy"]').click(); const copiedCount = (await stickerState()).length; assert.equal(copiedCount, countBeforeCopy + 1);
+await page.locator('#selection-toolbar [data-action="trash"]').click(); assert.equal((await stickerState()).length, copiedCount - 1);
 await page.locator('[data-action="undo"]').click(); assert.equal((await stickerState()).length, copiedCount, 'deletion must participate in Undo');
+
+// Construction snap is opt-in, screen-space tolerant, and persists as one assembly.
+const emojiPictureState = await page.evaluate(async () => { const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); return { id: app.current.id, stickers: app.current.stickers.length }; });
+await page.evaluate(async () => {
+  const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
+  await app.addSticker('sticker-blockfolk-stone-block'); await app.addSticker('sticker-blockfolk-brick-stone-block');
+  const [stone, brick] = app.canvas.getObjects(); stone.set({ left: 1800, top: 2050 }); brick.set({ left: 1998, top: 2050 }); stone.setCoords(); brick.setCoords(); app.canvas.setActiveObject(stone); app.canvas.requestRenderAll(); app.syncCurrentFromCanvas(); app.updateSelection();
+  const transform = app.canvas.viewportTransform; return { x: stone.left * transform[0] + transform[4], y: stone.top * transform[3] + transform[5] };
+});
+let constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5] }; });
+await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 5, constructionStart.y); await pointer('pointerup', 1, constructionStart.x + 5, constructionStart.y);
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'compatible stickers remain independent while Snap is off');
+await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
+constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5] }; });
+await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 4, constructionStart.y); await pointer('pointerup', 1, constructionStart.x + 4, constructionStart.y);
+let assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return { snap: app.preferences.snapEnabled, connections: structuredClone(app.current.connections), stickers: structuredClone(app.current.stickers) }; });
+assert.equal(assemblyProof.snap, true); assert.equal(assemblyProof.connections.length, 1, 'Snap must create exactly one persistent connection');
+assert.equal(await page.locator('#selection-toolbar [data-action="unsnap"]').isVisible(), true, 'an assembly selection must offer contextual Unsnap');
+assert.equal(await page.locator('#selection-toolbar [data-action="toggle-snap"]').isVisible(), false, 'Snap and Unsnap must be contextual replacements rather than simultaneous actions');
+await page.evaluate(() => window.BlockFolkImaginarium.app.updatePreference('snapEnabled', false));
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 1, 'turning Snap off must not dissolve an existing assembly');
+const moveBeforeAssembly = assemblyProof.stickers.map(({ layerId, x, y }) => ({ layerId, x, y }));
+constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5] }; });
+await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 30, constructionStart.y + 16); await pointer('pointerup', 1, constructionStart.x + 30, constructionStart.y + 16);
+assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return structuredClone(app.current); });
+const movedAssembly = assemblyProof.stickers.map(({ layerId, x, y }) => ({ layerId, x, y }));
+const assemblyDeltas = movedAssembly.map((after, index) => ({ x: after.x - moveBeforeAssembly[index].x, y: after.y - moveBeforeAssembly[index].y }));
+assert.ok(Math.hypot(assemblyDeltas[0].x, assemblyDeltas[0].y) > 10, 'assembly drag must move in world coordinates');
+assert.ok(Math.abs(assemblyDeltas[0].x - assemblyDeltas[1].x) < .01 && Math.abs(assemblyDeltas[0].y - assemblyDeltas[1].y) < .01, 'dragging one connected member must translate every member by the same world delta');
+const assemblyScaleBefore = assemblyProof.stickers.map((sticker) => sticker.scaleX);
+await page.locator('#selection-toolbar [data-action="show-selection-more"]').click(); await page.locator('#selection-more-sheet [data-action="bigger"]').click(); await page.locator('[data-action="close-selection-more"]').click();
+const assemblyScaleAfter = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return app.current.stickers.map((sticker) => sticker.scaleX); });
+assert.equal(assemblyScaleAfter.every((scale, index) => scale > assemblyScaleBefore[index]), true, 'More / Edit resizing must scale every connected member');
+await page.locator('#selection-toolbar [data-action="flip"]').click();
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 1, 'assembly Flip must preserve connection geometry');
+const assemblyReloadProof = await page.evaluate(async () => {
+  const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); const id = app.current.id; await app.goHome(); await app.openPicture(id); app.syncCurrentFromCanvas();
+  return { id, connections: app.current.connections.length, camera: structuredClone(app.current.page.camera), stickers: app.current.stickers.map(({ x, y, scaleX, scaleY, flipX, zIndex }) => ({ x, y, scaleX, scaleY, flipX, zIndex })) };
+});
+assert.equal(assemblyReloadProof.connections, 1, 'new assembly data must survive save/reload without changing camera state');
+await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[0]); app.updateSelection(); });
+const assemblyCountBeforeCopy = await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length);
+await page.locator('#selection-toolbar [data-action="copy"]').click();
+await page.waitForFunction((count) => window.BlockFolkImaginarium.app.current.stickers.length === count, assemblyCountBeforeCopy + 2);
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), assemblyCountBeforeCopy + 2, 'Copy must duplicate a full two-member assembly');
+assert.equal(await page.evaluate(() => new Set(window.BlockFolkImaginarium.app.current.connections.map((connection) => connection.id)).size), 2, 'assembly Copy must create a fresh connection ID');
+await page.locator('#selection-toolbar [data-action="trash"]').click();
+await page.waitForFunction((count) => window.BlockFolkImaginarium.app.current.stickers.length === count, assemblyCountBeforeCopy);
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), assemblyCountBeforeCopy, 'Delete must remove the selected copied assembly together');
+await page.locator('[data-action="undo"]').click(); await page.waitForFunction((count) => window.BlockFolkImaginarium.app.canvas.getObjects().length === count, assemblyCountBeforeCopy + 2); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), assemblyCountBeforeCopy + 2, 'assembly delete must undo as one action');
+await page.locator('[data-action="redo"]').click(); await page.waitForFunction((count) => window.BlockFolkImaginarium.app.canvas.getObjects().length === count, assemblyCountBeforeCopy); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), assemblyCountBeforeCopy, 'assembly delete redo must restore the exact result');
+const unsnapState = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[0]); app.updateSelection(); return { connections: structuredClone(app.current.connections), active: app.canvas.getObjects()[0]?.blockfolkLayerId, unsnapHidden: app.root.querySelector('[data-action="unsnap"]')?.closest('.sfhs-cf-root')?.hidden }; });
+assert.equal(unsnapState.connections.length, 1, `the original assembly must survive copy/delete history: ${JSON.stringify(unsnapState)}`);
+assert.equal(unsnapState.unsnapHidden, false, `assembly selection must expose Unsnap: ${JSON.stringify(unsnapState)}`);
+await page.locator('#selection-toolbar [data-action="unsnap"]').click();
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'Unsnap must detach only the selected member links');
+await page.locator('[data-action="undo"]').click(); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 1, 'Unsnap must participate in Undo');
+await page.locator('[data-action="redo"]').click(); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'Unsnap must participate in Redo');
+await page.screenshot({ path: resolve(evidenceDirectory, 'construction-toolbar-and-assembly-400x844.png'), fullPage: true });
+
+// Behind/In Front must change both serialized order and the rendered overlap.
+await page.evaluate(async () => {
+  const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
+  for (const assetId of ['sticker-blockfolk-wolf', 'sticker-blockfolk-lava-block', 'sticker-blockfolk-slime-with-droplets']) await app.addSticker(assetId);
+  for (const object of app.canvas.getObjects()) { object.set({ left: 2050, top: 2050 }); object.setCoords(); }
+  app.canvas.setActiveObject(app.canvas.getObjects()[2]); app.canvas.requestRenderAll(); app.syncCurrentFromCanvas(); app.updateSelection();
+});
+const layerRenderBefore = await page.evaluate(() => ({ order: window.BlockFolkImaginarium.app.current.stickers.map((sticker) => sticker.assetId), image: window.BlockFolkImaginarium.app.exportDataUrl() }));
+await page.locator('#selection-toolbar [data-action="behind"]').click(); await page.locator('#selection-toolbar [data-action="behind"]').click();
+const layerBack = await page.evaluate(() => ({ order: window.BlockFolkImaginarium.app.current.stickers.map((sticker) => sticker.assetId), image: window.BlockFolkImaginarium.app.exportDataUrl() }));
+assert.deepEqual(layerBack.order, ['sticker-blockfolk-slime-with-droplets', 'sticker-blockfolk-wolf', 'sticker-blockfolk-lava-block'], 'repeated Behind presses must move one selected sticker through two distinct overlapping layers');
+assert.notEqual(layerBack.image, layerRenderBefore.image, 'Behind must visibly change the rendered overlap, not merely fire a button event');
+await page.locator('#selection-toolbar [data-action="in-front"]').click(); await page.locator('#selection-toolbar [data-action="in-front"]').click();
+const layerFront = await page.evaluate(() => ({ order: window.BlockFolkImaginarium.app.current.stickers.map((sticker) => sticker.assetId), image: window.BlockFolkImaginarium.app.exportDataUrl() }));
+assert.deepEqual(layerFront.order, layerRenderBefore.order, 'repeated In Front presses must restore exact prior stored z-order');
+assert.equal(layerFront.image, layerRenderBefore.image, 'restored z-order must restore the rendered overlap exactly');
+await page.screenshot({ path: resolve(evidenceDirectory, 'layer-proof-three-overlap-400x844.png'), fullPage: true });
+await page.evaluate(async (pictureId) => window.BlockFolkImaginarium.app.openPicture(pictureId), emojiPictureState.id);
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), emojiPictureState.stickers, 'the pre-construction emoji picture must remain loadable after assembly tests');
 
 // Local ZIP import and transparent-edge trimming remain operational.
 const fixtureBase64 = await page.evaluate(() => {

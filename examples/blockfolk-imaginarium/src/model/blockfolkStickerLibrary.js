@@ -1,9 +1,10 @@
 import { blockFolkStickerAssetUrl } from './blockfolkStickerAssetRegistry.js';
 
-// The accepted 285px Imaginarium placement rendered at about 85px on its
-// 384px phone board. A 420-world-unit extent retains that apparent size at
-// the Valley's normal 2.15–2.65 bookmark zooms without changing asset pixels.
-export const BLOCKFOLK_DEFAULT_WORLD_EXTENT = 420;
+// The prior 420-world-unit default required six presses of Smaller. Smaller is
+// exactly a 1 / 1.1 multiplier, so use the derived sixth-step value rather
+// than an unrelated estimate. Existing saved scales are serialized per sticker
+// and therefore remain unchanged.
+export const BLOCKFOLK_DEFAULT_WORLD_EXTENT = 420 / (1.1 ** 6);
 
 function makeBlockFolkSticker(id, name, category, filename, width, height) {
   return Object.freeze({

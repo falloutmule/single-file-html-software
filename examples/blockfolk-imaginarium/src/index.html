@@ -62,14 +62,14 @@
             <div id="empty-invitation" class="empty-invitation">Choose a sticker below, or drag the world to explore.</div>
           </div>
           <div id="selection-toolbar" class="selection-toolbar" aria-label="Selected sticker controls" hidden>
-            <button type="button" data-action="smaller"><span aria-hidden="true">−</span>Smaller</button>
-            <button type="button" data-action="bigger"><span aria-hidden="true">＋</span>Bigger</button>
-            <button type="button" data-action="turn"><span aria-hidden="true">↻</span>Turn</button>
+            <button type="button" data-action="toggle-snap" data-control-tone="mint" aria-label="Toggle construction snapping"><span aria-hidden="true">⌘</span>Snap</button>
+            <button type="button" data-action="unsnap" data-control-tone="lilac" aria-label="Detach selected sticker from its assembly" hidden><span aria-hidden="true">⤨</span>Unsnap</button>
             <button type="button" data-action="flip" data-control-tone="sky"><span aria-hidden="true">⇆</span>Flip</button>
             <button type="button" data-action="behind" data-control-tone="lilac"><span aria-hidden="true">◫</span>Behind</button>
             <button type="button" data-action="in-front" data-control-tone="mint"><span aria-hidden="true">▣</span>In Front</button>
             <button type="button" data-action="copy"><span aria-hidden="true">▣</span>Copy</button>
             <button type="button" class="trash" data-action="trash"><span aria-hidden="true">♲</span>Trash</button>
+            <button type="button" data-action="show-selection-more" aria-label="Open more selected sticker editing tools"><span aria-hidden="true">•••</span>More</button>
           </div>
         </div>
 
@@ -81,6 +81,18 @@
             <div id="sticker-list" class="sticker-list" role="group" aria-label="Stickers in this category"></div>
           </div>
         </section>
+      </section>
+
+      <section id="selection-more-sheet" class="modal-sheet selection-more-sheet" aria-labelledby="selection-more-title" hidden>
+        <div class="sheet-panel selection-more-panel">
+          <header><h2 id="selection-more-title">More / Edit</h2><button type="button" data-action="close-selection-more" aria-label="Close more editing tools">×</button></header>
+          <p>These controls affect the whole construction when stickers are snapped together.</p>
+          <div class="selection-more-actions">
+            <button type="button" data-action="smaller"><span aria-hidden="true">−</span>Smaller</button>
+            <button type="button" data-action="bigger"><span aria-hidden="true">＋</span>Bigger</button>
+            <button type="button" data-action="turn"><span aria-hidden="true">↻</span>Turn</button>
+          </div>
+        </div>
       </section>
 
       <section id="gallery-screen" class="screen gallery-screen" aria-labelledby="gallery-title" hidden>
