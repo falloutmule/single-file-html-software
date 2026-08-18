@@ -353,8 +353,20 @@ const freeDragProof = await page.evaluate(() => { const app = window.BlockFolkIm
 assert.equal(freeDragProof.connections, 0, 'a nearby construction piece must not auto-snap on release');
 assert.ok(Math.abs(freeDragProof.worldX - constructionStart.worldX - 4 / constructionStart.scale) < .01, 'free drag must not magnetically reposition a piece');
 await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
-let assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return { connections: structuredClone(app.current.connections), stickers: structuredClone(app.current.stickers) }; });
+await page.waitForTimeout(350);
+let assemblyProof = await page.evaluate(() => {
+  const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const [stone, brick] = app.canvas.getObjects();
+  return {
+    connections: structuredClone(app.current.connections), stickers: structuredClone(app.current.stickers),
+    sourceMembers: [...app.selectedMemberIds(stone)], targetMembers: [...app.selectedMemberIds(brick)],
+    toast: document.querySelector('#toast').textContent
+  };
+});
 assert.equal(assemblyProof.connections.length, 1, 'the explicit Snap command must create exactly one persistent connection');
+assert.equal(assemblyProof.sourceMembers.length, 2, 'Snap must immediately lock the selected piece into a two-member assembly');
+assert.equal(assemblyProof.targetMembers.length, 2, 'the opposite piece must immediately resolve to the same locked assembly');
+assert.deepEqual(new Set(assemblyProof.sourceMembers), new Set(assemblyProof.targetMembers), 'both sides of a snap must resolve to the identical assembly');
+assert.equal(assemblyProof.toast, 'Snapped and locked', 'success must only be reported after the connection is stored and locked');
 const terrainSnapMovement = Math.hypot(assemblyProof.stickers[0].x - freeDragProof.worldX, assemblyProof.stickers[0].y - freeDragProof.worldY) * constructionStart.scale;
 assert.ok(terrainSnapMovement >= 50, `Snap must create an unmistakable visible terrain landing, not only a logical connection: ${terrainSnapMovement}`);
 assert.equal(['northWest', 'northEast', 'southWest', 'southEast', 'stackTop', 'stackBase'].includes(assemblyProof.connections[0].aAnchorId), true, 'terrain Snap must serialize an isometric socket');
@@ -363,7 +375,7 @@ await page.screenshot({ path: resolve(evidenceDirectory, 'terrain-isometric-snap
 assert.equal(await page.locator('#selection-toolbar [data-action="unsnap"]').isVisible(), true, 'an assembly selection must offer contextual Unsnap');
 assert.equal(await page.locator('#selection-toolbar [data-action="toggle-snap"]').isVisible(), false, 'Snap and Unsnap must be contextual replacements rather than simultaneous actions');
 const moveBeforeAssembly = assemblyProof.stickers.map(({ layerId, x, y }) => ({ layerId, x, y }));
-constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const stone = app.canvas.getObjects()[0]; const t = app.canvas.viewportTransform; return { x: stone.left * t[0] + t[4], y: stone.top * t[3] + t[5] }; });
+constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const target = app.canvas.getObjects()[1]; app.canvas.setActiveObject(target); app.updateSelection(); const t = app.canvas.viewportTransform; return { x: target.left * t[0] + t[4], y: target.top * t[3] + t[5] }; });
 await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 30, constructionStart.y + 16); await pointer('pointerup', 1, constructionStart.x + 30, constructionStart.y + 16);
 assemblyProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return structuredClone(app.current); });
 const movedAssembly = assemblyProof.stickers.map(({ layerId, x, y }) => ({ layerId, x, y }));
@@ -378,9 +390,11 @@ await page.locator('#selection-toolbar [data-action="flip"]').click();
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 1, 'assembly Flip must preserve connection geometry');
 const assemblyReloadProof = await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); const id = app.current.id; await app.goHome(); await app.openPicture(id); app.syncCurrentFromCanvas();
-  return { id, connections: app.current.connections.length, camera: structuredClone(app.current.page.camera), stickers: app.current.stickers.map(({ x, y, scaleX, scaleY, flipX, zIndex }) => ({ x, y, scaleX, scaleY, flipX, zIndex })) };
+  const target = app.canvas.getObjects()[1];
+  return { id, connections: app.current.connections.length, targetMembers: [...app.selectedMemberIds(target)], camera: structuredClone(app.current.page.camera), stickers: app.current.stickers.map(({ x, y, scaleX, scaleY, flipX, zIndex }) => ({ x, y, scaleX, scaleY, flipX, zIndex })) };
 });
 assert.equal(assemblyReloadProof.connections, 1, 'new assembly data must survive save/reload without changing camera state');
+assert.equal(assemblyReloadProof.targetMembers.length, 2, 'either member must still select the complete locked assembly after reload');
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[0]); app.updateSelection(); });
 const assemblyCountBeforeCopy = await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length);
 await page.locator('#selection-toolbar [data-action="copy"]').click();
@@ -415,7 +429,7 @@ await page.locator('#selection-toolbar [data-action="toggle-snap"]').click();
 const faceSnapProof = await page.evaluate(() => ({ connections: structuredClone(window.BlockFolkImaginarium.app.current.connections), toast: document.querySelector('#toast').textContent }));
 assert.equal(faceSnapProof.connections.length, 1, 'a Snap press must attach a door placed near a log face');
 assert.deepEqual([faceSnapProof.connections[0].aAnchorId, faceSnapProof.connections[0].bAnchorId].sort(), ['backFace', 'frontFace'], 'the face snap must use painted-face anchors rather than image bounds');
-assert.equal(faceSnapProof.toast, 'Snapped together', 'release must visibly confirm a successful snap');
+assert.equal(faceSnapProof.toast, 'Snapped and locked', 'the command must visibly confirm that a successful snap remains locked');
 
 // Behind/In Front must change both serialized order and the rendered overlap.
 await page.evaluate(async () => {

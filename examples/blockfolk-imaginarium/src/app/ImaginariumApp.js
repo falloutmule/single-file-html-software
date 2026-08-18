@@ -643,20 +643,47 @@ export class BlockFolkImaginariumApp {
   }
 
   addSnapConnection(candidate) {
-    if (!candidate || !this.current) return;
+    if (!candidate || !this.current) return null;
     const connections = this.current.connections || [];
-    const exists = connections.some((connection) => (connection.aLayerId === candidate.source.blockfolkLayerId && connection.bLayerId === candidate.target.blockfolkLayerId) || (connection.bLayerId === candidate.source.blockfolkLayerId && connection.aLayerId === candidate.target.blockfolkLayerId));
-    if (exists) return;
-    this.current.connections = [...connections, makeConnection(candidate)];
-    this.ensureAssemblyContiguous(this.selectedMemberIds(candidate.source));
-    this.toast('Snapped together'); this.announce('Snapped together.'); this.feedback('pop');
+    const existing = connections.find((connection) => (connection.aLayerId === candidate.source.blockfolkLayerId && connection.bLayerId === candidate.target.blockfolkLayerId) || (connection.bLayerId === candidate.source.blockfolkLayerId && connection.aLayerId === candidate.target.blockfolkLayerId));
+    if (existing) return existing;
+    const connection = makeConnection(candidate);
+    const layerIds = new Set(this.canvas.getObjects().map((object) => object.blockfolkLayerId));
+    const nextConnections = validConnections([...connections, connection], layerIds);
+    const stored = nextConnections.find((item) => item.id === connection.id);
+    if (!stored) return null;
+    this.current.connections = nextConnections;
+    const lockedIds = connectedLayerIds(nextConnections, candidate.source.blockfolkLayerId);
+    if (!lockedIds.has(candidate.target.blockfolkLayerId)) return null;
+    this.ensureAssemblyContiguous(lockedIds);
+    return stored;
   }
 
   async snapSelected() {
     const active = this.activeSticker(); if (!active || !this.current) return;
-    const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const candidate = this.proposeSnap(members);
+    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const candidate = this.proposeSnap(members);
     if (!candidate) { this.toast('Move closer to snap'); this.announce('Move closer to a compatible construction piece, then press Snap.'); return; }
-    this.translateObjects(members, candidate.dx, candidate.dy); this.addSnapConnection(candidate); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll(); this.commit(before, 'Pieces snapped together.');
+    this.translateObjects(members, candidate.dx, candidate.dy);
+    const connection = this.addSnapConnection(candidate);
+    this.syncCurrentFromCanvas();
+    const lockedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
+    const locked = !!connection && lockedIds.has(candidate.target.blockfolkLayerId);
+    if (!locked) {
+      this.current = before;
+      await this.renderCurrentPicture(activeLayerId);
+      this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
+      return;
+    }
+    this.ensureAssemblyContiguous(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.commit(before, 'Pieces snapped and locked.');
+    const persistedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
+    if (!persistedIds.has(candidate.target.blockfolkLayerId)) {
+      this.current = before;
+      await this.renderCurrentPicture(activeLayerId);
+      this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
+      return;
+    }
+    this.toast('Snapped and locked'); this.announce('Snapped and locked. Move either piece to move the whole assembly.'); this.feedback('pop');
   }
 
   objectGroups() {
