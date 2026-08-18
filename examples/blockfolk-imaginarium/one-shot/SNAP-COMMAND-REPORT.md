@@ -30,7 +30,7 @@ The previous control was implemented as a toggle. That contradicted the requeste
 
 ## REMAINING BLOCKERS
 
-None for automated proof. The standing Pages workflow will publish this verified repair.
+None for automated proof. A real-phone interaction pass remains useful for subjective finger feel.
 
 ## NEXT ACTIONABLE STEP
 
@@ -41,3 +41,11 @@ On a phone, place compatible construction pieces near one another, drag them int
 Ignored backup: `test-results/snap-command-001/ImaginariumApp.before-snap-command.js`.
 
 **PASS — Snap is an explicit command, not automatic drag behavior.**
+
+## GITHUB PAGES URL
+
+- Feature repair commit: `d2b9683102d464ed0f614f4f2f1488e30ee82d46` on `feature/blockfolk-imaginarium-001`.
+- Dedicated Pages commit: `496dc46f41add679a69acfecc60f5b93dae9fb18`, changing only `blockfolk-imaginarium/index.html`.
+- Live cache-busted URL: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=496dc46`
+- Live Chromium at `400 × 844` and `844 × 400`: PASS with zero console errors, page errors, or unexpected network requests.
+- Live artifact: `12,269,531` bytes, SHA-256 `d206cbc15976943901c46983c40189f09717ce9fc7a68c728d60a1e2f257d0fb`.
