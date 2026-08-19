@@ -13,7 +13,8 @@ import {
 } from '../model/pageModel.js';
 import { createStableId } from '../model/ids.js';
 import {
-  SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_METADATA, connectedLayerIds, duplicateConnections, findSnapCandidate,
+  SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_METADATA, alignedDoorwayCandidates, connectedLayerIds,
+  doorwayLayerRank, doorwayPlacementConflict, duplicateConnections, findSnapProposal,
   hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
@@ -647,47 +648,78 @@ export class BlockFolkImaginariumApp {
   }
 
   proposeSnap(movingObjects) {
-    if (!movingObjects.some((object) => isSnappableAsset(object.blockfolkAssetId))) return null;
+    if (!movingObjects.some((object) => isSnappableAsset(object.blockfolkAssetId))) return { candidate: null, rejectionReason: null };
     const movingIds = new Set(movingObjects.map((object) => object.blockfolkLayerId));
     const stationary = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && isSnappableAsset(object.blockfolkAssetId));
     const { scale } = cameraMetrics(this.camera, this.canvas.width, this.canvas.height);
-    return findSnapCandidate({ movingObjects, stationaryObjects: stationary, worldTolerance: SNAP_TOLERANCE_SCREEN_PX / Math.max(scale, .0001) });
+    return findSnapProposal({
+      movingObjects, stationaryObjects: stationary,
+      worldTolerance: SNAP_TOLERANCE_SCREEN_PX / Math.max(scale, .0001),
+      connections: this.current?.connections || []
+    });
   }
 
-  addSnapConnection(candidate) {
-    if (!candidate || !this.current) return null;
+  addSnapConnections(candidate) {
+    if (!candidate || !this.current) return [];
     const connections = this.current.connections || [];
     const existing = connections.find((connection) => (connection.aLayerId === candidate.source.blockfolkLayerId && connection.bLayerId === candidate.target.blockfolkLayerId) || (connection.bLayerId === candidate.source.blockfolkLayerId && connection.aLayerId === candidate.target.blockfolkLayerId));
-    if (existing) return existing;
+    if (existing) return [existing];
     const connection = makeConnection(candidate);
     const layerIds = new Set(this.canvas.getObjects().map((object) => object.blockfolkLayerId));
-    const nextConnections = validConnections([...connections, connection], layerIds);
+    let nextConnections = validConnections([...connections, connection], layerIds);
     const stored = nextConnections.find((item) => item.id === connection.id);
-    if (!stored) return null;
+    if (!stored) return [];
+    const seedLayerIds = new Set([candidate.source.blockfolkLayerId, candidate.target.blockfolkLayerId]);
+    const aligned = alignedDoorwayCandidates({ objects: this.canvas.getObjects(), connections: nextConnections, seedLayerIds });
+    const authoredConnections = aligned.map((item) => makeConnection(item));
+    nextConnections = validConnections([...nextConnections, ...authoredConnections], layerIds);
     this.current.connections = nextConnections;
     const lockedIds = connectedLayerIds(nextConnections, candidate.source.blockfolkLayerId);
-    if (!lockedIds.has(candidate.target.blockfolkLayerId)) return null;
+    if (!lockedIds.has(candidate.target.blockfolkLayerId)) return [];
     this.ensureAssemblyContiguous(lockedIds);
+    this.ensureDoorwayLayerOrder(lockedIds);
     this.ensureBuildingFaceVisible(candidate);
-    return stored;
+    return nextConnections.filter((item) => item.id === connection.id || authoredConnections.some((authored) => authored.id === item.id));
   }
 
   async snapSelected() {
     const active = this.activeSticker(); if (!active || !this.current) return;
-    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const candidate = this.proposeSnap(members);
-    if (!candidate) { this.toast('Move closer to snap'); this.announce('Move closer to a compatible construction piece, then press Snap.'); return; }
+    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active));
+    const movingIds = new Set(members.map((object) => object.blockfolkLayerId)); const existingConflict = doorwayPlacementConflict(this.canvas.getObjects());
+    if (existingConflict && (movingIds.has(existingConflict.door.blockfolkLayerId) || movingIds.has(existingConflict.block.blockfolkLayerId))) {
+      this.toast(existingConflict.kind === 'duplicate' ? 'That doorway spot is filled' : 'Keep doorway clear');
+      this.announce(existingConflict.kind === 'duplicate' ? 'That doorway construction spot already has a block.' : 'A complete block cannot sit inside or directly behind the stone doorway.');
+      return;
+    }
+    const proposal = this.proposeSnap(members); const candidate = proposal.candidate;
+    if (!candidate) {
+      if (proposal.rejectionReason === 'scale') { this.toast('Match piece sizes'); this.announce('Make the doorway pieces the same construction size, then press Snap.'); }
+      else { this.toast('Move closer to snap'); this.announce('Move closer to a compatible construction piece, then press Snap.'); }
+      return;
+    }
     this.translateObjects(members, candidate.dx, candidate.dy);
-    const connection = this.addSnapConnection(candidate);
+    const involvedIds = new Set([
+      ...connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId),
+      ...connectedLayerIds(this.current.connections || [], candidate.target.blockfolkLayerId)
+    ]);
+    const doorwayConflict = doorwayPlacementConflict(this.canvas.getObjects().filter((object) => involvedIds.has(object.blockfolkLayerId)));
+    if (doorwayConflict) {
+      this.current = before;
+      await this.renderCurrentPicture(activeLayerId);
+      this.toast('Keep doorway clear'); this.announce('A complete block cannot sit inside or directly behind the stone doorway.');
+      return;
+    }
+    const addedConnections = this.addSnapConnections(candidate);
     this.syncCurrentFromCanvas();
     const lockedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
-    const locked = !!connection && lockedIds.has(candidate.target.blockfolkLayerId);
+    const locked = addedConnections.length > 0 && lockedIds.has(candidate.target.blockfolkLayerId);
     if (!locked) {
       this.current = before;
       await this.renderCurrentPicture(activeLayerId);
       this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
       return;
     }
-    this.ensureAssemblyContiguous(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.ensureAssemblyContiguous(lockedIds); this.ensureDoorwayLayerOrder(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
     this.commit(before, 'Pieces snapped and locked.');
     const persistedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
     if (!persistedIds.has(candidate.target.blockfolkLayerId)) {
@@ -729,6 +761,16 @@ export class BlockFolkImaginariumApp {
     const insertAt = Math.min(...selected.map((object) => original.indexOf(object)));
     const before = others.slice(0, insertAt); const after = others.slice(insertAt);
     this.reorderObjects([...before, ...selected, ...after]);
+  }
+
+  ensureDoorwayLayerOrder(memberIds) {
+    const ordered = [...this.canvas.getObjects()];
+    const indices = ordered.map((object, index) => memberIds.has(object.blockfolkLayerId) ? index : -1).filter((index) => index >= 0);
+    if (indices.length < 2) return;
+    const members = indices.map((index) => ordered[index]).map((object, stableIndex) => ({ object, stableIndex }));
+    members.sort((first, second) => doorwayLayerRank(first.object, this.current.connections || []) - doorwayLayerRank(second.object, this.current.connections || []) || first.stableIndex - second.stableIndex);
+    indices.forEach((index, memberIndex) => { ordered[index] = members[memberIndex].object; });
+    this.reorderObjects(ordered);
   }
 
   ensureBuildingFaceVisible(candidate) {
@@ -802,7 +844,7 @@ export class BlockFolkImaginariumApp {
 
   async unsnapSelected() {
     const active = this.activeSticker(); if (!active || !hasAssembly(this.current?.connections || [], active.blockfolkLayerId)) return;
-    const before = this.snapshot(); this.current.connections = removeMemberConnections(this.current.connections || [], active.blockfolkLayerId); this.canvas.requestRenderAll(); this.commit(before, 'Sticker detached from its assembly.'); this.toast('Sticker detached'); this.feedback('turn');
+    const before = this.snapshot(); this.current.connections = removeMemberConnections(this.current.connections || [], active.blockfolkLayerId); this.canvas.requestRenderAll(); this.commit(before, 'Sticker detached from its assembly.'); this.toast('Sticker detached.'); this.feedback('turn');
   }
 
   clampFabricObject(object) {
