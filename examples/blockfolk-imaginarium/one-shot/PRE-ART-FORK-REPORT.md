@@ -188,10 +188,20 @@ See [SNAP-TOUCH-LOCK-REPORT.md](SNAP-TOUCH-LOCK-REPORT.md) for the failing repro
 
 ## Stable Snap/Unsnap controller repair - PASS
 
-Implementation commit `1757d050ca21d747440174bc6bd6df42ce9a1dea` fixes the physical Android immediate-unlock defect at its control-identity boundary. Snap and Unsnap are now states of one permanent `snap-context` DOM button and one SFHS controller. The label, icon, accessible name, tooltip, and color update in place, while the control ID, focus target, and private duplicate-click suppression window remain stable. A deliberate Unsnap now reports `Sticker detached`.
+Implementation commit `1757d050ca21d747440174bc6bd6df42ce9a1dea` fixes the physical Android immediate-unlock defect at its control-identity boundary. Snap and Unsnap are now states of one permanent `snap-context` DOM button and one SFHS controller. The label, icon, accessible name, tooltip, and color update in place, while the control ID, focus target, and private duplicate-click suppression window remain stable. A deliberate Unsnap now reports `Sticker detached.`.
 
 The native-touch browser regression proves one touch produces one activation and one persistent connection after waiting beyond the suppression window. It also re-hit-tests with `document.elementFromPoint(x, y)` after the state change, verifies the same control ID receives the browser-generated click, and proves that click is suppressed. A later deliberate touch, keyboard Enter, and assistive click each activate exactly once. Local and live phone scenarios pass at `400 x 844` and `844 x 400` with zero console errors, page errors, or unexpected requests.
 
 The published artifact is Build ID `blockfolk-imaginarium-673c6918144e`, 12,272,785 bytes, SHA-256 `c1de5b58ccca3d4477e5b94a93b8e6aab32522f69ea76fee9e33358ca25e1280`. Pages commit `ab5d35bfa2337e5b1c0a77e0fbaad321de9721e7` changes only `blockfolk-imaginarium/index.html`. Live URL: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=ab5d35b`.
 
 The background assets, 30-sticker catalog, category order, scale, construction geometry, save schema, BlockFolk namespaces, original Imaginarium, Ueye, Pages root, and non-BlockFolk routes are unchanged. See [STABLE-SNAP-CONTROLLER-REPORT.md](STABLE-SNAP-CONTROLLER-REPORT.md) for the root-cause record and exact proof.
+
+## Stone Doorway geometry repair — FAIL pending physical Samsung review
+
+Implementation commit `fe3735fba5eb50d9b4f59b856e92d92aee9e0b68` replaces new Stone Door center overlays with an authored one-wide, two-tier topology: two lower Brick/Log jambs, two upper jambs, one lintel, and two protected opening cells. The permanent `snap-context` controller is unchanged. Legacy `backFace` saves still load without mutation, but that obsolete centered connection cannot be created again.
+
+The canonical artifact is Build ID `blockfolk-imaginarium-119b61d7d836`, `12,281,064` bytes, SHA-256 `8b3c217d3c6aa937c26a6c9a57dce94a16c88ec792bbdb049b5344375ab7be8d`. Pages commit `e981cc5c1b75c7bb170e503505b67964b8024264` changes only `blockfolk-imaginarium/index.html`; the live file is byte-identical at `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=e981cc5-2`.
+
+Focused model, 12-scene rendered doorway, full local/live phone browser, lint, typecheck, 46-file repository tests, SFHS inspect/validate/check/pack/verify, packed audit, and deterministic double-pack lanes pass. The original Imaginarium, Ueye, 30-sticker catalog, category order, emoji behavior, stable controller, and both Valley backgrounds are unchanged. See [STONE-DOORWAY-GEOMETRY-REPORT.md](STONE-DOORWAY-GEOMETRY-REPORT.md) for exact topology, rejection cases, screenshots, hashes, and integrity proof.
+
+Automated acceptance is PASS. Overall status remains **FAIL — awaiting physical Samsung review** of the visible opening and locked six-piece drag behavior.

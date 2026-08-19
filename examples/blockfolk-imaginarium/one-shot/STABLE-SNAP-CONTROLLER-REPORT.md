@@ -5,7 +5,7 @@
 - Replaced the two sibling Snap and Unsnap buttons with one permanent `snap-context` button, one permanent SFHS controller, and one control ID.
 - The permanent control changes its icon, visible label, accessible name, tooltip, state marker, and mint/lilac presentation in place. Its DOM node, focus target, controller, and duplicate-click suppression window do not change.
 - The action checks current assembly state: an independent compatible selection runs Snap; a connected selection runs Unsnap.
-- A deliberate Unsnap now displays `Sticker detached`, replacing the stale `Snapped and locked` toast.
+- A deliberate Unsnap now displays `Sticker detached.`, replacing the stale `Snapped and locked` toast.
 - The shared SFHS control package was not changed. Categories, stickers, backgrounds, construction geometry, save schema, storage namespaces, scale, camera, and puzzle behavior were not changed.
 
 ## ROOT CAUSE
@@ -19,7 +19,7 @@ The graph transaction and rigid-assembly repairs were functioning; the connectio
 - A CDP native touch on Snap activates exactly once, creates exactly one connection, retains the same DOM node and `data-sfhs-control-id`, and changes that control to accessible Unsnap state.
 - The test waits 900 ms, longer than the 800 ms suppression window, and the assembly remains connected.
 - A coordinate-based regression explicitly calls `document.elementFromPoint(x, y)` after the state change and sends the delayed click to that result. It resolves to the same control ID and does not activate Unsnap.
-- A later deliberate native touch Unsnaps exactly once, retains the same DOM/control identity, returns to Snap state, and displays `Sticker detached`.
+- A later deliberate native touch Unsnaps exactly once, retains the same DOM/control identity, returns to Snap state, and displays `Sticker detached.`.
 - Keyboard Enter and assistive `click` activation each perform exactly one contextual action without remounting the control.
 - Dragging either snapped member still moves the complete assembly; save/reload, copy, delete, undo/redo, face snapping, layering, emoji, import, puzzle, and export coverage remain green.
 - Local and live touch-enabled Chromium pass at `400 x 844` and `844 x 400` with zero console errors, page errors, and unexpected runtime requests.
