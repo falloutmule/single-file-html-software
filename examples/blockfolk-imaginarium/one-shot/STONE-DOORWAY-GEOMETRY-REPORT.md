@@ -1,4 +1,6 @@
-# BlockFolk Stone Doorway Geometry Repair
+# BlockFolk Stone Doorway Geometry Repair — SUPERSEDED / PHYSICALLY FAILED
+
+> This report records a rejected experiment, not accepted behavior. Physical Samsung screenshots disproved its automated visual claims: the implementation could reject natural overlap, then call one door beside a block column a completed locked doorway. Commit `fe3735fba5eb50d9b4f59b856e92d92aee9e0b68` was removed from new candidate generation in snapping-overhaul Phase 0. Its saved endpoint IDs remain validation-only so existing page@3 pictures are not destructively rewritten. Do not use the PASS statements below as release authority.
 
 ## WHAT WAS DONE
 

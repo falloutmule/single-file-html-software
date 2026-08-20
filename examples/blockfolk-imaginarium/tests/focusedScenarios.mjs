@@ -10,14 +10,7 @@ import { ASSET_LIMITS, mimeFromFilename } from '../src/model/assetModel.js';
 import { BUILT_IN_BACKGROUNDS, BUILT_IN_CATEGORIES, BUILT_IN_STICKERS, validateBuiltInLibrary } from '../src/model/builtInLibrary.js';
 import { BLOCKFOLK_DEFAULT_WORLD_EXTENT } from '../src/model/blockfolkStickerLibrary.js';
 import { migrateAssetCategory, migrateBuiltInCategory } from '../src/model/categoryModel.js';
-import {
-  AUTHORED_CONSTRUCTION_GEOMETRY, BUILDING_UNIT_WORLD_EXTENT, DOORWAY_COLUMN_PITCH, DOORWAY_SLOT_DEFINITIONS,
-  DOORWAY_TIER_RISE, SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_IDS, STONE_DOOR_ASSET_ID,
-  alignedDoorwayCandidates, authoredPointToWorld, connectedLayerIds, constructionScaleMultiplier,
-  doorwayCellPoint, doorwayPlacementConflict, doorwayScaleCompatible, duplicateConnections,
-  findSnapCandidate, findSnapProposal, hasAssembly, isSnappableAsset, makeConnection,
-  objectAnchor, removeMemberConnections, validConnections
-} from '../src/model/constructionModel.js';
+import { DOOR_ASSET_IDS, SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_IDS, allObjectAnchors, connectedLayerIds, duplicateConnections, findSnapCandidate, hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections } from '../src/model/constructionModel.js';
 import { isNativeEmojiSequence, splitGraphemes, validateNativeEmojiSequence } from '../src/model/emojiModel.js';
 import { PictureHistory } from '../src/model/history.js';
 import { buildPuzzleGrid, createPuzzle, DEFAULT_DIFFICULTY, elapsedRaceTime, formatRaceTime, isPieceCenterInsideDestination, isPuzzleComplete, PUZZLE_HEIGHT, PUZZLE_WIDTH, restartPuzzle, validatePuzzle } from '../src/model/puzzleModel.js';
@@ -268,122 +261,39 @@ assert.equal(clamped.y, PAGE_HEIGHT + 120, 'at least 10% of sticker height must 
 assert.equal(SNAP_TOLERANCE_SCREEN_PX, 80, 'construction snap tolerance must remain a forgiving screen-space value');
 assert.deepEqual(SNAPPABLE_ASSET_IDS, [
   'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block', 'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block', 'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block', 'sticker-blockfolk-brick-stone-block',
-  'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
-], 'only the approved construction assets may carry snap metadata');
-assert.equal(isSnappableAsset('sticker-blockfolk-wolf'), false, 'animals must remain freely placed');
+  'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
+], 'Phase 0 must expose blocks and windows, but no door, as new snap candidates');
+assert.deepEqual(DOOR_ASSET_IDS, ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door']);
 const constructionObject = (layerId, assetId, left, top = 700) => ({ blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top, angle: 0, getScaledWidth: () => 273, getScaledHeight: () => 320 });
+for (const doorAssetId of DOOR_ASSET_IDS) {
+  const door = constructionObject('door-validation', doorAssetId, 404);
+  assert.equal(isSnappableAsset(doorAssetId), false, `${doorAssetId} must not create connections during the Phase 0 gate`);
+  assert.deepEqual(allObjectAnchors(door), [], `${doorAssetId} validation anchors must never enter candidate generation`);
+}
+assert.equal(isSnappableAsset('sticker-blockfolk-wolf'), false, 'animals must remain freely placed');
 const constructionA = constructionObject('block-a', 'sticker-blockfolk-stone-block', 400);
 const constructionB = constructionObject('block-b', 'sticker-blockfolk-brick-stone-block', 510, 764);
 const constructionCandidate = findSnapCandidate({ movingObjects: [constructionA], stationaryObjects: [constructionB], worldTolerance: 4 });
 assert.ok(constructionCandidate, 'compatible isometric terrain sockets must propose a snap');
 assert.deepEqual([constructionCandidate.sourceAnchor.id, constructionCandidate.targetAnchor.id], ['southEast', 'northWest'], 'terrain blocks must use diagonal isometric sockets rather than rectangular edges');
 assert.ok(Math.abs(constructionCandidate.dx) < 4 && Math.abs(constructionCandidate.dy) < 4, 'isometric terrain sockets must align the painted diamond faces');
-const faceCandidate = findSnapCandidate({ movingObjects: [constructionObject('door-a', 'sticker-blockfolk-wood-door', 404)], stationaryObjects: [constructionA], worldTolerance: 12 });
-assert.ok(faceCandidate && faceCandidate.sourceAnchor.id === 'backFace' && faceCandidate.targetAnchor.id === 'frontFace', 'a painted building face must snap to a painted block face');
-
-assert.equal(BUILDING_UNIT_WORLD_EXTENT, 420 / (1.1 ** 10));
-assert.equal(DOORWAY_COLUMN_PITCH, 96.1322435461142);
-assert.equal(DOORWAY_TIER_RISE, 68.8194771631714);
-assert.deepEqual(AUTHORED_CONSTRUCTION_GEOMETRY[STONE_DOOR_ASSET_ID], {
-  width: 261, height: 424,
-  visibleBounds: { left: 25, top: 25, right: 235, bottom: 398 },
-  origin: { x: 130.5, y: 398 }
-});
-assert.deepEqual(AUTHORED_CONSTRUCTION_GEOMETRY['sticker-blockfolk-brick-stone-block'], {
-  width: 273, height: 325,
-  visibleBounds: { left: 25, top: 25, right: 247, bottom: 300 },
-  origin: { x: 136.5, y: 300 }
-});
-assert.deepEqual(AUTHORED_CONSTRUCTION_GEOMETRY['sticker-blockfolk-wood-log-block'], {
-  width: 274, height: 326,
-  visibleBounds: { left: 24, top: 24, right: 249, bottom: 301 },
-  origin: { x: 137, y: 301 }
-});
-assert.deepEqual(DOORWAY_SLOT_DEFINITIONS.map(({ column, tier }) => [column, tier]), [[-1, 0], [1, 0], [-1, 1], [1, 1], [0, 2]], 'the stone doorway must have two lower jambs, two upper jambs, and one lintel');
-
-const authoredObject = (layerId, assetId, left, top, multiplier = 1, extra = {}) => {
-  const geometry = AUTHORED_CONSTRUCTION_GEOMETRY[assetId]; const scale = BUILDING_UNIT_WORLD_EXTENT / geometry.height * multiplier;
-  return {
-    blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top, angle: 0, flipX: false, flipY: false,
-    scaleX: scale, scaleY: scale,
-    getScaledWidth: () => geometry.width * scale, getScaledHeight: () => geometry.height * scale,
-    ...extra
-  };
-};
-const authoredAtOrigin = (layerId, assetId, origin, multiplier = 1) => {
-  const geometry = AUTHORED_CONSTRUCTION_GEOMETRY[assetId]; const scale = BUILDING_UNIT_WORLD_EXTENT / geometry.height * multiplier;
-  return authoredObject(layerId, assetId,
-    origin.x - (geometry.origin.x - geometry.width / 2) * scale,
-    origin.y - (geometry.origin.y - geometry.height / 2) * scale,
-    multiplier);
-};
-const doorwayDoor = authoredObject('doorway-door', STONE_DOOR_ASSET_ID, 1000, 1000);
-assert.ok(Math.abs(constructionScaleMultiplier(doorwayDoor) - 1) < 1e-12, 'accepted doorway art at its default scale defines multiplier 1');
-const doorOrigin = authoredPointToWorld(doorwayDoor, AUTHORED_CONSTRUCTION_GEOMETRY[STONE_DOOR_ASSET_ID].origin);
-const lowerLeftPoint = doorwayCellPoint(doorwayDoor, -1, 0);
-const upperRightPoint = doorwayCellPoint(doorwayDoor, 1, 1);
-assert.ok(Math.abs(lowerLeftPoint.x - (doorOrigin.x - DOORWAY_COLUMN_PITCH)) < 1e-9 && Math.abs(lowerLeftPoint.y - doorOrigin.y) < 1e-9);
-assert.ok(Math.abs(upperRightPoint.x - (doorOrigin.x + DOORWAY_COLUMN_PITCH)) < 1e-9 && Math.abs(upperRightPoint.y - (doorOrigin.y - DOORWAY_TIER_RISE)) < 1e-9);
-const transformedDoor = authoredObject('doorway-transformed', STONE_DOOR_ASSET_ID, 1000, 1000, 2, { angle: 90, flipX: true });
-const transformedOrigin = authoredPointToWorld(transformedDoor, AUTHORED_CONSTRUCTION_GEOMETRY[STONE_DOOR_ASSET_ID].origin);
-const transformedSlot = doorwayCellPoint(transformedDoor, -1, 0);
-assert.ok(Math.abs(transformedSlot.x - transformedOrigin.x) < 1e-9 && Math.abs(transformedSlot.y - (transformedOrigin.y + DOORWAY_COLUMN_PITCH * 2)) < 1e-9, 'doorway cells must follow uniform resize, horizontal flip, and rotation');
-
-const lowerLeftBrick = authoredAtOrigin('jamb-left', 'sticker-blockfolk-brick-stone-block', lowerLeftPoint);
-assert.equal(doorwayScaleCompatible(doorwayDoor, lowerLeftBrick), true);
-assert.equal(doorwayScaleCompatible(doorwayDoor, authoredAtOrigin('wrong-size', 'sticker-blockfolk-brick-stone-block', lowerLeftPoint, 1.011)), false, 'doorway pieces outside the 1% construction multiplier tolerance must be rejected');
-const doorwayProposal = findSnapProposal({ movingObjects: [lowerLeftBrick], stationaryObjects: [doorwayDoor], worldTolerance: 1, connections: [] });
-assert.equal(doorwayProposal.rejectionReason, null);
-assert.deepEqual([doorwayProposal.candidate.sourceAnchor.id, doorwayProposal.candidate.targetAnchor.id], ['blockJambLowerLeft', 'doorJambLowerLeft'], 'authored jamb sockets must replace the stone door center overlay');
-assert.equal(findSnapProposal({ movingObjects: [authoredAtOrigin('wrong-size', 'sticker-blockfolk-brick-stone-block', lowerLeftPoint, 1.011)], stationaryObjects: [doorwayDoor], worldTolerance: 1, connections: [] }).rejectionReason, 'scale');
-const occupiedDoorwayConnection = makeConnection(doorwayProposal.candidate);
-assert.equal(findSnapCandidate({ movingObjects: [authoredAtOrigin('other-jamb', 'sticker-blockfolk-brick-stone-block', lowerLeftPoint)], stationaryObjects: [doorwayDoor], worldTolerance: 1, connections: [occupiedDoorwayConnection] }), null, 'an occupied authored doorway socket must not accept a duplicate block');
-
-const equalTargetB = authoredAtOrigin('target-b', 'sticker-blockfolk-brick-stone-block', lowerLeftPoint);
-const equalTargetA = authoredAtOrigin('target-a', 'sticker-blockfolk-brick-stone-block', lowerLeftPoint);
-const deterministicDoor = authoredObject('moving-door', STONE_DOOR_ASSET_ID, doorwayDoor.left, doorwayDoor.top);
-const deterministicCandidate = findSnapCandidate({ movingObjects: [deterministicDoor], stationaryObjects: [equalTargetB, equalTargetA], worldTolerance: 1, connections: [] });
-assert.equal(deterministicCandidate.target.blockfolkLayerId, 'target-a', 'equal-distance crowded candidates must resolve by stable layer ID');
-
-const blockingLower = authoredAtOrigin('blocked-lower', 'sticker-blockfolk-brick-stone-block', doorwayCellPoint(doorwayDoor, 0, 0));
-const blockingUpper = authoredAtOrigin('blocked-upper', 'sticker-blockfolk-wood-log-block', doorwayCellPoint(doorwayDoor, 0, 1));
-assert.equal(doorwayPlacementConflict([doorwayDoor, blockingLower]).cell.tier, 0, 'the lower doorway opening must remain empty');
-assert.equal(doorwayPlacementConflict([doorwayDoor, blockingUpper]).cell.tier, 1, 'the upper doorway opening must remain empty');
-assert.equal(doorwayPlacementConflict([doorwayDoor, lowerLeftBrick]), null, 'jamb blocks must not be mistaken for an occupied opening');
-assert.equal(doorwayPlacementConflict([doorwayDoor, lowerLeftBrick, authoredAtOrigin('duplicate-left', 'sticker-blockfolk-brick-stone-block', lowerLeftPoint)]).kind, 'duplicate', 'two blocks must never occupy one authored doorway socket');
-
-const doorwayBlocks = DOORWAY_SLOT_DEFINITIONS.map((slot, index) => authoredAtOrigin(`door-block-${index}`, 'sticker-blockfolk-brick-stone-block', doorwayCellPoint(doorwayDoor, slot.column, slot.tier)));
-const primaryDoorConnection = makeConnection({
-  source: doorwayDoor, sourceAnchor: objectAnchor(doorwayDoor, DOORWAY_SLOT_DEFINITIONS[0].doorAnchorId),
-  target: doorwayBlocks[0], targetAnchor: objectAnchor(doorwayBlocks[0], DOORWAY_SLOT_DEFINITIONS[0].blockAnchorId)
-});
-const wallGraphConnections = doorwayBlocks.slice(1).map((block, index) => ({
-  id: `wall-link-${index}`, aLayerId: doorwayBlocks[index].blockfolkLayerId, bLayerId: block.blockfolkLayerId,
-  aAssetId: doorwayBlocks[index].blockfolkAssetId, bAssetId: block.blockfolkAssetId,
-  aAnchorId: 'southEast', bAnchorId: 'northWest'
-}));
-const wallFirstAligned = alignedDoorwayCandidates({
-  objects: [doorwayDoor, ...doorwayBlocks], connections: [primaryDoorConnection, ...wallGraphConnections],
-  seedLayerIds: new Set([doorwayDoor.blockfolkLayerId, doorwayBlocks[0].blockfolkLayerId])
-});
-assert.equal(wallFirstAligned.length, 4, 'inserting a door into a connected five-block opening must atomically discover the other four authored sockets');
-const completedDoorwayConnections = validConnections([
-  primaryDoorConnection, ...wallGraphConnections, ...wallFirstAligned.map((candidate) => makeConnection(candidate))
-], new Set([doorwayDoor.blockfolkLayerId, ...doorwayBlocks.map((block) => block.blockfolkLayerId)]));
-assert.deepEqual([...connectedLayerIds(completedDoorwayConnections, doorwayDoor.blockfolkLayerId)].sort(), [doorwayDoor.blockfolkLayerId, ...doorwayBlocks.map((block) => block.blockfolkLayerId)].sort(), 'door-first and wall-first authored connections must produce one six-piece assembly graph');
-
-const legacyDoorConnection = {
-  id: 'legacy-stone-door-overlay', aLayerId: 'legacy-door', bLayerId: 'legacy-block',
-  aAssetId: STONE_DOOR_ASSET_ID, bAssetId: 'sticker-blockfolk-brick-stone-block',
-  aAnchorId: 'backFace', bAnchorId: 'frontFace'
-};
-assert.equal(validConnections([legacyDoorConnection], new Set(['legacy-door', 'legacy-block'])).length, 1, 'saved Stone Door backFace overlays must remain validation-only and load unchanged');
-assert.notEqual(findSnapCandidate({ movingObjects: [doorwayDoor], stationaryObjects: [lowerLeftBrick], worldTolerance: 1000, connections: [] }).sourceAnchor.id, 'backFace', 'new Stone Door candidates must never recreate the legacy center overlay');
+const disabledDoorCandidate = findSnapCandidate({ movingObjects: [constructionObject('door-a', 'sticker-blockfolk-wood-door', 404)], stationaryObjects: [constructionA], worldTolerance: 12 });
+assert.equal(disabledDoorCandidate, null, 'Phase 0 must not revive the failed centered door-over-block snap');
+const faceCandidate = findSnapCandidate({ movingObjects: [constructionObject('window-a', 'sticker-blockfolk-square-window', 404)], stationaryObjects: [constructionA], worldTolerance: 12 });
+assert.ok(faceCandidate && faceCandidate.sourceAnchor.id === 'backFace' && faceCandidate.targetAnchor.id === 'frontFace', 'window face snapping must remain available during the doorway gate');
 const constructionConnection = makeConnection(constructionCandidate);
 const constructionConnections = validConnections([constructionConnection], new Set(['block-a', 'block-b']));
 assert.equal(constructionConnections.length, 1, 'a valid connection must survive normalization');
 const legacyConstructionConnection = { ...constructionConnection, id: 'legacy-connection', aAnchorId: 'right', bAnchorId: 'left' };
 assert.equal(validConnections([legacyConstructionConnection], new Set(['block-a', 'block-b'])).length, 1, 'saved cardinal connections from the earlier build must remain valid without becoming new snap candidates');
+const failedDoorwayConnection = {
+  id: 'failed-doorway-connection', aLayerId: 'legacy-door', bLayerId: 'legacy-block',
+  aAssetId: 'sticker-blockfolk-stone-door', bAssetId: 'sticker-blockfolk-brick-stone-block',
+  aAnchorId: 'doorJambLowerLeft', bAnchorId: 'blockJambLowerLeft'
+};
+assert.equal(validConnections([failedDoorwayConnection], new Set(['legacy-door', 'legacy-block'])).length, 1, 'failed doorway endpoint IDs must remain loadable as validation-only legacy data');
+const legacyOverlayConnection = { ...failedDoorwayConnection, id: 'legacy-overlay-connection', aAnchorId: 'backFace', bAnchorId: 'frontFace' };
+assert.equal(validConnections([legacyOverlayConnection], new Set(['legacy-door', 'legacy-block'])).length, 1, 'older door overlay connections must remain loadable without becoming new candidates');
 assert.deepEqual([...connectedLayerIds(constructionConnections, 'block-a')].sort(), ['block-a', 'block-b']);
 assert.equal(hasAssembly(constructionConnections, 'block-a'), true, 'a two-member connection is an assembly');
 assert.equal(removeMemberConnections(constructionConnections, 'block-a').length, 0, 'Unsnap removes only the selected member links');

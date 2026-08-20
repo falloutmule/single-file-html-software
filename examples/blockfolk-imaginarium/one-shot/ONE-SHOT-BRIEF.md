@@ -1,5 +1,5 @@
-# BlockFolk First Production Build Brief
+# BlockFolk Snapping Overhaul — Phase 0 Brief
 
-Status: `PASS` — implementation, verification, branch push, and isolated Pages publication complete.
+Status: `IMPLEMENT` — restore and publish an honest baseline before the new typed snapping engine begins.
 
-Restore the 30 unchanged, accepted transparent BlockFolk PNG stickers from the original Imaginarium asset set into the isolated six-category BlockFolk catalog. Preserve the accepted 4096 × 4096 Valley world, native Unicode emoji, camera/editor mechanics, persistence isolation, button repairs, and offline one-file delivery. Publish the exact verified artifact only at the dedicated GitHub Pages subpath `/blockfolk-imaginarium/` while preserving the Pages root and original Imaginarium route.
+Remove the physically disproved Stone Door geometry introduced by `fe3735f` without replacing or destabilizing the permanent Snap/Unsnap controller from `1757d05`. Disable creation of new door connections until calibrated typed door profiles exist, retain validation-only support for saves containing failed doorway endpoints, correct the superseded success report, and publish the exact verified baseline only at `/blockfolk-imaginarium/`. Stop at the physical Samsung gate before implementing the renderer-neutral core.

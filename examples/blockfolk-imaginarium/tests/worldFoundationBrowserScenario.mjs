@@ -65,30 +65,6 @@ async function nativeTouchTap(selector) {
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 }
 
-async function retargetedCompatibilityTap(selector) {
-  return page.evaluate(async (controlSelector) => {
-    const app = window.BlockFolkImaginarium.app;
-    const control = document.querySelector(controlSelector);
-    const root = control.closest('.sfhs-cf-root');
-    const before = app.controls.activationCount;
-    const rect = control.getBoundingClientRect();
-    const options = { bubbles: true, cancelable: true, pointerId: 93, pointerType: 'touch', isPrimary: true, button: 0, buttons: 1, clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 };
-    control.dispatchEvent(new PointerEvent('pointerdown', options));
-    control.dispatchEvent(new PointerEvent('pointerup', { ...options, buttons: 0 }));
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 40));
-    const retarget = document.elementFromPoint(options.clientX, options.clientY);
-    retarget.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1, clientX: options.clientX, clientY: options.clientY }));
-    await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
-    return {
-      activations: app.controls.activationCount - before,
-      sameRoot: root === window.__blockfolkSnapContextRoot,
-      retargetControlId: retarget.closest('.sfhs-cf-root')?.dataset.sfhsControlId,
-      controlId: root.dataset.sfhsControlId,
-      contextState: root.dataset.contextState
-    };
-  }, selector);
-}
-
 const cameraState = () => page.evaluate(() => structuredClone(window.BlockFolkImaginarium.diagnostics().world));
 const stickerState = () => page.evaluate(() => {
   const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas();
@@ -386,7 +362,7 @@ const forgivingCatchDistance = await page.evaluate(() => {
   // the phone catch area is forgiving rather than requiring a perfect drop.
   for (let offset = -560; offset <= 560; offset += 2) {
     brick.set({ left: 1998 + offset, top: 2050 }); brick.setCoords();
-    const candidate = app.proposeSnap([stone]).candidate; const screenDistance = candidate ? candidate.distance * app.canvas.viewportTransform[0] : Infinity;
+    const candidate = app.proposeSnap([stone]); const screenDistance = candidate ? candidate.distance * app.canvas.viewportTransform[0] : Infinity;
     if (screenDistance >= 60 && screenDistance <= 75) { app.canvas.requestRenderAll(); return screenDistance; }
   }
   return null;
@@ -504,34 +480,18 @@ await page.waitForFunction(() => window.BlockFolkImaginarium.app.current.connect
 assert.deepEqual(await page.evaluate((before) => { const app = window.BlockFolkImaginarium.app; const root = app.root.querySelector('[data-action="snap-context"]').closest('.sfhs-cf-root'); return { activationDelta: app.controls.activationCount - before, connections: app.current.connections.length, state: root.dataset.contextState, sameRoot: root === window.__blockfolkSnapContextRoot }; }, assistiveUnsnapBefore), { activationDelta: 1, connections: 0, state: 'snap', sameRoot: true }, 'assistive click activation must Unsnap once without replacing the contextual controller');
 await page.screenshot({ path: resolve(evidenceDirectory, 'construction-toolbar-and-assembly-400x844.png'), fullPage: true });
 
-// Reproduce the physical-phone Stone Door / Brick Block command with the
-// authored lower-right jamb socket. It must land beside the opening, lock, and
-// expose Unsnap only after button press.
+// Phase 0 release gate: doors must not create new connections while the typed
+// construction profiles are being rebuilt. This specifically prevents the
+// failed centered door-over-block fallback from returning.
 await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
   await app.addSticker('sticker-blockfolk-stone-door'); await app.addSticker('sticker-blockfolk-brick-stone-block');
   const [door, block] = app.canvas.getObjects(); const scale = app.canvas.viewportTransform[0];
-  door.set({ left: 1850, top: 2050 }); const doorOriginY = door.top + (398 - 424 / 2) * door.scaleY; const blockOriginOffsetY = (300 - 325 / 2) * block.scaleY;
-  block.set({ left: door.left + 96.1322435461142 + 65 / scale, top: doorOriginY - blockOriginOffsetY }); door.setCoords(); block.setCoords(); app.canvas.setActiveObject(block); app.syncCurrentFromCanvas(); app.updateSelection();
+  door.set({ left: 1850, top: 2050 }); block.set({ left: 1850 + 65 / scale, top: 2050 }); door.setCoords(); block.setCoords(); app.canvas.setActiveObject(door); app.syncCurrentFromCanvas(); app.updateSelection();
 });
-constructionStart = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; const block = app.canvas.getObjects()[1]; const t = app.canvas.viewportTransform; return { x: block.left * t[0] + t[4], y: block.top * t[3] + t[5], worldX: block.left, scale: t[0] }; });
-await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await pointer('pointermove', 1, constructionStart.x + 3, constructionStart.y);
-await pointer('pointerup', 1, constructionStart.x + 3, constructionStart.y);
-assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'a face piece must not auto-snap during drag');
-const retargetProof = await retargetedCompatibilityTap('#selection-toolbar [data-action="snap-context"]');
-assert.deepEqual(retargetProof, { activations: 1, sameRoot: true, retargetControlId: retargetProof.controlId, controlId: retargetProof.controlId, contextState: 'unsnap' }, 'a delayed coordinate-retargeted click must return to the same controller and be suppressed');
-const faceSnapProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const objects = app.canvas.getObjects(); const door = objects.find((object) => object.blockfolkAssetId === 'sticker-blockfolk-stone-door'); const block = objects.find((object) => object.blockfolkAssetId === 'sticker-blockfolk-brick-stone-block'); const control = app.root.querySelector('[data-action="snap-context"]'); const root = control.closest('.sfhs-cf-root'); return { connections: structuredClone(app.current.connections), doorX: door.left, blockX: block.left, doorLayer: objects.indexOf(door), blockLayer: objects.indexOf(block), members: [...app.selectedMemberIds(block)], contextState: root.dataset.contextState, controlId: root.dataset.sfhsControlId, sameRoot: root === window.__blockfolkSnapContextRoot, toast: document.querySelector('#toast').textContent }; });
-assert.equal(faceSnapProof.connections.length, 1, 'a Snap press must attach the Brick Block to one authored Stone Door jamb socket');
-assert.deepEqual([faceSnapProof.connections[0].aAnchorId, faceSnapProof.connections[0].bAnchorId].sort(), ['blockJambLowerRight', 'doorJambLowerRight'], 'the Stone Door snap must use authored jamb geometry rather than the legacy center overlay');
-assert.ok(Math.abs(faceSnapProof.blockX - constructionStart.worldX) * constructionStart.scale >= 60, 'the authored jamb case must visibly move into its painted landing');
-assert.ok(Math.abs((faceSnapProof.blockX - faceSnapProof.doorX) - 96.1322435461142) < .01, 'the Brick Block must remain one authored column pitch beside the doorway');
-assert.ok(faceSnapProof.doorLayer > faceSnapProof.blockLayer, 'the Stone Door frame must render above its connected jamb instead of disappearing behind it');
-assert.equal(faceSnapProof.members.length, 2, 'the reported face case must resolve to one two-member assembly');
-assert.equal(faceSnapProof.contextState, 'unsnap', 'Snap must change in place to Unsnap for the locked Stone Door / Brick Block assembly');
-assert.equal(faceSnapProof.sameRoot, true, 'the exact reported face case must keep the same contextual control DOM node');
-assert.equal(faceSnapProof.controlId, snapContextIdentity.controlId, 'the exact reported face case must keep the same contextual control ID');
-assert.equal(faceSnapProof.toast, 'Snapped and locked', 'the command must visibly confirm that a successful snap remains locked');
-await page.screenshot({ path: resolve(evidenceDirectory, 'stone-door-brick-jamb-locked-400x844.png'), fullPage: true });
+const doorGateProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const control = app.root.querySelector('[data-action="snap-context"]'); const root = control.closest('.sfhs-cf-root'); return { connections: app.current.connections.length, disabled: control.disabled, contextState: root.dataset.contextState, controlId: root.dataset.sfhsControlId, sameRoot: root === window.__blockfolkSnapContextRoot }; });
+assert.deepEqual(doorGateProof, { connections: 0, disabled: true, contextState: 'snap', controlId: snapContextIdentity.controlId, sameRoot: true }, 'Stone Door must preserve the permanent controller while new door snapping is creator-disabled');
+await page.screenshot({ path: resolve(evidenceDirectory, 'door-snapping-phase0-disabled-400x844.png'), fullPage: true });
 
 // Behind/In Front must change both serialized order and the rendered overlap.
 await page.evaluate(async () => {

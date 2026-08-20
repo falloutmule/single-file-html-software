@@ -61,3 +61,14 @@
 - Status: `RESOLVED FOR RENDERING; ASSET REPLACEMENT NOT AUTHORIZED`
 - Observed: the physical phone perceived the accepted Valley as softer than stickers.
 - Resolution: inspect the source, shipping asset, high-DPI canvas backing, smoothing, in-app canvas crop, and browser crop. Enforce high-quality Retina canvas rendering and retain a labeled comparison only. No production map byte changed and no ComfyUI dependency was installed.
+
+## BFS-001 — Doorway geometry encoded the rejected phone result as success
+
+- Phase: snapping overhaul Phase 0
+- Status: `MITIGATED IN PHASE 0 — PHYSICAL GATE PENDING`
+- Severity: blocking
+- Observed: physical Samsung screenshots show the failed implementation rejecting natural overlap with `Keep doorway clear`, then treating one door beside a block column as a successful locked doorway relationship.
+- Expected: no known-wrong door connection may be created or advertised as successful while the typed two-plane snapping engine is uncalibrated.
+- Best explanation: five fake block roles shared one physical point; raw port pairs rather than final poses were evaluated; one graph edge was confused with formation completion; browser fixtures arranged success with production constants.
+- Resolution: additively removed the failed geometry and circular doorway acceptance, disabled new door candidates, preserved validation-only legacy endpoints, and corrected the superseded report. Publication and Samsung review remain the Phase 0 gate.
+- Verification: focused source tests, packed audit, native-touch stable-controller regression, save compatibility, phone Chromium, deterministic pack, live byte identity, and physical Samsung review.

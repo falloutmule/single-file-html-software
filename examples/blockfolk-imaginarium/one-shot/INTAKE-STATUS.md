@@ -17,3 +17,8 @@
 - Production-catalog implementation commit: `b0111b24a2916ecc779d7eb5e435fc700142f447`
 - Pages publication commit: `ebe9a23cb792d774e32e5ff8bd6d591854667059`
 - Live acceptance route: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/`
+- Current card: snapping overhaul Phase 0 honest baseline
+- Current classification: `IMPLEMENT`
+- Verified Phase 0 starting HEAD: `06e900b5cf717ce883acb77a4ac11fdfc3caadb4`
+- Verified starting Pages tip: `e981cc5c1b75c7bb170e503505b67964b8024264`
+- Physical authority: the August 19 Samsung result supersedes the doorway PASS claim; Phase 0 must publish before the new engine begins.

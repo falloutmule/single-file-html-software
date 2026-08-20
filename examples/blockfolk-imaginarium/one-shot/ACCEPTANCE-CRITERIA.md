@@ -10,6 +10,17 @@
 
 All criteria passed for the first testable production build. Physical-phone subjective feel and device-specific native-emoji glyph coverage remain user-acceptance observations, not automated failures.
 
+## Snapping overhaul Phase 0 — IN PROGRESS
+
+- The failed doorway geometry, hidden-cell rejection, automatic multi-edge wiring, and doorway-only layer sorting are absent from new candidate generation.
+- Stone and Wooden Doors cannot create new snap edges before calibrated typed profiles exist; no center-overlay fallback returns.
+- Existing page@3 pictures containing failed doorway endpoint IDs still load with sticker transforms and stored edges unchanged until intentional Unsnap or the later versioned migration.
+- The permanent Snap/Unsnap DOM node, control ID, duplicate-click suppression, press/release cues, generic block/window snapping, and assembly actions remain operational.
+- The superseded doorway report is marked failed by physical evidence, and no automated lane claims doorway visual acceptance.
+- Canonical SFHS validation, checking, packing, exact verification, packed/offline audit, deterministic double build, local/live portrait and landscape Chromium, and integrity comparisons pass.
+- Only the BlockFolk Pages artifact changes; Pages root and unrelated routes remain byte-identical.
+- Phase 0 remains `FAIL — awaiting physical Samsung acceptance` after automated publication proof.
+
 ## Construction pass — PASS
 
 - New art sticker defaults equal exactly six prior Smaller steps; existing saves retain their stored scale.
