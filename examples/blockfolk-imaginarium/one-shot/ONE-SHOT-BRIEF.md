@@ -1,6 +1,6 @@
 # BlockFolk Snapping Overhaul — Phase 0 Brief
 
-Status: `PHASE 1 PASS / PHASE 2 IN PROGRESS` — the renderer-neutral core is implemented, verified, pushed, and published without enabling production doorway behavior. Phase 2 is calibrating Brick and Log against their real transparent pixels in a non-shipping visual harness. No candidate geometry is production-enabled.
+Status: `PHASE 2 PASS` — the renderer-neutral core remains isolated, and the Brick/Log calibration harness now has independently measured pixels, corrected isometric vectors, deterministic export/import, and rendered portrait/landscape evidence. No candidate geometry is production-enabled. Continuing to the next guarded pilot phase under the user's instruction not to stop unnecessarily.
 
 Remove the physically disproved Stone Door geometry introduced by `fe3735f` without replacing or destabilizing the permanent Snap/Unsnap controller from `1757d05`. Disable creation of new door connections until calibrated typed door profiles exist, retain validation-only support for saves containing failed doorway endpoints, correct the superseded success report, and publish the exact verified baseline only at `/blockfolk-imaginarium/`. Stop at the physical Samsung gate before implementing the renderer-neutral core.
 

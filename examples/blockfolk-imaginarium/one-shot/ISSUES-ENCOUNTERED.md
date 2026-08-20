@@ -87,8 +87,9 @@
 ## BFS-003 — Brick/Log geometry requires independent visual calibration
 
 - Phase: snapping overhaul Phase 2
-- Status: `IN PROGRESS — NON-SHIPPING`
+- Status: `RESOLVED FOR PHASE 2 — PRODUCTION PILOT STILL GUARDED`
 - Severity: blocking for the production pilot
 - Risk: deriving ports from full rectangular bounds or recycling the failed doorway constants would reproduce visually wrong placement while model tests merely validate the same bad assumptions.
 - Guard: measure alpha bounds from the accepted PNGs, render draggable construction origins/ports/normals over the real art, compare both wall planes and Flip, export deterministic calibration JSON, and keep every candidate profile `productionEnabled: false`.
-- Exit: independent fixtures and portrait/landscape rendered evidence agree on Brick/Log alignment without drift; no production path imports the candidate profiles.
+- Resolution: exact alpha bounds were measured from both accepted PNGs; the first `(54.3,36.4)` column candidate was visibly rejected as too steep; reviewed evidence uses shared world column `(55.6,32.1)` and tier `(0,-73.1)` with deterministic export/import.
+- Verification: independent model fixtures, runtime alpha scanning, four portrait/landscape screenshots, lint, typecheck, 316 repository tests plus 2 documented skips, focused source/static checks, and zero-error/no-external-request browser proof pass. No production path imports the candidate profiles.
