@@ -13,7 +13,7 @@ import {
 } from '../model/pageModel.js';
 import { createStableId } from '../model/ids.js';
 import {
-  SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_METADATA, connectedLayerIds, duplicateConnections, findSnapCandidate,
+  SNAP_CORE_RUNTIME_BOUNDARY, SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_METADATA, connectedLayerIds, duplicateConnections, findSnapCandidate,
   hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
@@ -1108,6 +1108,7 @@ export class BlockFolkImaginariumApp {
         imageSmoothingQuality: this.canvas.contextContainer?.imageSmoothingQuality ?? null
       },
       storageMode: this.storage.mode,
+      snapCore: SNAP_CORE_RUNTIME_BOUNDARY,
       controlFeedback: this.controls?.diagnostics() || null,
       puzzle: this.puzzle?.diagnostics() || null,
       externalRuntimeUrls: []

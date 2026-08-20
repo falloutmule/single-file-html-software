@@ -1,4 +1,5 @@
 import { createStableId } from './ids.js';
+export { SNAP_CORE_RUNTIME_BOUNDARY } from './snap/runtimeBoundary.js';
 
 // These anchors describe the painted footprint rather than the transparent PNG
 // rectangle. Values are fractions of the scaled half-width/half-height.

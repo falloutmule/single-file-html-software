@@ -16,3 +16,6 @@
 - `VERIFIED`: Phase 0 uses additive history, preserves the permanent `snap-context` controller, and removes new Stone/Wood Door candidate creation instead of restoring center-overlay snapping.
 - `VERIFIED`: failed `doorJamb*` and `blockJamb*` endpoint definitions remain validation-only in Phase 0 so existing page@3 pictures load without deleting stickers, coordinates, scale, Flip, or z-order.
 - `VERIFIED`: the approved overhaul will later use all ten block assets, both doors, two discrete isometric wall planes, one-edge-per-activation pose consensus, and component-wide editing; none of that new engine is implemented before the Phase 0 physical gate.
+- `VERIFIED`: Phase 1 is a renderer-neutral, non-production-enabling core. It may define real versioned profiles but the live app continues through the proven page@3 compatibility boundary until a later pilot explicitly switches assets.
+- `VERIFIED`: candidate ambiguity is evaluated after grouping raw port matches by equivalent final pose; supporting matches strengthen one pose and can never create extra edges.
+- `VERIFIED`: Phase 1 exports calibration policy values from one module; provisional tolerances are test policy, not physically approved production calibration.

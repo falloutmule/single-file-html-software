@@ -9,7 +9,8 @@
     "node": ">=22.18.0"
   },
   "scripts": {
-    "test:source": "node tests/focusedScenarios.mjs && node tools/static-audit.mjs",
+    "test:snap-core": "node tests/snap/rendererNeutralCore.mjs",
+    "test:source": "node tests/focusedScenarios.mjs && node tests/snap/rendererNeutralCore.mjs && node tools/static-audit.mjs",
     "test:browser": "node tests/worldFoundationBrowserScenario.mjs",
     "test:background": "node tests/backgroundSharpnessDiagnosis.mjs",
     "test:packed": "node tools/packed-audit.mjs"

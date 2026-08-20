@@ -117,6 +117,11 @@ await page.evaluate(async () => {
 await page.reload({ waitUntil: 'load' });
 await page.locator('#app[data-boot="ready"]').waitFor();
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.storage.mode), 'indexeddb');
+assert.deepEqual(await page.evaluate(() => window.BlockFolkImaginarium.diagnostics().snapCore), {
+  productionEngine: 'page@3-compatibility', typedCoreAvailable: true,
+  typedProfileSchemaVersion: 1, typedConnectionSchemaVersion: 1,
+  productionEnabledTypedProfiles: 0
+}, 'the packed Phase 1 core must remain observable but unable to replace accepted page@3 behavior');
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.category), 'building', 'old Things selection must migrate without touching the original namespace');
 assert.equal(JSON.parse(await page.evaluate(() => localStorage.getItem('blockfolk-imaginarium.preferences@1'))).category, 'building');
 

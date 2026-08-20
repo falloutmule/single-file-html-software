@@ -72,3 +72,13 @@
 - Best explanation: five fake block roles shared one physical point; raw port pairs rather than final poses were evaluated; one graph edge was confused with formation completion; browser fixtures arranged success with production constants.
 - Resolution: additively removed the failed geometry and circular doorway acceptance, disabled new door candidates, preserved validation-only legacy endpoints, and corrected the superseded report. Publication and Samsung review remain the Phase 0 gate.
 - Verification: focused source tests, packed audit, native-touch stable-controller regression, save compatibility, phone Chromium, deterministic pack, live byte identity, and physical Samsung review.
+
+## BFS-002 — Renderer-neutral core must not leak into accepted production behavior
+
+- Phase: snapping overhaul Phase 1
+- Status: `RESOLVED LOCALLY — PUBLICATION PENDING`
+- Severity: high
+- Risk: a foundational refactor could silently change page@3 saves, controller behavior, current block/window snapping, or packed output before calibration and a pilot are approved.
+- Guard: add the core in isolated modules with independent fixtures and property tests; do not import it into `ImaginariumApp.js` or replace the compatibility model during Phase 1.
+- Failure modes guarded: A, B, C, D, F, Q, S, and T; mobile H/I/K/M/N/P behavior is covered by the unchanged packed-browser regression.
+- Resolution: the app imports only a frozen runtime-boundary diagnostic. It reports `page@3-compatibility`, typed schemas `1`, and zero production-enabled typed profiles. Candidate, graph, and transaction modules remain renderer-neutral and production behavior is unchanged.

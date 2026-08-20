@@ -26,3 +26,6 @@
 - Phase 0 Pages commit: `0897bb987421818eddfd53c166c361e5ff29282c`
 - Phase 0 live route: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=0897bb9-3`
 - Current gate: `FAIL — awaiting physical Samsung acceptance`; Phase 1 is not authorized to start until that verdict.
+- Superseding user authority: continue beyond the Phase 0 gate unless a genuine blocker is encountered.
+- Current card: snapping overhaul Phase 1 renderer-neutral core.
+- Phase 1 starting HEAD: `5111da10beb902a00ed3e7da96e5472d18170542`.
