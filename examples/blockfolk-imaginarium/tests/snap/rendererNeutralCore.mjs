@@ -31,7 +31,7 @@ import { fixtureObject, MOVING_ASSET_ID, REVIEWED_EXPECTATIONS, SNAP_FIXTURE_PRO
 
 assert.equal(SNAP_PROFILE_SCHEMA_VERSION, 1);
 assert.equal(SNAP_CONNECTION_SCHEMA_VERSION, 1);
-assert.equal(PROVISIONAL_SNAP_POLICY.calibrated, false, 'Phase 1 policy must not pretend to be physically calibrated');
+assert.equal(PROVISIONAL_SNAP_POLICY.calibrated, true, 'accepted BlockFolk construction policy must be calibrated');
 assert.deepEqual(BLOCK_CONSTRUCTION_ASSET_IDS, [
   'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block',
   'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block',
@@ -41,20 +41,15 @@ assert.deepEqual(BLOCK_CONSTRUCTION_ASSET_IDS, [
 assert.deepEqual(DOOR_CONSTRUCTION_ASSET_IDS, ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door']);
 assert.deepEqual(WINDOW_CONSTRUCTION_ASSET_IDS, ['sticker-blockfolk-square-window', 'sticker-blockfolk-round-window']);
 assert.equal(CONSTRUCTION_ASSET_IDS.length, 14);
-const productionPilotIds = new Set(['sticker-blockfolk-brick-stone-block', 'sticker-blockfolk-wood-log-block']);
 for (const assetId of CONSTRUCTION_ASSET_IDS) {
   const profile = ASSET_CONSTRUCTION_PROFILES[assetId];
-  assert.equal(validateConstructionProfile(profile), true, `${assetId} must have a valid versioned profile shell`);
-  if (productionPilotIds.has(assetId)) {
-    assert.equal(profile.productionEnabled, true, `${assetId} must be enabled in the guarded Phase 3 pilot`);
-    assert.equal(profile.calibrationStatus, 'phase3-pilot');
-    assert.deepEqual(profile.ports.map(({ id }) => id), ['cellMount', 'wallLeft', 'wallRight', 'stackTop', 'stackBase', 'wallFace']);
-  } else {
-    assert.equal(profile.productionEnabled, false, `${assetId} must remain outside production candidate generation`);
-    assert.equal(profile.calibrationStatus, 'uncalibrated');
-    assert.deepEqual(profile.ports, []);
-  }
+  assert.equal(validateConstructionProfile(profile), true, `${assetId} must have a valid versioned profile`);
+  assert.equal(profile.productionEnabled, true, `${assetId} must use typed construction`);
+  assert.equal(profile.calibrationStatus, 'typed-building-v1');
+  assert.ok(profile.ports.length >= 1);
 }
+assert.equal(ASSET_CONSTRUCTION_PROFILES['sticker-blockfolk-stone-door'].ports.length, 5);
+assert.deepEqual(ASSET_CONSTRUCTION_PROFILES['sticker-blockfolk-square-window'].ports.map(({ id }) => id), ['wallMount']);
 
 const movingProfile = SNAP_FIXTURE_PROFILES[MOVING_ASSET_ID];
 const targetProfile = SNAP_FIXTURE_PROFILES[TARGET_ASSET_ID];

@@ -5,6 +5,7 @@ import { connectedComponentLayerIds, removeIncidentConnections } from '../../src
 import { applySnapTransaction, planSnapTransaction } from '../../src/model/snap/snapTransaction.js';
 import { isTypedSnapConnection, validConnections } from '../../src/model/constructionModel.js';
 import { createPicture, createSticker, normalizePicture } from '../../src/model/pageModel.js';
+import { BLOCK_CONSTRUCTION_ASSET_IDS, DOOR_CONSTRUCTION_ASSET_IDS, WINDOW_CONSTRUCTION_ASSET_IDS } from '../../src/model/snap/assetProfiles.js';
 
 const BRICK = 'sticker-blockfolk-brick-stone-block';
 const LOG = 'sticker-blockfolk-wood-log-block';
@@ -19,6 +20,18 @@ const candidateFor = (moving, target, extra = {}) => findTypedSnapCandidate({
 assert.equal(brickProfile.productionEnabled, true); assert.equal(logProfile.productionEnabled, true);
 assert.equal(brickProfile.canonicalInsertScale * brickProfile.sourceSize.height, 420 / (1.1 ** 10));
 assert.equal(logProfile.canonicalInsertScale * logProfile.sourceSize.height, 420 / (1.1 ** 10));
+for (const assetId of BLOCK_CONSTRUCTION_ASSET_IDS) {
+  const profile = ASSET_CONSTRUCTION_PROFILES[assetId];
+  assert.equal(profile.productionEnabled, true);
+  assert.ok(Math.abs(profile.canonicalInsertScale * profile.sourceSize.height - 420 / (1.1 ** 10)) < 1e-9, `${assetId} must enter at the common construction-unit extent`);
+  const candidate = candidateFor(object(`moving-${assetId}`, assetId, 70, 35), object(`target-${assetId}`, BRICK, 0, 0));
+  assert.equal(candidate.rejectionReason, null, `${assetId} must connect through the typed wall plane`);
+  assert.deepEqual([candidate.candidate.movingPortId, candidate.candidate.targetPortId], ['wallLeft', 'wallRight']);
+}
+for (const assetId of [...DOOR_CONSTRUCTION_ASSET_IDS, ...WINDOW_CONSTRUCTION_ASSET_IDS]) {
+  assert.equal(ASSET_CONSTRUCTION_PROFILES[assetId].productionEnabled, true);
+  assert.ok(ASSET_CONSTRUCTION_PROFILES[assetId].canonicalInsertScale > 0, `${assetId} must have an authored insertion scale`);
+}
 
 const targetBrick = object('brick-target', BRICK, 0, 0);
 const horizontalBrick = object('brick-moving', BRICK, 70, 35);
@@ -71,5 +84,5 @@ oldScalePicture.stickers = [createSticker(BRICK, { layerId: 'old-brick', scale: 
 assert.equal(normalizePicture(oldScalePicture).stickers[0].scaleX, .81, 'existing saved sticker sizes must remain authoritative');
 
 console.log('BLOCKFOLK_BLOCK_PILOT_MODEL PASS', JSON.stringify({
-  productionProfiles: 2, horizontalPorts: ['wallLeft', 'wallRight'], verticalPorts: ['stackBase', 'stackTop'], typedEdges: normalized.connections.length
+  productionProfiles: Object.values(ASSET_CONSTRUCTION_PROFILES).filter(({ productionEnabled }) => productionEnabled).length, horizontalPorts: ['wallLeft', 'wallRight'], verticalPorts: ['stackBase', 'stackTop'], typedEdges: normalized.connections.length
 }));

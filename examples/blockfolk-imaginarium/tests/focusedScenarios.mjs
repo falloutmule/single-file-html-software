@@ -17,9 +17,9 @@ import { buildPuzzleGrid, createPuzzle, DEFAULT_DIFFICULTY, elapsedRaceTime, for
 import { drawFramedImage, fitGeometry } from '../src/model/puzzleImage.js';
 import { createStableId, resetIdCounterForTests } from '../src/model/ids.js';
 import {
-  GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, PAGE_HEIGHT, PAGE_SCHEMA, PAGE_WIDTH, PREVIOUS_PAGE_SCHEMA, clampStickerPosition,
+  GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, PAGE_HEIGHT, PAGE_SCHEMA, PAGE_WIDTH, PRE_CONSTRUCTION_PAGE_SCHEMA, PREVIOUS_PAGE_SCHEMA, clampStickerPosition,
   createPicture, createSticker, duplicatePicture, duplicateSticker, flipSticker, mapChildSafeError, moveStickerOneStep,
-  normalizePicture, resizeSticker, rotateSticker, validatePicture
+  normalizePicture, normalizePictureDetailed, resizeSticker, rotateSticker, validatePicture
 } from '../src/model/pageModel.js';
 import { BlockFolkImaginariumStorage, DB_NAME, PREFERENCE_KEY } from '../src/model/storage.js';
 import { PACK_SCHEMA, inferPackManifest, normalizeArchivePath, resolveImportCategory, safeId, validatePackManifest } from '../src/model/stickerPacks.js';
@@ -217,12 +217,31 @@ assert.equal(migratedWorldPicture.stickers[0].x, 2048);
 assert.equal(migratedWorldPicture.stickers[0].y, 2048);
 assert.equal(migratedWorldPicture.stickers[0].assetId, 'local-piece', 'legacy migration must preserve user content');
 const preConstructionPicture = createPicture({ id: 'pre-construction', now: '2026-08-18T00:00:00.000Z' });
-preConstructionPicture.schema = PREVIOUS_PAGE_SCHEMA; delete preConstructionPicture.connections;
+preConstructionPicture.schema = PRE_CONSTRUCTION_PAGE_SCHEMA; delete preConstructionPicture.connections;
 preConstructionPicture.stickers.push({ ...createSticker('sticker-blockfolk-stone-block', { layerId: 'preserved-size', scale: .81 }), x: 1200, y: 1600, angle: 25, flipX: true, zIndex: 0 });
 const migratedConstructionPicture = normalizePicture(preConstructionPicture);
 assert.equal(migratedConstructionPicture.schema, PAGE_SCHEMA, 'the BlockFolk construction migration must be versioned');
 assert.deepEqual(migratedConstructionPicture.connections, [], 'a pre-snap picture must gain an empty connection list without destructive migration');
 assert.deepEqual(migratedConstructionPicture.stickers[0], { ...preConstructionPicture.stickers[0], flipY: false, opacity: 1 }, 'pre-construction sticker coordinates, scale, flip, angle, and z-order must remain unchanged');
+const page3Picture = createPicture({ id: 'page-3-picture', now: '2026-08-19T00:00:00.000Z' });
+page3Picture.schema = PREVIOUS_PAGE_SCHEMA;
+page3Picture.stickers = [
+  { ...createSticker('sticker-blockfolk-stone-door', { layerId: 'legacy-door', scale: .77 }), x: 1200, y: 1300, angle: 12 },
+  { ...createSticker('sticker-blockfolk-brick-stone-block', { layerId: 'legacy-block', scale: .83 }), x: 1250, y: 1320, angle: 0 }
+];
+page3Picture.connections = [{
+  id: 'failed-doorway-connection', aLayerId: 'legacy-door', bLayerId: 'legacy-block',
+  aAssetId: 'sticker-blockfolk-stone-door', bAssetId: 'sticker-blockfolk-brick-stone-block',
+  aAnchorId: 'doorJambLowerLeft', bAnchorId: 'blockJambLowerLeft'
+}];
+const migrationDetail = normalizePictureDetailed(page3Picture);
+assert.equal(migrationDetail.picture.schema, PAGE_SCHEMA);
+assert.deepEqual(migrationDetail.picture.connections, [], 'failed doorway links must be detached only in the migrated in-memory page');
+assert.deepEqual(migrationDetail.migration.quarantinedConnectionIds, ['failed-doorway-connection']);
+assert.equal(migrationDetail.migration.required, true);
+assert.equal(page3Picture.schema, PREVIOUS_PAGE_SCHEMA, 'normalization must not mutate the raw legacy record');
+assert.equal(page3Picture.connections.length, 1, 'normalization must leave the raw failed link available until an authorized write');
+assert.deepEqual(migrationDetail.picture.stickers.map(({ x, y, scaleX, scaleY, angle }) => ({ x, y, scaleX, scaleY, angle })), page3Picture.stickers.map(({ x, y, scaleX, scaleY, angle }) => ({ x, y, scaleX, scaleY, angle })), 'migration must preserve sticker transforms exactly');
 
 const sticker = createSticker('pack-local-test-piece', { layerId: 'layer-a', scale: 1 });
 let resized = sticker;

@@ -9,17 +9,18 @@ import { BlockFolkImaginariumControls } from './ImaginariumControls.js';
 import { PuzzleController } from './PuzzleController.js';
 import {
   GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, clampStickerPosition, createPicture,
-  createSticker, duplicatePicture, flipSticker, mapChildSafeError, normalizePicture, resizeSticker, rotateSticker, validatePicture
+  createSticker, duplicatePicture, flipSticker, mapChildSafeError, normalizePicture, normalizePictureDetailed, resizeSticker, rotateSticker, validatePicture
 } from '../model/pageModel.js';
 import { createStableId } from '../model/ids.js';
 import {
-  SNAP_CORE_RUNTIME_BOUNDARY, SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_METADATA, connectedLayerIds, duplicateConnections, findSnapCandidate,
-  hasAssembly, isSnappableAsset, isTypedSnapConnection, makeConnection, removeMemberConnections, validConnections
+  SNAP_CORE_RUNTIME_BOUNDARY, connectedLayerIds, duplicateConnections,
+  hasAssembly, isTypedSnapConnection, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { ASSET_CONSTRUCTION_PROFILES } from '../model/snap/assetProfiles.js';
-import { PILOT_BLOCK_ASSET_IDS } from '../model/snap/blockProfiles.js';
 import { findTypedSnapCandidate } from '../model/snap/candidateSearch.js';
 import { resolveConstructionPlane } from '../model/snap/coordinateTransforms.js';
+import { doorwayFeedback, doorwayReservedSpaceValidator } from '../model/snap/doorwayFormation.js';
+import { evaluateFormations } from '../model/snap/formationEngine.js';
 import { applySnapTransaction, planSnapTransaction } from '../model/snap/snapTransaction.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
@@ -81,6 +82,9 @@ export class BlockFolkImaginariumApp {
     this.rendering = false;
     this.transformBefore = null;
     this.autosaveTimer = null;
+    this.pendingPictureMigration = null;
+    this.migrationWriteAuthorized = false;
+    this.migrationNoticesShown = new Set();
     this.toastTimer = null;
     this.confirmResolver = null;
     this.gateHeld = new Set();
@@ -251,7 +255,7 @@ export class BlockFolkImaginariumApp {
         }
         this.snapPreview = null; this.canvas.setActiveObject(interaction.target); interaction.target.setCoords(); this.canvas.requestRenderAll();
         this.commit(interaction.before, interaction.moved ? 'Sticker moved.' : 'Sticker selected.');
-      } else if (interaction.moved) this.commit(interaction.before, interaction.mode === 'pinch' ? 'World view changed.' : 'World moved.');
+      } else if (interaction.moved) this.commit(interaction.before, interaction.mode === 'pinch' ? 'World view changed.' : 'World moved.', { contentMutation: false });
       this.snapPreview = null; this.worldInteraction = null;
       this.updateSelection();
     };
@@ -362,6 +366,7 @@ export class BlockFolkImaginariumApp {
       return;
     }
     this.current = createPicture({ title: `My Picture ${pictures.length + 1}`, category: this.category });
+    this.pendingPictureMigration = null; this.migrationWriteAuthorized = false;
     this.history.clear();
     await this.renderCurrentPicture();
     this.showScreen('editor-screen');
@@ -383,13 +388,21 @@ export class BlockFolkImaginariumApp {
   async openPicture(id) {
     const picture = id ? await this.storage.getPicture(id) : this.current;
     if (!picture) return;
-    this.current = normalizePicture(picture);
+    const normalized = normalizePictureDetailed(picture);
+    this.current = normalized.picture;
+    this.pendingPictureMigration = normalized.migration.required ? normalized.migration : null;
+    this.migrationWriteAuthorized = false;
     this.category = migrateBuiltInCategory(this.current.ui?.category);
     this.preferences.category = this.category;
     savePreferences(this.preferences);
     this.history.clear();
     await this.renderCurrentPicture();
     this.showScreen('editor-screen');
+    if (this.pendingPictureMigration && !this.migrationNoticesShown.has(this.current.id)) {
+      this.migrationNoticesShown.add(this.current.id);
+      this.toast(this.pendingPictureMigration.notice);
+      this.announce(this.pendingPictureMigration.notice);
+    }
   }
 
   getAllPackAssets() { return this.packs.flatMap((pack) => (pack.assets || []).map((asset) => ({ ...asset, category: migrateAssetCategory(asset.category) }))); }
@@ -599,16 +612,16 @@ export class BlockFolkImaginariumApp {
 
   openStartingLocation(locationId) {
     const location = STARTING_LOCATIONS.find((item) => item.id === locationId); if (!location || !this.current) return;
-    const before = this.snapshot(); this.camera = normalizeCamera(location); this.applyCamera(); this.commit(before, `${location.title} opened.`); this.elements.worldSheet.hidden = true;
+    const before = this.snapshot(); this.camera = normalizeCamera(location); this.applyCamera(); this.commit(before, `${location.title} opened.`, { contentMutation: false }); this.elements.worldSheet.hidden = true;
   }
 
   zoomCamera(factor) {
     if (!this.current) return; const before = this.snapshot(); const nextZoom = Math.max(CAMERA_MIN_ZOOM, Math.min(CAMERA_MAX_ZOOM, this.camera.zoom * factor));
-    this.camera = zoomCameraAt(this.camera, nextZoom, this.canvas.width / 2, this.canvas.height / 2, this.canvas.width, this.canvas.height); this.applyCamera(); this.commit(before, 'World zoom changed.');
+    this.camera = zoomCameraAt(this.camera, nextZoom, this.canvas.width / 2, this.canvas.height / 2, this.canvas.width, this.canvas.height); this.applyCamera(); this.commit(before, 'World zoom changed.', { contentMutation: false });
   }
 
   fitWorld() {
-    if (!this.current) return; const before = this.snapshot(); this.camera = clampCamera({ centerX: WORLD_SIZE / 2, centerY: WORLD_SIZE / 2, zoom: CAMERA_MIN_ZOOM }, this.canvas.width, this.canvas.height); this.applyCamera(); this.commit(before, 'Complete world fitted.');
+    if (!this.current) return; const before = this.snapshot(); this.camera = clampCamera({ centerX: WORLD_SIZE / 2, centerY: WORLD_SIZE / 2, zoom: CAMERA_MIN_ZOOM }, this.canvas.width, this.canvas.height); this.applyCamera(); this.commit(before, 'Complete world fitted.', { contentMutation: false });
   }
 
   async addSticker(assetId, recordHistory = true, preparedBefore = null) {
@@ -616,7 +629,11 @@ export class BlockFolkImaginariumApp {
     if (!asset || !['sticker', 'emoji'].includes(asset.kind)) throw new Error('That sticker could not be opened.');
     const before = preparedBefore || this.snapshot();
     const offset = (this.canvas.getObjects().length % 5) * 70;
-    const sticker = createSticker(assetId, { x: this.camera.centerX + offset, y: this.camera.centerY + offset, scale: Math.min(MAX_SCALE, (asset.defaultWorldExtent || 720) / Math.max(asset.width || 560, asset.height || 560)), sourceEmoji: asset.kind === 'emoji' ? asset.glyph : undefined });
+    const constructionProfile = ASSET_CONSTRUCTION_PROFILES[assetId];
+    const scale = constructionProfile?.productionEnabled
+      ? constructionProfile.canonicalInsertScale
+      : Math.min(MAX_SCALE, (asset.defaultWorldExtent || 720) / Math.max(asset.width || 560, asset.height || 560));
+    const sticker = createSticker(assetId, { x: this.camera.centerX + offset, y: this.camera.centerY + offset, scale, sourceEmoji: asset.kind === 'emoji' ? asset.glyph : undefined });
     sticker.zIndex = this.canvas.getObjects().length;
     const image = await this.addFabricSticker(asset, sticker);
     this.canvas.setActiveObject(image); this.canvas.requestRenderAll();
@@ -668,13 +685,9 @@ export class BlockFolkImaginariumApp {
     });
   }
 
-  translateObjects(objects, dx, dy) {
-    for (const object of objects) { object.set({ left: Number(object.left || 0) + dx, top: Number(object.top || 0) + dy }); this.clampFabricObject(object); object.setCoords(); }
-  }
+  isTypedConstructionAsset(assetId) { return ASSET_CONSTRUCTION_PROFILES[assetId]?.productionEnabled === true; }
 
-  isTypedPilotAsset(assetId) { return PILOT_BLOCK_ASSET_IDS.includes(assetId) && ASSET_CONSTRUCTION_PROFILES[assetId]?.productionEnabled === true; }
-
-  isConstructionSnapAsset(assetId) { return this.isTypedPilotAsset(assetId) || isSnappableAsset(assetId); }
+  isConstructionSnapAsset(assetId) { return this.isTypedConstructionAsset(assetId); }
 
   constructionObject(object) {
     return {
@@ -687,43 +700,21 @@ export class BlockFolkImaginariumApp {
   }
 
   proposeTypedSnap(movingObjects) {
-    if (!movingObjects.some((object) => this.isTypedPilotAsset(object.blockfolkAssetId))) return null;
+    if (!movingObjects.some((object) => this.isTypedConstructionAsset(object.blockfolkAssetId))) return null;
     const movingIds = new Set(movingObjects.map((object) => object.blockfolkLayerId));
-    const stationaryObjects = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && this.isTypedPilotAsset(object.blockfolkAssetId));
-    if (!stationaryObjects.length) return null;
+    const stationaryObjects = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && this.isTypedConstructionAsset(object.blockfolkAssetId));
+    const objects = this.canvas.getObjects().map((object) => this.constructionObject(object));
     return findTypedSnapCandidate({
       movingObjects: movingObjects.map((object) => this.constructionObject(object)),
       stationaryObjects: stationaryObjects.map((object) => this.constructionObject(object)),
       profiles: ASSET_CONSTRUCTION_PROFILES,
       connections: this.current.connections || [],
-      viewportTransform: [...(this.canvas.viewportTransform || [1, 0, 0, 1, 0, 0])]
+      viewportTransform: [...(this.canvas.viewportTransform || [1, 0, 0, 1, 0, 0])],
+      reservedSpaceValidator: doorwayReservedSpaceValidator({
+        objects, connections: this.current.connections || [], movingLayerIds: movingIds,
+        profiles: ASSET_CONSTRUCTION_PROFILES
+      })
     });
-  }
-
-  proposeSnap(movingObjects, { excludeTypedPilotTargets = false } = {}) {
-    if (!movingObjects.some((object) => isSnappableAsset(object.blockfolkAssetId))) return null;
-    const movingIds = new Set(movingObjects.map((object) => object.blockfolkLayerId));
-    const stationary = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && isSnappableAsset(object.blockfolkAssetId) && (!excludeTypedPilotTargets || !this.isTypedPilotAsset(object.blockfolkAssetId)));
-    const { scale } = cameraMetrics(this.camera, this.canvas.width, this.canvas.height);
-    return findSnapCandidate({ movingObjects, stationaryObjects: stationary, worldTolerance: SNAP_TOLERANCE_SCREEN_PX / Math.max(scale, .0001) });
-  }
-
-  addSnapConnection(candidate) {
-    if (!candidate || !this.current) return null;
-    const connections = this.current.connections || [];
-    const existing = connections.find((connection) => (connection.aLayerId === candidate.source.blockfolkLayerId && connection.bLayerId === candidate.target.blockfolkLayerId) || (connection.bLayerId === candidate.source.blockfolkLayerId && connection.aLayerId === candidate.target.blockfolkLayerId));
-    if (existing) return existing;
-    const connection = makeConnection(candidate);
-    const layerIds = new Set(this.canvas.getObjects().map((object) => object.blockfolkLayerId));
-    const nextConnections = validConnections([...connections, connection], layerIds, this.canvas.getObjects());
-    const stored = nextConnections.find((item) => item.id === connection.id);
-    if (!stored) return null;
-    this.current.connections = nextConnections;
-    const lockedIds = connectedLayerIds(nextConnections, candidate.source.blockfolkLayerId);
-    if (!lockedIds.has(candidate.target.blockfolkLayerId)) return null;
-    this.ensureAssemblyContiguous(lockedIds);
-    this.ensureBuildingFaceVisible(candidate);
-    return stored;
   }
 
   async snapSelected() {
@@ -731,37 +722,12 @@ export class BlockFolkImaginariumApp {
     const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active));
     const typedProposal = this.proposeTypedSnap(members);
     if (typedProposal?.candidate) { await this.commitTypedSnap({ active, activeLayerId, before, members, candidate: typedProposal.candidate }); return; }
-    if (typedProposal && !['distance', 'no-candidate'].includes(typedProposal.rejectionReason)) {
-      const feedback = typedProposal.rejectionReason === 'scale'
-        ? ['Match piece sizes', 'Match the construction piece sizes, then press Snap again.']
-        : typedProposal.rejectionReason === 'ambiguous'
-          ? ['Move closer to one piece', 'Move closer to the construction piece you want, then press Snap again.']
-          : ['Those pieces do not connect there', 'Those construction ports are not available. Move the piece and try Snap again.'];
-      this.toast(feedback[0]); this.announce(feedback[1]); return;
-    }
-    const candidate = this.proposeSnap(members, { excludeTypedPilotTargets: !!typedProposal });
-    if (!candidate) { this.toast('Move closer to snap'); this.announce('Move closer to a compatible construction piece, then press Snap.'); return; }
-    this.translateObjects(members, candidate.dx, candidate.dy);
-    const connection = this.addSnapConnection(candidate);
-    this.syncCurrentFromCanvas();
-    const lockedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
-    const locked = !!connection && lockedIds.has(candidate.target.blockfolkLayerId);
-    if (!locked) {
-      this.current = before;
-      await this.renderCurrentPicture(activeLayerId);
-      this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
-      return;
-    }
-    this.ensureAssemblyContiguous(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
-    this.commit(before, 'Pieces snapped and locked.');
-    const persistedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
-    if (!persistedIds.has(candidate.target.blockfolkLayerId)) {
-      this.current = before;
-      await this.renderCurrentPicture(activeLayerId);
-      this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
-      return;
-    }
-    this.toast('Snapped and locked'); this.announce('Snapped and locked. Move either piece to move the whole assembly.'); this.feedback('pop');
+    const feedback = typedProposal?.rejectionReason === 'scale'
+      ? ['Match piece sizes', 'Match the construction piece sizes, then press Snap again.']
+      : typedProposal?.rejectionReason === 'ambiguous'
+        ? ['Move closer to one piece', 'Move closer to the construction piece you want, then press Snap again.']
+        : ['Move closer to snap', 'Move closer to a compatible construction piece, then press Snap again.'];
+    this.toast(feedback[0]); this.announce(feedback[1]);
   }
 
   async commitTypedSnap({ active, activeLayerId, before, members, candidate }) {
@@ -791,9 +757,12 @@ export class BlockFolkImaginariumApp {
       this.current = before; await this.renderCurrentPicture(activeLayerId);
       this.toast('Could not connect pieces'); this.announce('The pieces could not be connected safely. Move them and try Snap again.'); return;
     }
-    this.ensureAssemblyContiguous(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.ensureAssemblyContiguous(lockedIds); this.ensureTypedComponentDepthOrder(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
     this.commit(before, 'Construction pieces connected.');
-    this.toast('Blocks connected'); this.announce('Blocks connected. Move either block to move the whole assembly.'); this.feedback('pop');
+    const formationFeedback = doorwayFeedback(this.currentFormationStates().filter((formation) => formation.componentLayerIds.includes(candidate.movingLayerId)));
+    if (formationFeedback) { this.toast(formationFeedback.toast); this.announce(formationFeedback.announcement); }
+    else { this.toast('Pieces connected'); this.announce('Construction pieces connected. Move either piece to move the whole assembly.'); }
+    this.feedback('pop');
   }
 
   async snapContextSelected() {
@@ -828,14 +797,24 @@ export class BlockFolkImaginariumApp {
     this.reorderObjects([...before, ...selected, ...after]);
   }
 
-  ensureBuildingFaceVisible(candidate) {
-    const pair = [candidate?.source, candidate?.target];
-    const face = pair.find((object) => SNAPPABLE_ASSET_METADATA[object?.blockfolkAssetId]?.kind === 'building-face');
-    const block = pair.find((object) => SNAPPABLE_ASSET_METADATA[object?.blockfolkAssetId]?.kind === 'block');
-    if (!face || !block) return;
-    const ordered = [...this.canvas.getObjects()]; const faceIndex = ordered.indexOf(face); const blockIndex = ordered.indexOf(block);
-    if (faceIndex < 0 || blockIndex < 0 || faceIndex > blockIndex) return;
-    ordered.splice(faceIndex, 1); ordered.splice(ordered.indexOf(block) + 1, 0, face); this.reorderObjects(ordered);
+  currentFormationStates() {
+    return evaluateFormations({
+      objects: this.canvas.getObjects().map((object) => this.constructionObject(object)),
+      connections: this.current?.connections || [], profiles: ASSET_CONSTRUCTION_PROFILES
+    });
+  }
+
+  ensureTypedComponentDepthOrder(memberIds) {
+    const original = this.canvas.getObjects(); const members = original.filter((object) => memberIds.has(object.blockfolkLayerId));
+    if (members.length < 2) return;
+    const band = (object) => ASSET_CONSTRUCTION_PROFILES[object.blockfolkAssetId]?.defaultDepthBand
+      ?? (ASSET_CONSTRUCTION_PROFILES[object.blockfolkAssetId]?.family === 'block' ? 2 : 3);
+    const orderedMembers = [...members].sort((first, second) => band(first) - band(second)
+      || Number(first.top || 0) - Number(second.top || 0)
+      || first.blockfolkLayerId.localeCompare(second.blockfolkLayerId));
+    const memberSet = new Set(members); const insertion = Math.min(...members.map((object) => original.indexOf(object)));
+    const others = original.filter((object) => !memberSet.has(object));
+    this.reorderObjects([...others.slice(0, insertion), ...orderedMembers, ...others.slice(insertion)]);
   }
 
   moveMembersToEdge(memberIds, direction) {
@@ -918,24 +897,28 @@ export class BlockFolkImaginariumApp {
     object.set({ left: clamped.x, top: clamped.y }); object.setCoords();
   }
 
-  commit(before, announcement) {
+  commit(before, announcement, { contentMutation = true } = {}) {
     this.syncCurrentFromCanvas();
-    const after = JSON.stringify(this.current);
-    if (JSON.stringify(before) !== after) this.history.push(before);
-    this.current.updatedAt = new Date().toISOString();
-    this.scheduleAutosave(); this.announce(announcement); this.updateSelection();
+    const changed = JSON.stringify(before) !== JSON.stringify(this.current);
+    if (changed) {
+      this.history.push(before);
+      if (contentMutation && this.pendingPictureMigration) this.migrationWriteAuthorized = true;
+      this.current.updatedAt = new Date().toISOString();
+      this.scheduleAutosave();
+    }
+    this.announce(announcement); this.updateSelection();
   }
 
   async undo() {
     const selectedLayerId = this.activeSticker()?.blockfolkLayerId || null;
     const current = this.snapshot(); const prior = this.history.undo(current); if (!prior) return;
-    this.current = prior; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Undid the last change.');
+    this.current = prior; if (this.pendingPictureMigration) this.migrationWriteAuthorized = true; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Undid the last change.');
   }
 
   async redo() {
     const selectedLayerId = this.activeSticker()?.blockfolkLayerId || null;
     const current = this.snapshot(); const next = this.history.redo(current); if (!next) return;
-    this.current = next; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Redid the change.');
+    this.current = next; if (this.pendingPictureMigration) this.migrationWriteAuthorized = true; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Redid the change.');
   }
 
   updateSelection() {
@@ -970,25 +953,36 @@ export class BlockFolkImaginariumApp {
   scheduleAutosave() {
     clearTimeout(this.autosaveTimer);
     this.autosaveTimer = null;
+    if (this.pendingPictureMigration && !this.migrationWriteAuthorized) {
+      this.elements.saveStatus.textContent = 'Older picture open';
+      return;
+    }
     const policy = autosavePolicy(this.preferences.autosaveMode);
     this.elements.saveStatus.textContent = policy.pendingLabel;
     if (policy.delayMs === null) return;
     this.autosaveTimer = setTimeout(() => this.saveCurrent({ quiet: true }).catch((error) => this.handleError(error)), policy.delayMs);
   }
 
-  async saveCurrent({ quiet = false } = {}) {
+  async saveCurrent({ quiet = false, intentional = false } = {}) {
     if (!this.current) return;
+    if (this.pendingPictureMigration && !this.migrationWriteAuthorized && !intentional) {
+      clearTimeout(this.autosaveTimer); this.autosaveTimer = null;
+      this.elements.saveStatus.textContent = 'Older picture open';
+      return false;
+    }
     clearTimeout(this.autosaveTimer); this.syncCurrentFromCanvas();
     this.current.updatedAt = new Date().toISOString();
     const active = this.activeSticker(); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
     this.current.thumbnail = this.canvas.toDataURL({ format: 'png', multiplier: .18, enableRetinaScaling: false });
     if (active) this.canvas.setActiveObject(active);
     await this.storage.putPicture(this.current);
+    this.pendingPictureMigration = null; this.migrationWriteAuthorized = false;
     this.elements.saveStatus.textContent = 'Saved!';
     if (!quiet) { this.announce('Picture saved!'); this.feedback('save'); }
+    return true;
   }
 
-  async donePicture() { await this.saveCurrent(); await this.showGallery(); }
+  async donePicture() { await this.saveCurrent({ intentional: true }); await this.showGallery(); }
 
   exportDataUrl() {
     const active = this.activeSticker(); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
@@ -1057,7 +1051,8 @@ export class BlockFolkImaginariumApp {
   }
 
   async renamePicture(id, title) {
-    const picture = await this.storage.getPicture(id); if (!picture) return;
+    const stored = await this.storage.getPicture(id); if (!stored) return;
+    const picture = normalizePicture(stored);
     picture.title = title.trim() || picture.title; picture.updatedAt = new Date().toISOString(); await this.storage.putPicture(picture);
     if (this.current?.id === id) this.current.title = picture.title;
     this.announce('Picture title saved.');

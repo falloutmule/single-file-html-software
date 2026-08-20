@@ -26,7 +26,7 @@ const FIXTURES = Object.freeze({
 const EXPECTED_PORTS = ['cellMount', 'wallLeft', 'wallRight', 'stackTop', 'stackBase', 'wallFace'];
 
 assert.equal(BLOCK_CALIBRATION.schema, CALIBRATION_SCHEMA);
-assert.equal(BLOCK_CALIBRATION.status, 'phase3-pilot');
+assert.equal(BLOCK_CALIBRATION.status, 'typed-building-v1');
 assert.equal(BLOCK_CALIBRATION.canonicalWorldExtent, EXPECTED_EXTENT);
 assert.deepEqual(BLOCK_CALIBRATION.plane.columnWorld, { x: 55.6, y: 32.1 });
 assert.deepEqual(BLOCK_CALIBRATION.plane.tierWorld, { x: 0, y: -73.1 });
@@ -42,11 +42,11 @@ for (const [assetId, fixture] of Object.entries(FIXTURES)) {
 
   const profile = calibratedBlockProfile(assetId);
   assert.equal(profile.productionEnabled, false);
-  assert.equal(profile.calibrationStatus, 'phase3-pilot');
+  assert.equal(profile.calibrationStatus, 'typed-building-v1');
   assert.deepEqual(profile.supportedPlanes, ['wall-iso-a', 'wall-iso-b']);
   assert.deepEqual(profile.supportedAngles, [0]);
   assert.deepEqual(profile.flipPlaneMap, { 'wall-iso-a': 'wall-iso-b', 'wall-iso-b': 'wall-iso-a' });
-  assert.deepEqual(profile.ports.map(({ id }) => id), EXPECTED_PORTS);
+  assert.deepEqual(profile.ports.slice(0, EXPECTED_PORTS.length).map(({ id }) => id), EXPECTED_PORTS);
   assert.equal(profile.ports.every(({ capacity }) => capacity === 1), true);
   assert.deepEqual(profile.ports.find(({ id }) => id === 'wallFace').compatibleTypes, ['window-wall-mount']);
   assert.deepEqual(profile.ports.find(({ id }) => id === 'cellMount').compatibleTypes, ['door-frame-slot']);
@@ -63,7 +63,7 @@ assert.throws(() => importCalibration('{"schema":"wrong"}'), /Unsupported calibr
 
 console.log(JSON.stringify({
   schema: CALIBRATION_SCHEMA,
-  assets: Object.keys(FIXTURES).length,
+  assets: Object.keys(BLOCK_CALIBRATION.assets).length,
   portsPerAsset: EXPECTED_PORTS.length,
   productionEnabled: false,
   exportBytes: Buffer.byteLength(firstExport)

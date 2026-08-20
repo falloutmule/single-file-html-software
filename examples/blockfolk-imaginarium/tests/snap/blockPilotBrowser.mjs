@@ -85,7 +85,7 @@ try {
   assert.equal(proof.activationCount - activationBefore, 1, 'delayed browser click must not activate the stable controller twice');
   assert.equal(proof.controller.id, controllerId); assert.equal(proof.controller.state, 'unsnap');
   assert.equal(await page.locator('[data-action="snap-context"]').evaluate((control) => control.closest('.sfhs-cf-root') === window.__phase3SnapRoot), true, 'Snap/Unsnap must retain one DOM node');
-  assert.equal(proof.toast, 'Blocks connected');
+  assert.equal(proof.toast, 'Pieces connected');
   await page.screenshot({ path: resolve(evidenceRoot, 'brick-horizontal-connected-400x844.png'), fullPage: true });
 
   const beforeMove = proof.stickers.map(({ x, y }) => ({ x, y }));

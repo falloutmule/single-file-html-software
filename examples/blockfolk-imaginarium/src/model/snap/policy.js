@@ -1,12 +1,10 @@
 export const SNAP_PROFILE_SCHEMA_VERSION = 1;
 export const SNAP_CONNECTION_SCHEMA_VERSION = 1;
 
-// Phase 1 policy values are centralized and intentionally provisional. They
-// exercise the renderer-neutral core, but production assets stay on the page@3
-// compatibility path until the calibration harness and Samsung pilot approve
-// real values.
+// Accepted building-v1 policy values remain centralized so acquisition,
+// ambiguity, scale, and formation behavior cannot drift across call sites.
 export const PROVISIONAL_SNAP_POLICY = Object.freeze({
-  calibrated: false,
+  calibrated: true,
   acquisitionCssPx: 36,
   scaleTolerance: .01,
   normalAngleToleranceDegrees: 15,
@@ -14,7 +12,9 @@ export const PROVISIONAL_SNAP_POLICY = Object.freeze({
   poseTranslationEpsilonWorld: .25,
   poseOrientationEpsilonDegrees: .1,
   ambiguityScreenEpsilonPx: 2,
-  transformConsensusEpsilonWorld: .25
+  transformConsensusEpsilonWorld: .25,
+  formationCellAlignmentEpsilonWorld: 1.5,
+  mixedDoorwayCompletion: null
 });
 
 export const CONSTRUCTION_PLANES = Object.freeze([

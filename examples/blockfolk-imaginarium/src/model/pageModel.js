@@ -2,9 +2,11 @@ import { createStableId } from './ids.js';
 import { migrateBuiltInCategory } from './categoryModel.js';
 import { DEFAULT_CAMERA, WORLD_BACKGROUND_ID, WORLD_SIZE, isBuiltInWorldBackgroundId, normalizeCamera } from './worldModel.js';
 import { duplicateConnections, validConnections } from './constructionModel.js';
+import { isFailedDoorwayLegacyConnection, migrateConnectionsForPage4, pictureMigrationNotice } from './snap/migration.js';
 
-export const PAGE_SCHEMA = 'blockfolk-imaginarium.page@3';
-export const PREVIOUS_PAGE_SCHEMA = 'blockfolk-imaginarium.page@2';
+export const PAGE_SCHEMA = 'blockfolk-imaginarium.page@4';
+export const PREVIOUS_PAGE_SCHEMA = 'blockfolk-imaginarium.page@3';
+export const PRE_CONSTRUCTION_PAGE_SCHEMA = 'blockfolk-imaginarium.page@2';
 export const LEGACY_PAGE_SCHEMA = 'blockfolk-imaginarium.page@1';
 export const PAGE_WIDTH = WORLD_SIZE;
 export const PAGE_HEIGHT = WORLD_SIZE;
@@ -30,7 +32,7 @@ function validateSticker(sticker, layerIds) {
 
 export function validatePicture(value) {
   if (!value || typeof value !== 'object') throw new Error('Picture data is missing.');
-  if (![PAGE_SCHEMA, PREVIOUS_PAGE_SCHEMA, LEGACY_PAGE_SCHEMA].includes(value.schema)) throw new Error(`Picture version ${value.schema || 'unknown'} is not supported.`);
+  if (![PAGE_SCHEMA, PREVIOUS_PAGE_SCHEMA, PRE_CONSTRUCTION_PAGE_SCHEMA, LEGACY_PAGE_SCHEMA].includes(value.schema)) throw new Error(`Picture version ${value.schema || 'unknown'} is not supported.`);
   if (typeof value.id !== 'string' || !value.id || typeof value.title !== 'string') throw new Error('Picture identity is invalid.');
   const legacy = value.schema === LEGACY_PAGE_SCHEMA;
   const validPage = legacy
@@ -40,7 +42,8 @@ export function validatePicture(value) {
   if (!Array.isArray(value.stickers) || !Array.isArray(value.embeddedAssets || [])) throw new Error('Picture content is invalid.');
   const layerIds = new Set();
   for (const sticker of value.stickers) validateSticker(sticker, layerIds);
-  if (value.schema === PAGE_SCHEMA && !Array.isArray(value.connections)) throw new Error('Picture construction settings are invalid.');
+  if ([PAGE_SCHEMA, PREVIOUS_PAGE_SCHEMA].includes(value.schema) && !Array.isArray(value.connections)) throw new Error('Picture construction settings are invalid.');
+  if (value.schema === PAGE_SCHEMA && value.connections.some(isFailedDoorwayLegacyConnection)) throw new Error('Picture construction settings are invalid.');
   if (Array.isArray(value.connections) && validConnections(value.connections, layerIds, value.stickers).length !== value.connections.length) throw new Error('Picture construction settings are invalid.');
   for (const asset of value.embeddedAssets || []) {
     const imageAsset = typeof asset?.dataUrl === 'string' && asset.dataUrl.startsWith('data:image/');
@@ -61,21 +64,39 @@ function migrateLegacyPicture(value) {
   };
 }
 
-export function normalizePicture(value) {
+export function normalizePictureDetailed(value) {
   validatePicture(value);
+  const sourceSchema = value.schema;
   const migrated = value.schema === LEGACY_PAGE_SCHEMA ? migrateLegacyPicture(value) : value;
   const layerIds = new Set((migrated.stickers || []).map((sticker) => sticker.layerId));
+  const connectionMigration = sourceSchema === PAGE_SCHEMA
+    ? { connections: migrated.connections || [], quarantinedConnectionIds: [] }
+    : migrateConnectionsForPage4(migrated.connections || []);
   const normalized = {
     ...migrated, schema: PAGE_SCHEMA,
     page: { ...migrated.page, backgroundAssetId: isBuiltInWorldBackgroundId(migrated.page.backgroundAssetId) ? migrated.page.backgroundAssetId : WORLD_BACKGROUND_ID, camera: normalizeCamera(migrated.page.camera) },
     ui: { category: migrateBuiltInCategory(migrated.ui?.category) },
     stickers: migrated.stickers.map((sticker, index) => ({ ...sticker, flipX: sticker.flipX ?? false, flipY: sticker.flipY ?? false, opacity: sticker.opacity ?? 1, zIndex: sticker.zIndex ?? index })),
-    connections: validConnections(migrated.connections || [], layerIds, migrated.stickers),
+    connections: validConnections(connectionMigration.connections, layerIds, migrated.stickers),
     embeddedAssets: migrated.embeddedAssets || []
   };
   validatePicture(normalized);
-  return JSON.parse(JSON.stringify(normalized));
+  const picture = JSON.parse(JSON.stringify(normalized));
+  const required = sourceSchema !== PAGE_SCHEMA;
+  return Object.freeze({
+    picture,
+    migration: Object.freeze({
+      required,
+      sourceSchema,
+      targetSchema: PAGE_SCHEMA,
+      pictureId: picture.id,
+      quarantinedConnectionIds: Object.freeze([...(connectionMigration.quarantinedConnectionIds || [])]),
+      notice: required ? pictureMigrationNotice({ sourceSchema, quarantinedConnectionIds: connectionMigration.quarantinedConnectionIds }) : null
+    })
+  });
 }
+
+export function normalizePicture(value) { return normalizePictureDetailed(value).picture; }
 
 export function createSticker(assetId, { x = PAGE_WIDTH / 2, y = PAGE_HEIGHT / 2, scale = 1, layerId = createStableId('blockfolk-sticker'), sourceEmoji } = {}) {
   return { layerId, assetId, x, y, scaleX: scale, scaleY: scale, angle: 0, flipX: false, flipY: false, opacity: 1, zIndex: 0, ...(sourceEmoji ? { sourceEmoji } : {}) };

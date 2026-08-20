@@ -1,11 +1,11 @@
 import { ASSET_CONSTRUCTION_PROFILES } from './assetProfiles.js';
 import { SNAP_CONNECTION_SCHEMA_VERSION, SNAP_PROFILE_SCHEMA_VERSION } from './policy.js';
 
-// Phase 3 enables only the calibrated Brick/Log pilot. Every other construction
-// asset remains on the page@3 compatibility path; doors and formations stay
-// disabled until their later physical-review phases.
+// Typed building v1 owns all ten blocks, both doors, and both windows. Legacy
+// page@3 readers remain
+// isolated in the page migration path rather than candidate generation.
 export const SNAP_CORE_RUNTIME_BOUNDARY = Object.freeze({
-  productionEngine: 'typed-brick-log-pilot+page@3-compatibility',
+  productionEngine: 'typed-building-v1+versioned-legacy-reader',
   typedCoreAvailable: true,
   typedProfileSchemaVersion: SNAP_PROFILE_SCHEMA_VERSION,
   typedConnectionSchemaVersion: SNAP_CONNECTION_SCHEMA_VERSION,

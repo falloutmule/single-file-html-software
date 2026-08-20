@@ -1,6 +1,8 @@
 import { BLOCKFOLK_STICKERS } from '../blockfolkStickerLibrary.js';
 import { SNAP_PROFILE_SCHEMA_VERSION } from './policy.js';
-import { PILOT_BLOCK_ASSET_IDS, calibratedBlockProfile } from './blockProfiles.js';
+import { TYPED_BLOCK_ASSET_IDS, calibratedBlockProfile } from './blockProfiles.js';
+import { TYPED_DOOR_ASSET_IDS, calibratedDoorProfile } from './doorProfiles.js';
+import { TYPED_WINDOW_ASSET_IDS, calibratedWindowProfile } from './windowProfiles.js';
 
 export const BLOCK_CONSTRUCTION_ASSET_IDS = Object.freeze([
   'sticker-blockfolk-grass-dirt-block',
@@ -62,9 +64,11 @@ function makeUncalibratedProfile(assetId) {
 }
 
 export const ASSET_CONSTRUCTION_PROFILES = Object.freeze(Object.fromEntries(
-  CONSTRUCTION_ASSET_IDS.map((assetId) => [assetId, PILOT_BLOCK_ASSET_IDS.includes(assetId)
-    ? calibratedBlockProfile(assetId, { productionEnabled: true })
-    : makeUncalibratedProfile(assetId)])
+  CONSTRUCTION_ASSET_IDS.map((assetId) => [assetId,
+    TYPED_BLOCK_ASSET_IDS.includes(assetId) ? calibratedBlockProfile(assetId, { productionEnabled: true })
+      : TYPED_DOOR_ASSET_IDS.includes(assetId) ? calibratedDoorProfile(assetId, { productionEnabled: true })
+        : TYPED_WINDOW_ASSET_IDS.includes(assetId) ? calibratedWindowProfile(assetId, { productionEnabled: true })
+          : makeUncalibratedProfile(assetId)])
 ));
 
 export function profileForAsset(assetId, profiles = ASSET_CONSTRUCTION_PROFILES) {
