@@ -37,14 +37,14 @@ All criteria passed for the first testable production build. Physical-phone subj
 - Exported calibration is deterministic and imports without numeric or identity drift.
 - Candidate profiles remain non-shipping and `productionEnabled: false`; production behavior, saves, assets, and the permanent `snap-context` controller remain unchanged.
 
-## Snapping overhaul Phase 3 — IN PROGRESS
+## Snapping overhaul Phase 3 — AUTOMATED PASS / PHYSICAL REVIEW REQUIRED
 
 - Exactly Brick and Log use typed ports; all other assets remain on the compatibility boundary and doors remain disabled.
 - Ordinary drag never connects; one deliberate Snap activation creates at most one typed edge.
 - Horizontal and vertical Brick/Log construction works through visible controls at canonical inserted scale, with screen-space tolerance, plane/normal/scale/capacity/ambiguity validation.
 - Any member moves the component; resize, Flip, depth, Copy, Trash, Undo/Redo, selected-member Unsnap, save/reload, orientation, puzzle, and export remain valid.
 - The same permanent `snap-context` controller survives delayed native-touch activation and displays `Sticker detached.` after intentional Unsnap.
-- A verified deterministic artifact is published only to the BlockFolk Pages subpath and remains `FAIL — awaiting physical Samsung review` until the user approves it.
+- A verified deterministic artifact is published only to the BlockFolk Pages subpath. Local and hosted real-touch Chromium pass, but overall status remains `FAIL — awaiting physical Samsung review` until the user approves the interaction on the target device.
 
 ## Construction pass — PASS
 

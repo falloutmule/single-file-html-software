@@ -1,6 +1,6 @@
 # BlockFolk Snapping Overhaul — Phase 0 Brief
 
-Status: `PHASE 2 PASS / PHASE 3 IN PROGRESS` — Brick and Log alone are entering the guarded typed-port pilot. Doors, formation logic, and migration remain disabled. The pilot must pass visible-control interaction, group actions, persistence, canonical packing, live byte identity, and Samsung review before Phase 4 begins.
+Status: `PHASE 3 AUTOMATED PASS / PHYSICAL SAMSUNG REVIEW REQUIRED` — Brick and Log alone now use the guarded typed-port pilot. Visible-control interaction, group actions, persistence, canonical packing, live byte identity, and hosted phone-size Chromium pass. Doors, formation logic, and page@4 migration remain disabled; Phase 4 cannot begin until the user physically accepts the pilot on Samsung.
 
 Remove the physically disproved Stone Door geometry introduced by `fe3735f` without replacing or destabilizing the permanent Snap/Unsnap controller from `1757d05`. Disable creation of new door connections until calibrated typed door profiles exist, retain validation-only support for saves containing failed doorway endpoints, correct the superseded success report, and publish the exact verified baseline only at `/blockfolk-imaginarium/`. Stop at the physical Samsung gate before implementing the renderer-neutral core.
 

@@ -93,3 +93,13 @@
 - Guard: measure alpha bounds from the accepted PNGs, render draggable construction origins/ports/normals over the real art, compare both wall planes and Flip, export deterministic calibration JSON, and keep every candidate profile `productionEnabled: false`.
 - Resolution: exact alpha bounds were measured from both accepted PNGs; the first `(54.3,36.4)` column candidate was visibly rejected as too steep; reviewed evidence uses shared world column `(55.6,32.1)` and tier `(0,-73.1)` with deterministic export/import.
 - Verification: independent model fixtures, runtime alpha scanning, four portrait/landscape screenshots, lint, typecheck, 316 repository tests plus 2 documented skips, focused source/static checks, and zero-error/no-external-request browser proof pass. No production path imports the candidate profiles.
+
+## BFS-004 — Typed Brick/Log pilot requires physical Samsung acceptance
+
+- Phase: snapping overhaul Phase 3
+- Status: `AUTOMATED PASS — PHYSICAL GATE OPEN`
+- Severity: release gate for Phase 4
+- Risk: desktop Chromium touch emulation can prove single activation, stable controller identity, graph persistence, and rendered registration, but cannot certify the feel or visual alignment of the target Samsung browser.
+- Resolution: enable only Brick and Log, retain the compatibility boundary for every other construction asset, publish one byte-verified candidate, and stop before doors, formations, or page@4 migration.
+- Verification: local and live touch-enabled Chromium prove horizontal Brick and vertical Log connections, component editing from either member, delayed-click suppression, exact Unsnap feedback, persistence, orientation continuity, puzzle/export compatibility, and zero errors or unexpected requests.
+- Remaining acceptance: user must physically verify side-by-side Brick, stacked Log, whole-component drag from either member, Flip, and intentional Unsnap. Overall status remains `FAIL — awaiting physical Samsung review`.
