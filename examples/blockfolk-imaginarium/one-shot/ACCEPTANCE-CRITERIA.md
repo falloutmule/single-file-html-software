@@ -21,7 +21,7 @@ All criteria passed for the first testable production build. Physical-phone subj
 - Only the BlockFolk Pages artifact changes; Pages root and unrelated routes remain byte-identical.
 - Phase 0 remains `FAIL — awaiting physical Samsung acceptance` after automated publication proof.
 
-## Snapping overhaul Phase 1 — LOCAL AUTOMATED PASS / PUBLICATION PENDING
+## Snapping overhaul Phase 1 — PASS
 
 - Versioned profiles, typed ports, coordinate transforms, connection checks, pose consensus, deterministic candidates, atomic transaction plans, graph validation, BFS components, selected-member edge removal, and connection cloning have independent model coverage.
 - Multiple supporting port pairs that imply one transform resolve to one candidate pose and one planned edge; meaningfully distinct tied poses are rejected as ambiguous.

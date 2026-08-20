@@ -25,7 +25,10 @@
 - Phase 0 implementation commit: `35a94904e83bf5f68212503493c8341fd6ada501`
 - Phase 0 Pages commit: `0897bb987421818eddfd53c166c361e5ff29282c`
 - Phase 0 live route: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=0897bb9-3`
-- Current gate: `FAIL — awaiting physical Samsung acceptance`; Phase 1 is not authorized to start until that verdict.
+- Historical Phase 0 gate: `FAIL — awaiting physical Samsung acceptance`; superseded for continued engineering by the user on 2026-08-20.
 - Superseding user authority: continue beyond the Phase 0 gate unless a genuine blocker is encountered.
 - Current card: snapping overhaul Phase 1 renderer-neutral core.
 - Phase 1 starting HEAD: `5111da10beb902a00ed3e7da96e5472d18170542`.
+- Phase 1 implementation commit: `44413de1079401a633ca88f054ab0d95b6bc285c`.
+- Phase 1 Pages commit: `e343c0c5741e26ae1325d83374dec10525d58353`.
+- Phase 1 live route: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=e343c0c-1`.

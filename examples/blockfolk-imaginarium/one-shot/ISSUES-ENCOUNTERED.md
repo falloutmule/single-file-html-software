@@ -76,9 +76,10 @@
 ## BFS-002 — Renderer-neutral core must not leak into accepted production behavior
 
 - Phase: snapping overhaul Phase 1
-- Status: `RESOLVED LOCALLY — PUBLICATION PENDING`
+- Status: `RESOLVED`
 - Severity: high
 - Risk: a foundational refactor could silently change page@3 saves, controller behavior, current block/window snapping, or packed output before calibration and a pilot are approved.
 - Guard: add the core in isolated modules with independent fixtures and property tests; do not import it into `ImaginariumApp.js` or replace the compatibility model during Phase 1.
 - Failure modes guarded: A, B, C, D, F, Q, S, and T; mobile H/I/K/M/N/P behavior is covered by the unchanged packed-browser regression.
 - Resolution: the app imports only a frozen runtime-boundary diagnostic. It reports `page@3-compatibility`, typed schemas `1`, and zero production-enabled typed profiles. Candidate, graph, and transaction modules remain renderer-neutral and production behavior is unchanged.
+- Verification: exact live bytes and local/live phone Chromium prove the runtime boundary; no typed profile is production-enabled.
