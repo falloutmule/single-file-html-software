@@ -41,12 +41,19 @@ assert.deepEqual(BLOCK_CONSTRUCTION_ASSET_IDS, [
 assert.deepEqual(DOOR_CONSTRUCTION_ASSET_IDS, ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door']);
 assert.deepEqual(WINDOW_CONSTRUCTION_ASSET_IDS, ['sticker-blockfolk-square-window', 'sticker-blockfolk-round-window']);
 assert.equal(CONSTRUCTION_ASSET_IDS.length, 14);
+const productionPilotIds = new Set(['sticker-blockfolk-brick-stone-block', 'sticker-blockfolk-wood-log-block']);
 for (const assetId of CONSTRUCTION_ASSET_IDS) {
   const profile = ASSET_CONSTRUCTION_PROFILES[assetId];
   assert.equal(validateConstructionProfile(profile), true, `${assetId} must have a valid versioned profile shell`);
-  assert.equal(profile.productionEnabled, false, `${assetId} must remain outside production candidate generation in Phase 1`);
-  assert.equal(profile.calibrationStatus, 'uncalibrated');
-  assert.deepEqual(profile.ports, []);
+  if (productionPilotIds.has(assetId)) {
+    assert.equal(profile.productionEnabled, true, `${assetId} must be enabled in the guarded Phase 3 pilot`);
+    assert.equal(profile.calibrationStatus, 'phase3-pilot');
+    assert.deepEqual(profile.ports.map(({ id }) => id), ['cellMount', 'wallLeft', 'wallRight', 'stackTop', 'stackBase', 'wallFace']);
+  } else {
+    assert.equal(profile.productionEnabled, false, `${assetId} must remain outside production candidate generation`);
+    assert.equal(profile.calibrationStatus, 'uncalibrated');
+    assert.deepEqual(profile.ports, []);
+  }
 }
 
 const movingProfile = SNAP_FIXTURE_PROFILES[MOVING_ASSET_ID];

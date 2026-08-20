@@ -26,7 +26,7 @@ const FIXTURES = Object.freeze({
 const EXPECTED_PORTS = ['cellMount', 'wallLeft', 'wallRight', 'stackTop', 'stackBase', 'wallFace'];
 
 assert.equal(BLOCK_CALIBRATION.schema, CALIBRATION_SCHEMA);
-assert.equal(BLOCK_CALIBRATION.status, 'phase2-reviewed-candidate');
+assert.equal(BLOCK_CALIBRATION.status, 'phase3-pilot');
 assert.equal(BLOCK_CALIBRATION.canonicalWorldExtent, EXPECTED_EXTENT);
 assert.deepEqual(BLOCK_CALIBRATION.plane.columnWorld, { x: 55.6, y: 32.1 });
 assert.deepEqual(BLOCK_CALIBRATION.plane.tierWorld, { x: 0, y: -73.1 });
@@ -42,7 +42,7 @@ for (const [assetId, fixture] of Object.entries(FIXTURES)) {
 
   const profile = calibratedBlockProfile(assetId);
   assert.equal(profile.productionEnabled, false);
-  assert.equal(profile.calibrationStatus, 'phase2-reviewed-candidate');
+  assert.equal(profile.calibrationStatus, 'phase3-pilot');
   assert.deepEqual(profile.supportedPlanes, ['wall-iso-a', 'wall-iso-b']);
   assert.deepEqual(profile.supportedAngles, [0]);
   assert.deepEqual(profile.flipPlaneMap, { 'wall-iso-a': 'wall-iso-b', 'wall-iso-b': 'wall-iso-a' });

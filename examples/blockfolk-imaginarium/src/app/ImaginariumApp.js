@@ -14,8 +14,13 @@ import {
 import { createStableId } from '../model/ids.js';
 import {
   SNAP_CORE_RUNTIME_BOUNDARY, SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_METADATA, connectedLayerIds, duplicateConnections, findSnapCandidate,
-  hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections
+  hasAssembly, isSnappableAsset, isTypedSnapConnection, makeConnection, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
+import { ASSET_CONSTRUCTION_PROFILES } from '../model/snap/assetProfiles.js';
+import { PILOT_BLOCK_ASSET_IDS } from '../model/snap/blockProfiles.js';
+import { findTypedSnapCandidate } from '../model/snap/candidateSearch.js';
+import { resolveConstructionPlane } from '../model/snap/coordinateTransforms.js';
+import { applySnapTransaction, planSnapTransaction } from '../model/snap/snapTransaction.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
 import {
@@ -412,7 +417,7 @@ export class BlockFolkImaginariumApp {
       opacity: Number(object.opacity ?? 1), zIndex: index,
       ...(object.blockfolkSourceEmoji ? { sourceEmoji: object.blockfolkSourceEmoji } : {})
     }));
-    this.current.connections = validConnections(this.current.connections || [], new Set(this.current.stickers.map((sticker) => sticker.layerId)));
+    this.current.connections = validConnections(this.current.connections || [], new Set(this.current.stickers.map((sticker) => sticker.layerId)), this.current.stickers);
     if (!isBuiltInWorldBackgroundId(this.current.page.backgroundAssetId)) this.current.page.backgroundAssetId = WORLD_BACKGROUND_ID;
     this.current.page.camera = normalizeCamera(this.camera);
     this.current.ui = { category: migrateBuiltInCategory(this.category) };
@@ -642,14 +647,63 @@ export class BlockFolkImaginariumApp {
     };
   }
 
+  refreshTypedConnectionTransforms(memberIds) {
+    if (!(memberIds instanceof Set) || !memberIds.size) return;
+    const objects = new Map(this.canvas.getObjects().map((object) => [object.blockfolkLayerId, object]));
+    this.current.connections = (this.current.connections || []).map((connection) => {
+      if (!isTypedSnapConnection(connection) || !memberIds.has(connection.aLayerId) || !memberIds.has(connection.bLayerId)) return connection;
+      const first = objects.get(connection.aLayerId); const second = objects.get(connection.bLayerId);
+      const profile = ASSET_CONSTRUCTION_PROFILES[connection.aAssetId]; const port = profile?.ports?.find((item) => item.id === connection.aPortId);
+      if (!first || !second || !profile || !port) return connection;
+      return {
+        ...connection,
+        plane: resolveConstructionPlane(profile, port, this.constructionObject(first)),
+        relativeTransform: {
+          dx: Number(second.left || 0) - Number(first.left || 0),
+          dy: Number(second.top || 0) - Number(first.top || 0),
+          scale: Math.abs(Number(first.scaleX || 1)) / Math.max(Math.abs(Number(second.scaleX || 1)), Number.EPSILON),
+          orientation: 'default', flipped: !!first.flipX
+        }
+      };
+    });
+  }
+
   translateObjects(objects, dx, dy) {
     for (const object of objects) { object.set({ left: Number(object.left || 0) + dx, top: Number(object.top || 0) + dy }); this.clampFabricObject(object); object.setCoords(); }
   }
 
-  proposeSnap(movingObjects) {
+  isTypedPilotAsset(assetId) { return PILOT_BLOCK_ASSET_IDS.includes(assetId) && ASSET_CONSTRUCTION_PROFILES[assetId]?.productionEnabled === true; }
+
+  isConstructionSnapAsset(assetId) { return this.isTypedPilotAsset(assetId) || isSnappableAsset(assetId); }
+
+  constructionObject(object) {
+    return {
+      layerId: object.blockfolkLayerId, assetId: object.blockfolkAssetId,
+      x: Number(object.left || 0), y: Number(object.top || 0),
+      scaleX: Number(object.scaleX || 1), scaleY: Number(object.scaleY || 1),
+      angle: Number(object.angle || 0), flipX: !!object.flipX, flipY: !!object.flipY,
+      orientationId: 'default'
+    };
+  }
+
+  proposeTypedSnap(movingObjects) {
+    if (!movingObjects.some((object) => this.isTypedPilotAsset(object.blockfolkAssetId))) return null;
+    const movingIds = new Set(movingObjects.map((object) => object.blockfolkLayerId));
+    const stationaryObjects = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && this.isTypedPilotAsset(object.blockfolkAssetId));
+    if (!stationaryObjects.length) return null;
+    return findTypedSnapCandidate({
+      movingObjects: movingObjects.map((object) => this.constructionObject(object)),
+      stationaryObjects: stationaryObjects.map((object) => this.constructionObject(object)),
+      profiles: ASSET_CONSTRUCTION_PROFILES,
+      connections: this.current.connections || [],
+      viewportTransform: [...(this.canvas.viewportTransform || [1, 0, 0, 1, 0, 0])]
+    });
+  }
+
+  proposeSnap(movingObjects, { excludeTypedPilotTargets = false } = {}) {
     if (!movingObjects.some((object) => isSnappableAsset(object.blockfolkAssetId))) return null;
     const movingIds = new Set(movingObjects.map((object) => object.blockfolkLayerId));
-    const stationary = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && isSnappableAsset(object.blockfolkAssetId));
+    const stationary = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && isSnappableAsset(object.blockfolkAssetId) && (!excludeTypedPilotTargets || !this.isTypedPilotAsset(object.blockfolkAssetId)));
     const { scale } = cameraMetrics(this.camera, this.canvas.width, this.canvas.height);
     return findSnapCandidate({ movingObjects, stationaryObjects: stationary, worldTolerance: SNAP_TOLERANCE_SCREEN_PX / Math.max(scale, .0001) });
   }
@@ -661,7 +715,7 @@ export class BlockFolkImaginariumApp {
     if (existing) return existing;
     const connection = makeConnection(candidate);
     const layerIds = new Set(this.canvas.getObjects().map((object) => object.blockfolkLayerId));
-    const nextConnections = validConnections([...connections, connection], layerIds);
+    const nextConnections = validConnections([...connections, connection], layerIds, this.canvas.getObjects());
     const stored = nextConnections.find((item) => item.id === connection.id);
     if (!stored) return null;
     this.current.connections = nextConnections;
@@ -674,7 +728,18 @@ export class BlockFolkImaginariumApp {
 
   async snapSelected() {
     const active = this.activeSticker(); if (!active || !this.current) return;
-    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const candidate = this.proposeSnap(members);
+    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active));
+    const typedProposal = this.proposeTypedSnap(members);
+    if (typedProposal?.candidate) { await this.commitTypedSnap({ active, activeLayerId, before, members, candidate: typedProposal.candidate }); return; }
+    if (typedProposal && !['distance', 'no-candidate'].includes(typedProposal.rejectionReason)) {
+      const feedback = typedProposal.rejectionReason === 'scale'
+        ? ['Match piece sizes', 'Match the construction piece sizes, then press Snap again.']
+        : typedProposal.rejectionReason === 'ambiguous'
+          ? ['Move closer to one piece', 'Move closer to the construction piece you want, then press Snap again.']
+          : ['Those pieces do not connect there', 'Those construction ports are not available. Move the piece and try Snap again.'];
+      this.toast(feedback[0]); this.announce(feedback[1]); return;
+    }
+    const candidate = this.proposeSnap(members, { excludeTypedPilotTargets: !!typedProposal });
     if (!candidate) { this.toast('Move closer to snap'); this.announce('Move closer to a compatible construction piece, then press Snap.'); return; }
     this.translateObjects(members, candidate.dx, candidate.dy);
     const connection = this.addSnapConnection(candidate);
@@ -697,6 +762,38 @@ export class BlockFolkImaginariumApp {
       return;
     }
     this.toast('Snapped and locked'); this.announce('Snapped and locked. Move either piece to move the whole assembly.'); this.feedback('pop');
+  }
+
+  async commitTypedSnap({ active, activeLayerId, before, members, candidate }) {
+    const objects = this.canvas.getObjects().map((object) => this.constructionObject(object));
+    const typedConnections = (this.current.connections || []).filter(isTypedSnapConnection);
+    const movingLayerIds = new Set(members.map((object) => object.blockfolkLayerId));
+    const plan = planSnapTransaction({ state: { objects, connections: typedConnections }, candidate, movingLayerIds, profiles: ASSET_CONSTRUCTION_PROFILES });
+    const applied = plan.ok ? applySnapTransaction({ objects, connections: typedConnections }, plan) : { ok: false, reason: plan.reason };
+    if (!applied.ok) {
+      this.toast('Could not connect pieces'); this.announce('The construction changed before it could connect. Move the pieces closer and try Snap again.'); return;
+    }
+    const positions = new Map(applied.state.objects.map((object) => [object.layerId, object]));
+    for (const object of members) {
+      const position = positions.get(object.blockfolkLayerId); if (!position) continue;
+      object.set({ left: position.x, top: position.y }); this.clampFabricObject(object); object.setCoords();
+    }
+    const nextConnections = [...(this.current.connections || []), plan.connection];
+    const layerIds = new Set(objects.map((object) => object.layerId));
+    const validated = validConnections(nextConnections, layerIds, applied.state.objects);
+    if (validated.length !== nextConnections.length) {
+      this.current = before; await this.renderCurrentPicture(activeLayerId);
+      this.toast('Could not connect pieces'); this.announce('The pieces could not be connected safely. Move them and try Snap again.'); return;
+    }
+    this.current.connections = validated;
+    const lockedIds = connectedLayerIds(validated, candidate.movingLayerId);
+    if (!lockedIds.has(candidate.targetLayerId)) {
+      this.current = before; await this.renderCurrentPicture(activeLayerId);
+      this.toast('Could not connect pieces'); this.announce('The pieces could not be connected safely. Move them and try Snap again.'); return;
+    }
+    this.ensureAssemblyContiguous(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.commit(before, 'Construction pieces connected.');
+    this.toast('Blocks connected'); this.announce('Blocks connected. Move either block to move the whole assembly.'); this.feedback('pop');
   }
 
   async snapContextSelected() {
@@ -757,20 +854,30 @@ export class BlockFolkImaginariumApp {
       const resized = resizeSticker({ scaleX: member.scaleX, scaleY: member.scaleY }, factor); const applied = resized.scaleX / Math.max(.0001, Number(member.scaleX || 1));
       member.set({ left: center.x + (Number(member.left || 0) - center.x) * applied, top: center.y + (Number(member.top || 0) - center.y) * applied, scaleX: resized.scaleX, scaleY: resized.scaleY }); this.clampFabricObject(member); member.setCoords();
     }
+    this.refreshTypedConnectionTransforms(new Set(members.map((member) => member.blockfolkLayerId)));
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? (factor > 1 ? 'Assembly made bigger.' : 'Assembly made smaller.') : (factor > 1 ? 'Sticker made bigger.' : 'Sticker made smaller.')); this.feedback('turn');
   }
 
   async turnSelected() {
     const active = this.activeSticker(); if (!active) return;
-    const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const center = this.assemblyCenter(members);
+    const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds);
+    if (members.length > 1 && (this.current.connections || []).some((connection) => isTypedSnapConnection(connection) && memberIds.has(connection.aLayerId) && memberIds.has(connection.bLayerId))) {
+      this.toast('Unsnap before turning'); this.announce('Connected construction pieces use a fixed wall direction. Unsnap before turning one.'); return;
+    }
+    const before = this.snapshot(); const center = this.assemblyCenter(members);
     for (const member of members) { const turned = rotateSticker({ angle: member.angle || 0 }, 15); const dx = Number(member.left || 0) - center.x; const dy = Number(member.top || 0) - center.y; const radians = Math.PI / 12; member.set({ left: center.x + dx * Math.cos(radians) - dy * Math.sin(radians), top: center.y + dx * Math.sin(radians) + dy * Math.cos(radians), angle: turned.angle }); member.setCoords(); }
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? 'Assembly turned.' : 'Sticker turned.'); this.feedback('turn');
   }
 
   async flipSelected() {
     const active = this.activeSticker(); if (!active) return;
-    const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const center = this.assemblyCenter(members);
-    for (const member of members) { const flipped = flipSticker({ flipX: !!member.flipX }); member.set({ left: center.x - (Number(member.left || 0) - center.x), flipX: flipped.flipX, angle: (180 - Number(member.angle || 0) + 360) % 360 }); member.setCoords(); }
+    const before = this.snapshot(); const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds); const center = this.assemblyCenter(members);
+    const typedAssembly = (this.current.connections || []).some((connection) => isTypedSnapConnection(connection) && memberIds.has(connection.aLayerId) && memberIds.has(connection.bLayerId));
+    for (const member of members) {
+      const flipped = flipSticker({ flipX: !!member.flipX });
+      member.set({ left: center.x - (Number(member.left || 0) - center.x), flipX: flipped.flipX, angle: typedAssembly ? Number(member.angle || 0) : (180 - Number(member.angle || 0) + 360) % 360 }); member.setCoords();
+    }
+    this.refreshTypedConnectionTransforms(memberIds);
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? 'Assembly flipped.' : 'Sticker flipped.'); this.feedback('turn');
   }
 
@@ -842,19 +949,22 @@ export class BlockFolkImaginariumApp {
     const flip = this.elements.selection.querySelector('[data-action="flip"]');
     const behind = this.elements.selection.querySelector('[data-action="behind"]');
     const inFront = this.elements.selection.querySelector('[data-action="in-front"]');
+    const turn = this.elements.selectionMore.querySelector('[data-action="turn"]');
     const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds); const groups = this.objectGroups(); const activeIndex = groups.findIndex((group) => group.some((object) => memberIds.has(object.blockfolkLayerId)));
     const assembled = hasAssembly(this.current?.connections || [], active?.blockfolkLayerId);
+    const typedAssembly = assembled && (this.current.connections || []).some((connection) => isTypedSnapConnection(connection) && memberIds.has(connection.aLayerId) && memberIds.has(connection.bLayerId));
     if (smaller) this.controls.setEnabled(smaller, !!active && active.scaleX > MIN_SCALE + .001);
     if (bigger) this.controls.setEnabled(bigger, !!active && active.scaleX < MAX_SCALE - .001);
     if (snapContext) {
       this.controls.setContextState(snapContext, assembled
         ? { state: 'unsnap', icon: '⤨', label: 'Unsnap', ariaLabel: 'Detach selected sticker from its assembly', title: 'Detach selected sticker from its assembly' }
         : { state: 'snap', icon: '⌘', label: 'Snap', ariaLabel: 'Snap selected construction pieces', title: 'Snap selected construction pieces' });
-      this.controls.setEnabled(snapContext, !!active && (assembled || members.some((object) => isSnappableAsset(object.blockfolkAssetId))));
+      this.controls.setEnabled(snapContext, !!active && (assembled || members.some((object) => this.isConstructionSnapAsset(object.blockfolkAssetId))));
     }
     if (flip) this.controls.setEnabled(flip, !!active);
     if (behind) this.controls.setEnabled(behind, !!active && activeIndex > 0);
     if (inFront) this.controls.setEnabled(inFront, !!active && activeIndex >= 0 && activeIndex < groups.length - 1);
+    if (turn) this.controls.setEnabled(turn, !!active && !typedAssembly);
   }
 
   scheduleAutosave() {

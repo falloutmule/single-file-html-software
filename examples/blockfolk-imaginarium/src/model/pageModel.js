@@ -41,7 +41,7 @@ export function validatePicture(value) {
   const layerIds = new Set();
   for (const sticker of value.stickers) validateSticker(sticker, layerIds);
   if (value.schema === PAGE_SCHEMA && !Array.isArray(value.connections)) throw new Error('Picture construction settings are invalid.');
-  if (Array.isArray(value.connections) && validConnections(value.connections, layerIds).length !== value.connections.length) throw new Error('Picture construction settings are invalid.');
+  if (Array.isArray(value.connections) && validConnections(value.connections, layerIds, value.stickers).length !== value.connections.length) throw new Error('Picture construction settings are invalid.');
   for (const asset of value.embeddedAssets || []) {
     const imageAsset = typeof asset?.dataUrl === 'string' && asset.dataUrl.startsWith('data:image/');
     const emojiAsset = asset?.kind === 'emoji' && typeof asset.glyph === 'string' && asset.glyph;
@@ -70,7 +70,7 @@ export function normalizePicture(value) {
     page: { ...migrated.page, backgroundAssetId: isBuiltInWorldBackgroundId(migrated.page.backgroundAssetId) ? migrated.page.backgroundAssetId : WORLD_BACKGROUND_ID, camera: normalizeCamera(migrated.page.camera) },
     ui: { category: migrateBuiltInCategory(migrated.ui?.category) },
     stickers: migrated.stickers.map((sticker, index) => ({ ...sticker, flipX: sticker.flipX ?? false, flipY: sticker.flipY ?? false, opacity: sticker.opacity ?? 1, zIndex: sticker.zIndex ?? index })),
-    connections: validConnections(migrated.connections || [], layerIds),
+    connections: validConnections(migrated.connections || [], layerIds, migrated.stickers),
     embeddedAssets: migrated.embeddedAssets || []
   };
   validatePicture(normalized);

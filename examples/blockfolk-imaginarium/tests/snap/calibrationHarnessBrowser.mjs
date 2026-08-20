@@ -6,7 +6,7 @@ import { extname, resolve, sep } from 'node:path';
 import { chromium } from '../../../../packages/browser-runner/node_modules/playwright/index.mjs';
 
 const productRoot = resolve(import.meta.dirname, '../..');
-const evidenceRoot = resolve(productRoot, process.env.BLOCKFOLK_CALIBRATION_EVIDENCE || 'art/evidence/snapping-calibration-phase2');
+const evidenceRoot = resolve(productRoot, process.env.BLOCKFOLK_CALIBRATION_EVIDENCE || 'test-results/snapping-calibration-phase2');
 await mkdir(evidenceRoot, { recursive: true });
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png' };
 const server = createServer(async (request, response) => {

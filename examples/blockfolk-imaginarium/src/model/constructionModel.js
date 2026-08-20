@@ -1,4 +1,7 @@
 import { createStableId } from './ids.js';
+import { ASSET_CONSTRUCTION_PROFILES } from './snap/assetProfiles.js';
+import { resolveConstructionPlane } from './snap/coordinateTransforms.js';
+import { SNAP_CONNECTION_SCHEMA_VERSION } from './snap/policy.js';
 export { SNAP_CORE_RUNTIME_BOUNDARY } from './snap/runtimeBoundary.js';
 
 // These anchors describe the painted footprint rather than the transparent PNG
@@ -111,14 +114,46 @@ export function connectedLayerIds(connections = [], layerId) {
 
 export function hasAssembly(connections = [], layerId) { return connectedLayerIds(connections, layerId).size > 1; }
 
-export function validConnections(connections = [], layerIds = new Set()) {
-  const seen = new Set(); const result = [];
+export function isTypedSnapConnection(connection) {
+  return connection?.schemaVersion === SNAP_CONNECTION_SCHEMA_VERSION
+    && typeof connection?.aPortId === 'string' && typeof connection?.bPortId === 'string';
+}
+
+function asLayerMap(layers = []) {
+  if (layers instanceof Map) return layers;
+  return new Map((Array.isArray(layers) ? layers : []).map((layer) => [layer.layerId || layer.blockfolkLayerId, layer]));
+}
+
+function validRelativeTransform(transform) {
+  return Number.isFinite(transform?.dx) && Number.isFinite(transform?.dy) && Number.isFinite(transform?.scale)
+    && typeof transform?.orientation === 'string' && typeof transform?.flipped === 'boolean';
+}
+
+export function validConnections(connections = [], layerIds = new Set(), layers = []) {
+  const seen = new Set(); const endpointOccupancy = new Map(); const result = []; const layerMap = asLayerMap(layers);
   for (const connection of connections || []) {
     if (!connection || typeof connection.id !== 'string' || !connection.id || typeof connection.aLayerId !== 'string' || typeof connection.bLayerId !== 'string') continue;
     if (!layerIds.has(connection.aLayerId) || !layerIds.has(connection.bLayerId) || connection.aLayerId === connection.bLayerId) continue;
-    if (!anchorsForAsset(connection.aAssetId)?.[connection.aAnchorId] || !anchorsForAsset(connection.bAssetId)?.[connection.bAnchorId]) continue;
     const pair = [connection.aLayerId, connection.bLayerId].sort().join('::');
     if (seen.has(pair)) continue;
+    if (isTypedSnapConnection(connection)) {
+      const aProfile = ASSET_CONSTRUCTION_PROFILES[connection.aAssetId]; const bProfile = ASSET_CONSTRUCTION_PROFILES[connection.bAssetId];
+      const aPort = aProfile?.ports?.find((port) => port.id === connection.aPortId); const bPort = bProfile?.ports?.find((port) => port.id === connection.bPortId);
+      const aLayer = layerMap.get(connection.aLayerId); const bLayer = layerMap.get(connection.bLayerId);
+      if (!aProfile?.productionEnabled || !bProfile?.productionEnabled || !aPort || !bPort || !validRelativeTransform(connection.relativeTransform)) continue;
+      if (!aPort.compatibleTypes.includes(bPort.type) || !bPort.compatibleTypes.includes(aPort.type)) continue;
+      if (aLayer && (aLayer.assetId || aLayer.blockfolkAssetId) !== connection.aAssetId) continue;
+      if (bLayer && (bLayer.assetId || bLayer.blockfolkAssetId) !== connection.bAssetId) continue;
+      if (resolveConstructionPlane(aProfile, aPort, aLayer || {}, connection.plane) !== connection.plane
+        || resolveConstructionPlane(bProfile, bPort, bLayer || {}, connection.plane) !== connection.plane) continue;
+      const aEndpoint = `${connection.aLayerId}::${connection.aPortId}`; const bEndpoint = `${connection.bLayerId}::${connection.bPortId}`;
+      const nextA = (endpointOccupancy.get(aEndpoint) || 0) + 1; const nextB = (endpointOccupancy.get(bEndpoint) || 0) + 1;
+      if (nextA > aPort.capacity || nextB > bPort.capacity) continue;
+      endpointOccupancy.set(aEndpoint, nextA); endpointOccupancy.set(bEndpoint, nextB); seen.add(pair);
+      result.push({ ...connection, relativeTransform: { ...connection.relativeTransform } });
+      continue;
+    }
+    if (!anchorsForAsset(connection.aAssetId)?.[connection.aAnchorId] || !anchorsForAsset(connection.bAssetId)?.[connection.bAnchorId]) continue;
     seen.add(pair); result.push({ id: connection.id, aLayerId: connection.aLayerId, bLayerId: connection.bLayerId, aAssetId: connection.aAssetId, bAssetId: connection.bAssetId, aAnchorId: connection.aAnchorId, bAnchorId: connection.bAnchorId });
   }
   return result;
@@ -146,7 +181,8 @@ export function findSnapCandidate({ movingObjects, stationaryObjects, worldToler
 
 export function duplicateConnections(connections, idMap) {
   return connections.filter((connection) => idMap.has(connection.aLayerId) && idMap.has(connection.bLayerId)).map((connection) => ({
-    ...connection, id: createStableId('blockfolk-connection'), aLayerId: idMap.get(connection.aLayerId), bLayerId: idMap.get(connection.bLayerId)
+    ...connection, id: createStableId(isTypedSnapConnection(connection) ? 'blockfolk-snap-connection' : 'blockfolk-connection'), aLayerId: idMap.get(connection.aLayerId), bLayerId: idMap.get(connection.bLayerId),
+    ...(connection.relativeTransform ? { relativeTransform: { ...connection.relativeTransform } } : {})
   }));
 }
 

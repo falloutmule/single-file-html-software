@@ -8,3 +8,5 @@
 - Phase 1 must not enable Stone/Wood Door snapping, calibrate production geometry, add page@4 persistence, replace the controller, change assets, or begin formation behavior.
 - Superseding authority on 2026-08-20 allows Phase 2 to build a non-shipping Brick/Log calibration harness, derive reviewed asset geometry from the accepted PNG pixels, capture visual evidence, add focused tests, commit, and push the feature branch.
 - Phase 2 must not enable typed profiles in production, change page@3 saves, create a page@4 migration, publish experimental geometry, change artwork/background bytes, or claim physical Samsung acceptance.
+- Phase 3 may production-enable only the reviewed Brick and Log profiles, integrate one-edge typed transactions through the permanent contextual controller, preserve mixed legacy/typed page@3 records, verify component actions, commit, push, pack, publish only the BlockFolk Pages subpath, and wait for physical Samsung review.
+- Phase 3 must not enable doors, windows in the typed engine, other blocks, formations, migration normalization, automatic snapping, synthetic edges, new dependencies, or artwork changes.
