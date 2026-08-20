@@ -37,14 +37,14 @@ All criteria passed for the first testable production build. Physical-phone subj
 - Exported calibration is deterministic and imports without numeric or identity drift.
 - Candidate profiles remain non-shipping and `productionEnabled: false`; production behavior, saves, assets, and the permanent `snap-context` controller remain unchanged.
 
-## Snapping overhaul Phase 3 — AUTOMATED PASS / PHYSICAL REVIEW REQUIRED
+## Snapping overhaul Phase 3 — PHYSICAL PASS
 
 - Exactly Brick and Log use typed ports; all other assets remain on the compatibility boundary and doors remain disabled.
 - Ordinary drag never connects; one deliberate Snap activation creates at most one typed edge.
 - Horizontal and vertical Brick/Log construction works through visible controls at canonical inserted scale, with screen-space tolerance, plane/normal/scale/capacity/ambiguity validation.
 - Any member moves the component; resize, Flip, depth, Copy, Trash, Undo/Redo, selected-member Unsnap, save/reload, orientation, puzzle, and export remain valid.
 - The same permanent `snap-context` controller survives delayed native-touch activation and displays `Sticker detached.` after intentional Unsnap.
-- A verified deterministic artifact is published only to the BlockFolk Pages subpath. Local and hosted real-touch Chromium pass, but overall status remains `FAIL — awaiting physical Samsung review` until the user approves the interaction on the target device.
+- A verified deterministic artifact was published only to the BlockFolk Pages subpath. Local and hosted real-touch Chromium passed, and the user subsequently reported that the blocks worked on the target phone, clearing the Phase 3 gate.
 
 ## Construction pass — PASS
 
@@ -54,3 +54,15 @@ All criteria passed for the first testable production build. Physical-phone subj
 - Behind/In Front has rendered proof with three overlapping stickers, one-layer group movement, persistence, Undo/Redo, and non-blocking feedback.
 - The sole Valley background remains hash-identical. The retained comparison evidence documents high-DPI/high-quality application rendering and keeps candidate sharpening outside the artifact.
 - Feature implementation `8340d784455555a4fe7d560802ae266f3539de12` is pushed; Pages commit `1a24fef073fcc9140c59ba2e142e0b24702962e0` changes only the dedicated BlockFolk artifact. The cache-busted live artifact is byte-identical and passes both phone-sized Chromium scenarios.
+
+## Snapping overhaul final — AUTOMATED PASS / PHYSICAL REVIEW REQUIRED
+
+- One typed engine owns all ten blocks, two doors, and two windows; the obsolete new-candidate fallback is absent.
+- One deliberate Snap creates one edge. Pose consensus, ambiguity, types, plane, normals, scale, capacity, duplicate, component, and reserved-space rules are centrally enforced.
+- Stone/Wood Doors use five unique frame slots; one to four connected slots remain partial, five same-material slots derive completion, and no synthetic edges are created.
+- Square/Round Windows use a distinct capacity-one `wallFace` receiver and render above their hosts.
+- Component move, resize, Flip, depth, Copy, Trash, Undo/Redo, selected-member Unsnap, persistence, orientation, puzzle, and PNG export pass.
+- Page@4 migration is in-memory and non-destructive until an explicit content mutation or intentional save; camera-only changes do not overwrite legacy records.
+- The stable contextual control passes native-touch, delayed-click, keyboard, and assistive activation without node/control-ID replacement.
+- Canonical and live verification pass with exact byte identity, zero errors/requests, unchanged products/assets/sentinels, and an isolated Pages change.
+- Physical Samsung confirmation of the visible complete doorway and six-piece locked drag remains the final acceptance gate.

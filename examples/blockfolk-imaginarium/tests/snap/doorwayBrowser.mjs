@@ -239,10 +239,18 @@ try {
   assert.equal(proof.connections.length, windowBefore.connections.length + 1); assert.deepEqual([proof.connections[0].aPortId, proof.connections[0].bPortId], ['wallMount', 'wallFace']);
   assert.equal(proof.formations.length, 0); assert.ok(proof.stickers.find(({ layerId }) => layerId === squareWindow).zIndex > proof.stickers.find(({ layerId }) => layerId === host).zIndex, 'window must render in front of its host block');
   await page.screenshot({ path: resolve(evidenceRoot, 'square-window-mounted-400x844.png'), fullPage: true });
+
+  await startFreshBuilding();
+  const roundHost = await addVisible('sticker-blockfolk-wood-log-block'); const roundWindow = await addVisible('sticker-blockfolk-round-window');
+  await dragLayerToOffset(roundWindow, roundHost, { x: 6, y: 4 });
+  const roundBefore = await state(); await tap('[data-action="snap-context"]'); await page.waitForTimeout(900); proof = await state();
+  assert.equal(proof.connections.length, roundBefore.connections.length + 1);
+  assert.deepEqual([proof.connections[0].aPortId, proof.connections[0].bPortId], ['wallMount', 'wallFace']);
+  assert.ok(proof.stickers.find(({ layerId }) => layerId === roundWindow).zIndex > proof.stickers.find(({ layerId }) => layerId === roundHost).zIndex, 'Round Window must render in front of its Log host');
 } finally {
   await context.close(); await browser.close();
 }
 
 assert.deepEqual(failures, [], 'doorway browser run must have zero page/console errors');
 assert.deepEqual(unexpectedRequests, [], 'doorway browser run must have zero unexpected network requests');
-console.log('BLOCKFOLK_DOORWAY_BROWSER PASS', JSON.stringify({ artifactUrl, requiredVisualScreenshots: 12, additionalScreenshots: 7, pngExport: true, puzzleInput: true, unexpectedRequests: 0, errors: 0 }));
+console.log('BLOCKFOLK_DOORWAY_BROWSER PASS', JSON.stringify({ artifactUrl, requiredVisualScreenshots: 12, additionalScreenshots: 7, windows: ['square', 'round'], pngExport: true, puzzleInput: true, unexpectedRequests: 0, errors: 0 }));

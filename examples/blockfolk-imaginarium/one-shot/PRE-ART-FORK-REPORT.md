@@ -243,3 +243,17 @@ The deterministic artifact is Build ID `blockfolk-imaginarium-01551aec11aa`, `12
 Focused model/source/static tests, lint, typecheck, all 46 repository files (316 passed, 2 documented skips), One-Shot validation, SFHS inspect/validate/test/check/pack/verify, packed/offline audit, deterministic double packing, and local/live Chromium at both phone orientations pass. Live runs report zero console errors, page errors, and unexpected requests. Original Imaginarium, Ueye, both Valley backgrounds, all sticker bytes, categories, native emoji, BlockFolk namespaces, Pages root, and unrelated tracked paths remain unchanged. Full evidence is in [SNAPPING-OVERHAUL-PHASE3-REPORT.md](SNAPPING-OVERHAUL-PHASE3-REPORT.md).
 
 Automated Phase 3 acceptance is PASS. Overall status remains **FAIL — awaiting physical Samsung review** before Phase 4.
+
+## Snapping overhaul final automated candidate — physical Samsung review required
+
+The physically accepted Brick/Log pilot has been extended to all ten blocks, both doors, and both windows through one typed construction engine. New production snaps no longer reach the obsolete generic fallback. Stone and Wooden Doors use five unique one-wide/two-tier structural slots; Square and Round Windows use a separate `wallFace` receiver. One deliberate Snap records one edge, partial progress is derived honestly, five same-material frame slots derive completion, and no synthetic edge or complete block is placed behind the door.
+
+New saves use isolated `blockfolk-imaginarium.page@4`. Earlier pages migrate in memory without moving or resizing stickers and without overwriting raw storage during pan, zoom, orientation, Fit, or bookmark changes. Failed historical doorway links are quarantined; the first explicit content edit or intentional save writes one normalized record.
+
+Implementation commit `499636e63e9906b08a80582beeeff5c2a1b89206` is pushed. Pages commit `200dd59ffe5f6fe906effcae50c9695c3a5305aa` changes only `blockfolk-imaginarium/index.html`. The live byte-identical artifact is Build ID `blockfolk-imaginarium-7852b7f329b4`, `12,308,382` bytes, SHA-256 `288c6664584137ceb97226b29a3fd6bcdd99aaac5b1056f7daa268f1d00f92c6`, at `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=200dd59`.
+
+Focused/model tests, all 46 repository files (316 passed, 2 skipped), lint, typecheck, One-Shot, SFHS inspect/validate/build/test/check/pack/verify, packed audit, deterministic double pack, and local/live portrait/landscape Chromium pass. Live typed block, doorway/window, PNG, puzzle, native-touch controller, and page@4 migration scenarios report zero console errors, page errors, or unexpected requests. Original Imaginarium, Ueye, both Valley assets, all 30 sticker bytes, categories, native emoji, storage sentinels, Pages root, and unrelated routes remain unchanged.
+
+Full evidence: [SNAPPING-OVERHAUL-FINAL-REPORT.md](SNAPPING-OVERHAUL-FINAL-REPORT.md) and [required-12-contact-sheet.png](../art/evidence/snapping-overhaul-final/required-12-contact-sheet.png).
+
+Automated acceptance is PASS. Overall status remains **FAIL — awaiting physical Samsung review** of the deployed complete doorway and locked six-piece movement.

@@ -1,6 +1,8 @@
 # BlockFolk Snapping Overhaul — Phase 3 Report
 
-Status: **AUTOMATED PASS / FAIL — awaiting physical Samsung review**
+Status: **PHYSICAL PASS — pilot accepted; superseded by the final doorway candidate**
+
+Subsequent physical verdict: the user reported that the blocks worked on the target phone, which cleared the Brick/Log pilot gate and authorized continuation into doors, windows, formations, and page@4 migration. The final doorway candidate has its own physical gate in `SNAPPING-OVERHAUL-FINAL-REPORT.md`.
 
 ## Commits and publication
 
@@ -84,9 +86,9 @@ The accepted evidence shows side-by-side Brick, vertically stacked Log, whole-co
 - Categories and counts: Animals 2, People 6, Building 6, Nature 12, Magic 4, Emoji native input
 - Original Imaginarium, Ueye, both backgrounds, sticker bytes, categories, storage namespaces, and unrelated tracked paths: unchanged
 
-## Physical gate
+## Physical gate — resolved
 
-Automated acceptance is complete. Phase 4 is intentionally blocked until the user tests this exact live candidate on the target Samsung and confirms:
+The pilot originally stopped for the following target-Samsung checks:
 
 1. Two Brick Blocks connect side-by-side only after pressing Snap.
 2. Two Log Blocks connect vertically only after pressing Snap.
@@ -94,4 +96,4 @@ Automated acceptance is complete. Phase 4 is intentionally blocked until the use
 4. Flip preserves the connection and visibly changes wall direction.
 5. Pressing the same contextual control again intentionally detaches once.
 
-Final status: **FAIL — awaiting physical Samsung review**.
+The user subsequently reported that the blocks worked. Phase 3 status is therefore **PHYSICAL PASS**, and the product continued into the separately gated final doorway candidate.

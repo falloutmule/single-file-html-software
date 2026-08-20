@@ -94,12 +94,41 @@
 - Resolution: exact alpha bounds were measured from both accepted PNGs; the first `(54.3,36.4)` column candidate was visibly rejected as too steep; reviewed evidence uses shared world column `(55.6,32.1)` and tier `(0,-73.1)` with deterministic export/import.
 - Verification: independent model fixtures, runtime alpha scanning, four portrait/landscape screenshots, lint, typecheck, 316 repository tests plus 2 documented skips, focused source/static checks, and zero-error/no-external-request browser proof pass. No production path imports the candidate profiles.
 
-## BFS-004 — Typed Brick/Log pilot requires physical Samsung acceptance
+## BFS-004 — Typed Brick/Log pilot required physical Samsung acceptance
 
 - Phase: snapping overhaul Phase 3
-- Status: `AUTOMATED PASS — PHYSICAL GATE OPEN`
+- Status: `PHYSICAL PASS`
 - Severity: release gate for Phase 4
 - Risk: desktop Chromium touch emulation can prove single activation, stable controller identity, graph persistence, and rendered registration, but cannot certify the feel or visual alignment of the target Samsung browser.
 - Resolution: enable only Brick and Log, retain the compatibility boundary for every other construction asset, publish one byte-verified candidate, and stop before doors, formations, or page@4 migration.
 - Verification: local and live touch-enabled Chromium prove horizontal Brick and vertical Log connections, component editing from either member, delayed-click suppression, exact Unsnap feedback, persistence, orientation continuity, puzzle/export compatibility, and zero errors or unexpected requests.
-- Remaining acceptance: user must physically verify side-by-side Brick, stacked Log, whole-component drag from either member, Flip, and intentional Unsnap. Overall status remains `FAIL — awaiting physical Samsung review`.
+- Physical verdict: the user reported that the blocks worked on the target phone, clearing the pilot and allowing the final doorway work to proceed.
+
+## BFS-005 — Obsolete generic fallback remained reachable after typed expansion
+
+- Phase: snapping overhaul final hardening
+- Status: `RESOLVED`
+- Severity: high
+- Observed: after all fourteen construction profiles became typed, `ImaginariumApp` still contained the old generic proposal/commit fallback even though typed targets were intended to own production snapping.
+- Risk: a future rejection or target-filter change could silently revive rectangular/legacy behavior and produce another graph-only success.
+- Resolution: removed generic new-candidate proposal, translation, connection commit, and building-face sorting from the production app. Legacy validation/readers remain isolated in `constructionModel` and page migration.
+- Verification: packed app uses `typed-building-v1+versioned-legacy-reader`; all typed local/live scenarios pass and obsolete generic anchor fields are absent from new connections.
+
+## BFS-006 — Frame-positioned-first test could select an already connected member
+
+- Phase: final doorway browser proof
+- Status: `RESOLVED`
+- Severity: test/interaction precision
+- Observed: a fixed named member order assumed the first door edge always occupied a particular authored slot. In a crowded correctly positioned frame, deterministic pose scoring validly selected another closer structural slot, so the next fixed member could already show Unsnap.
+- Resolution: keep one-edge-per-activation behavior and select the next visibly free frame member from the derived component. No diagonal port, hidden edge, auto-wiring, or expanded geometry was added.
+- Verification: Brick, Log, door-first, frame-positioned-first, both doors, Square/Round Window, progress, completion, group actions, and native-touch identity pass locally and live.
+
+## BFS-007 — Final doorway acceptance still requires target-device review
+
+- Phase: snapping overhaul completion
+- Status: `AUTOMATED PASS — PHYSICAL GATE OPEN`
+- Severity: release gate
+- Risk: Chromium automation proves geometry, rendering, persistence, and touch transaction invariants but cannot certify how the complete frame reads or feels on the user's Samsung browser.
+- Resolution: published the exact deterministic candidate, committed twelve portrait/landscape screenshots plus a contact sheet, and recorded a five-step physical review checklist.
+- Verification: Pages bytes match SHA-256 `288c6664584137ceb97226b29a3fd6bcdd99aaac5b1056f7daa268f1d00f92c6`; local/live typed scenarios have zero console errors, page errors, and unexpected requests.
+- Remaining acceptance: user confirmation of the visible one-wide/two-tier complete doorway and locked six-piece drag. Physical evidence supersedes automated status.
