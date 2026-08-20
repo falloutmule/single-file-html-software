@@ -29,6 +29,14 @@ All criteria passed for the first testable production build. Physical-phone subj
 - Phase 1 makes no visible production change: doors remain creator-disabled, the stable controller and page@3 storage remain unchanged, and current block/window behavior retains its browser proof.
 - All canonical and integrity lanes pass, the isolated artifact is published, and no asset or unrelated product changes.
 
+## Snapping overhaul Phase 2 — IN PROGRESS
+
+- The harness loads the accepted Brick and Log PNGs directly and reports their independently measured alpha bounds.
+- It exposes draggable construction origins and all six semantic ports with type, capacity, plane, normal, and priority metadata.
+- It renders adjacent, stacked, wall-face, and horizontally flipped comparison scenes at both phone orientations.
+- Exported calibration is deterministic and imports without numeric or identity drift.
+- Candidate profiles remain non-shipping and `productionEnabled: false`; production behavior, saves, assets, and the permanent `snap-context` controller remain unchanged.
+
 ## Construction pass — PASS
 
 - New art sticker defaults equal exactly six prior Smaller steps; existing saves retain their stored scale.

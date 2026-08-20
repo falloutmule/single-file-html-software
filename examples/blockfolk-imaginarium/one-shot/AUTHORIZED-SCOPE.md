@@ -6,3 +6,5 @@
 - Stop after the Phase 0 Pages candidate is verified. Do not begin the new snapping core, calibration harness, typed ports, page@4 migration, PR, tag, release, artwork change, or unrelated deployment before the Samsung gate.
 - Superseding authority on 2026-08-20 allows Phase 1 to continue without waiting: add and test the renderer-neutral core, keep it behind the existing production behavior boundary, pack, verify, commit, push, and publish only the BlockFolk subpath.
 - Phase 1 must not enable Stone/Wood Door snapping, calibrate production geometry, add page@4 persistence, replace the controller, change assets, or begin formation behavior.
+- Superseding authority on 2026-08-20 allows Phase 2 to build a non-shipping Brick/Log calibration harness, derive reviewed asset geometry from the accepted PNG pixels, capture visual evidence, add focused tests, commit, and push the feature branch.
+- Phase 2 must not enable typed profiles in production, change page@3 saves, create a page@4 migration, publish experimental geometry, change artwork/background bytes, or claim physical Samsung acceptance.

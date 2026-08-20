@@ -83,3 +83,12 @@
 - Failure modes guarded: A, B, C, D, F, Q, S, and T; mobile H/I/K/M/N/P behavior is covered by the unchanged packed-browser regression.
 - Resolution: the app imports only a frozen runtime-boundary diagnostic. It reports `page@3-compatibility`, typed schemas `1`, and zero production-enabled typed profiles. Candidate, graph, and transaction modules remain renderer-neutral and production behavior is unchanged.
 - Verification: exact live bytes and local/live phone Chromium prove the runtime boundary; no typed profile is production-enabled.
+
+## BFS-003 — Brick/Log geometry requires independent visual calibration
+
+- Phase: snapping overhaul Phase 2
+- Status: `IN PROGRESS — NON-SHIPPING`
+- Severity: blocking for the production pilot
+- Risk: deriving ports from full rectangular bounds or recycling the failed doorway constants would reproduce visually wrong placement while model tests merely validate the same bad assumptions.
+- Guard: measure alpha bounds from the accepted PNGs, render draggable construction origins/ports/normals over the real art, compare both wall planes and Flip, export deterministic calibration JSON, and keep every candidate profile `productionEnabled: false`.
+- Exit: independent fixtures and portrait/landscape rendered evidence agree on Brick/Log alignment without drift; no production path imports the candidate profiles.
