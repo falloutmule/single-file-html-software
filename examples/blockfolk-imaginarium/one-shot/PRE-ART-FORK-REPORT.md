@@ -205,3 +205,17 @@ The canonical artifact is Build ID `blockfolk-imaginarium-119b61d7d836`, `12,281
 Focused model, 12-scene rendered doorway, full local/live phone browser, lint, typecheck, 46-file repository tests, SFHS inspect/validate/check/pack/verify, packed audit, and deterministic double-pack lanes pass. The original Imaginarium, Ueye, 30-sticker catalog, category order, emoji behavior, stable controller, and both Valley backgrounds are unchanged. See [STONE-DOORWAY-GEOMETRY-REPORT.md](STONE-DOORWAY-GEOMETRY-REPORT.md) for exact topology, rejection cases, screenshots, hashes, and integrity proof.
 
 Automated acceptance is PASS. Overall status remains **FAIL — awaiting physical Samsung review** of the visible opening and locked six-piece drag behavior.
+
+## Snapping overhaul Phase 0 honest baseline — FAIL awaiting physical Samsung acceptance
+
+Physical Samsung evidence superseded the preceding automated doorway claim. Implementation commit `35a94904e83bf5f68212503493c8341fd6ada501` additively removes the failed Stone Door geometry, automatic multi-edge doorway wiring, hidden-cell rejection, doorway-specific layer sorting, and circular rendered-doorway test. It does not restore centered door-over-block snapping. New Wooden Door and Stone Door connections are creator-disabled until calibrated typed profiles exist.
+
+Failed `doorJamb*`, `blockJamb*`, and historical door `backFace` endpoints remain validation-only so existing page@3 pictures load without deleting or rewriting stickers, coordinates, scale, Flip, z-order, or stored connections. Generic block and window snapping remains enabled. The permanent `snap-context` DOM node/controller, its control ID, duplicate-click suppression, distinct cues, and contextual Unsnap behavior remain unchanged. Intentional Unsnap feedback is exactly `Sticker detached.`
+
+Canonical artifact: Build ID `blockfolk-imaginarium-e1fdbbfc5738`, `12,273,880` bytes, SHA-256 `93918d0ce2b87ea9fd20001586ed9dadb7011abedfae1e71c91f80e75ea73df4`. Two canonical packs are byte-identical. Pages commit `0897bb987421818eddfd53c166c361e5ff29282c` changes only `blockfolk-imaginarium/index.html`; the live response is byte-identical at `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=0897bb9-3`.
+
+Focused source/static, lint, typecheck, 46-file repository tests (316 passed, 2 skipped), SFHS inspect/validate/test/check/pack/verify, packed/offline audit, deterministic double-pack, and local/live phone Chromium at `400 × 844` and `844 × 400` pass. The known SFHS path-map review warning remains non-blocking because the explicit product source, static, packed, and browser lanes cover the changed paths. Browser proof reports zero console errors, page errors, and unexpected requests.
+
+The Original Imaginarium tree remains `1369fc6e6e76bb204a9cfaf99cb6cb4f3c69d5a7`; its accepted artifact remains `10,349,547` bytes with SHA-256 `85ab852ea947b7132877650725cd966383da3a8dfc09dabc4ec70597d5b1a75b`. Production Valley WebP SHA-256 remains `25b795d7b9914b56bd2dfb4a444594f63f4146d8490dd0127850b749b4a2c25c`; Classic Valley PNG remains `72cc98a59b8d4e123f720a84aa1782a3e7928d0697c54f28244562f5683088eb`. Ueye and unrelated tracked paths are untouched. See [SNAPPING-OVERHAUL-PHASE0-REPORT.md](SNAPPING-OVERHAUL-PHASE0-REPORT.md).
+
+Automated Phase 0 acceptance is PASS. Overall status is **FAIL — awaiting physical Samsung acceptance**. The new typed-port core, calibration harness, page@4 migration, and doorway formations have not begun.

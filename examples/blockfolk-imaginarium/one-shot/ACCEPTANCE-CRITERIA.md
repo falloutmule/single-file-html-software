@@ -10,7 +10,7 @@
 
 All criteria passed for the first testable production build. Physical-phone subjective feel and device-specific native-emoji glyph coverage remain user-acceptance observations, not automated failures.
 
-## Snapping overhaul Phase 0 — IN PROGRESS
+## Snapping overhaul Phase 0 — AUTOMATED PASS / PHYSICAL FAIL PENDING REVIEW
 
 - The failed doorway geometry, hidden-cell rejection, automatic multi-edge wiring, and doorway-only layer sorting are absent from new candidate generation.
 - Stone and Wooden Doors cannot create new snap edges before calibrated typed profiles exist; no center-overlay fallback returns.

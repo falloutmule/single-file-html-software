@@ -22,3 +22,7 @@
 - Verified Phase 0 starting HEAD: `06e900b5cf717ce883acb77a4ac11fdfc3caadb4`
 - Verified starting Pages tip: `e981cc5c1b75c7bb170e503505b67964b8024264`
 - Physical authority: the August 19 Samsung result supersedes the doorway PASS claim; Phase 0 must publish before the new engine begins.
+- Phase 0 implementation commit: `35a94904e83bf5f68212503493c8341fd6ada501`
+- Phase 0 Pages commit: `0897bb987421818eddfd53c166c361e5ff29282c`
+- Phase 0 live route: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=0897bb9-3`
+- Current gate: `FAIL — awaiting physical Samsung acceptance`; Phase 1 is not authorized to start until that verdict.
