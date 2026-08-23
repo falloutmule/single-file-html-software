@@ -1,4 +1,20 @@
+---
+{"schema":"sfhs.one-shot-decision-log@1","status":"REPORTED","facts":{"decisions":["BFD-020","BFD-021","BFD-022","BFD-023"]}}
+---
 # Decisions
+
+## Grid-snap recovery Phase 0 — 2026-08-23
+
+- `VERIFIED`: `b639f72` is behavioral authority, not file-restore authority. Current controller/DOM/application code remains unless a focused comparison proves accepted behavior is missing or altered.
+- `VERIFIED`: page@3 at `b639f72` is the last accepted writer. Phase 0 restores that writer for normal pictures.
+- `VERIFIED`: failed-overhaul page@4 uses the same broad picture envelope but gives `connections` typed port/plane/relative-transform semantics. The current migration explicitly excludes numeric `schemaVersion` records from quarantine and therefore does not prove page@4 neutral.
+- `VERIFIED`: page@4 opens only through one `ReadOnlyLegacySession` adapter. All connections are inactive in memory; sticker transforms remain exact; all content mutations and storage writes are disabled.
+- `VERIFIED`: the read-only notice is session-only: `This older picture is open read-only. Your stickers are safe, but its snap links are inactive.`
+- `VERIFIED`: Doors and Windows remain ordinary editable stickers with Snap visibly disabled. Phase 0 creates new edges only between supported Blocks.
+- `VERIFIED`: successful Snap means exactly one activation and one edge; failed Snap means exactly one activation and zero edges; delayed generated click and deliberate Unsnap retain the permanent controller identity.
+- `VERIFIED`: later Blocks, Windows, Doors, and final migration are not implementation authority. `GRID_CONSTRUCTION_ROADMAP` stays `PENDING`.
+
+## Historical decisions
 
 - `VERIFIED`: revised sole authority is the received 1280 × 1280 JPEG with SHA-256 `4aa0bb1fb66e3c4101a0e4aa2dad1cf0ebf6adf7a5b484453a9cddd9bb0d7911`.
 - `VERIFIED`: use installed `RTXVideoSuperResolution` in exact target-dimensions mode at ULTRA quality; no prompt, sampler, denoise, diffusion, or generative repair.

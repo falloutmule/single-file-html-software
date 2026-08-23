@@ -1,0 +1,37 @@
+{
+  "schema": "blockfolk-imaginarium.page@2",
+  "id": "fixture-page2-e10dc04",
+  "title": "Historical page 2",
+  "createdAt": "2026-02-02T00:00:00.000Z",
+  "updatedAt": "2026-02-02T00:00:00.000Z",
+  "page": {
+    "width": 4096,
+    "height": 4096,
+    "backgroundAssetId": "blockfolk-valley",
+    "camera": {
+      "centerX": 1900,
+      "centerY": 2100,
+      "zoom": 1.25
+    }
+  },
+  "ui": {
+    "category": "nature"
+  },
+  "stickers": [
+    {
+      "layerId": "page2-layer-a",
+      "assetId": "sticker-blockfolk-stone-block",
+      "x": 1800,
+      "y": 2050,
+      "scaleX": 1.5,
+      "scaleY": 1.5,
+      "angle": 0,
+      "flipX": false,
+      "flipY": false,
+      "opacity": 1,
+      "zIndex": 0
+    }
+  ],
+  "embeddedAssets": [],
+  "promptId": null
+}

@@ -1,0 +1,58 @@
+{
+  "schema": "blockfolk-historical-fixture-manifest@1",
+  "storage": {
+    "database": "blockfolk-imaginarium-library-v1",
+    "databaseVersion": 2,
+    "store": "pictures",
+    "keyPath": "id",
+    "valueType": "structured-object",
+    "exactJsonByteEqualityRequired": false
+  },
+  "fixtures": [
+    {
+      "file": "page1-f6daec9.json",
+      "producingCommit": "f6daec9cbbc563449b8bb835aef35fba2ad82f7c",
+      "schema": "blockfolk-imaginarium.page@1",
+      "originalCanonicalSha256": "2c3fdf3b9d80f1745b9f1f66ae59568a5d1d776f4da0f1be4b006bf26440c4e7",
+      "storageKey": "fixture-page1-f6daec9",
+      "writerApi": ["createPicture", "createSticker", "validatePicture"],
+      "expectedReadResult": "Editable page@3 normalization; one sticker at world x=1024, y=1024; no connections."
+    },
+    {
+      "file": "page2-e10dc04.json",
+      "producingCommit": "e10dc04456fb2bcb77b6c210155869c21fc119b6",
+      "schema": "blockfolk-imaginarium.page@2",
+      "originalCanonicalSha256": "5fba8507d3aba62196a4a7744900cb4d1d455997c32e1d2fe59657781dbe50f5",
+      "storageKey": "fixture-page2-e10dc04",
+      "writerApi": ["createPicture", "createSticker", "validatePicture"],
+      "expectedReadResult": "Editable page@3 normalization; camera and sticker transform preserved; no connections."
+    },
+    {
+      "file": "page3-8340d78.json",
+      "producingCommit": "8340d784455555a4fe7d560802ae266f3539de12",
+      "schema": "blockfolk-imaginarium.page@3",
+      "originalCanonicalSha256": "eb42758649ac4c42d7b8d079e215b548730b14d674c8b86df0dafb4b645f85b2",
+      "storageKey": "fixture-page3-8340d78",
+      "writerApi": ["createPicture", "createSticker", "makeConnection", "validatePicture"],
+      "expectedReadResult": "Editable page@3; both stickers and the original generic connection preserved."
+    },
+    {
+      "file": "page3-b639f72.json",
+      "producingCommit": "b639f72866a39efd13de9c2fa0057cfee9973dc5",
+      "schema": "blockfolk-imaginarium.page@3",
+      "originalCanonicalSha256": "d6f8130d01e93464541a62f4fc89574c70dcc50c042e31118215b7a44913eea1",
+      "storageKey": "fixture-page3-b639f72",
+      "writerApi": ["createPicture", "createSticker", "makeConnection", "validatePicture"],
+      "expectedReadResult": "Editable accepted-stable page@3; both stickers and the original generic connection preserved."
+    },
+    {
+      "file": "page4-499636e.json",
+      "producingCommit": "499636e63e9906b08a80582beeeff5c2a1b89206",
+      "schema": "blockfolk-imaginarium.page@4",
+      "originalCanonicalSha256": "c265065b580daebeddb353bbe45ee50090a775620bcae067bbc4ff20c33a798f",
+      "storageKey": "fixture-page4-499636e",
+      "writerApi": ["createPicture", "createSticker", "planSnapTransaction", "validatePicture"],
+      "expectedReadResult": "ReadOnlyLegacySession; exact two-sticker snapshot; transient camera; one uninterpreted quarantined connection; every content-mutation capability false."
+    }
+  ]
+}

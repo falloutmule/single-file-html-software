@@ -1,8 +1,4 @@
 import { createStableId } from './ids.js';
-import { ASSET_CONSTRUCTION_PROFILES } from './snap/assetProfiles.js';
-import { resolveConstructionPlane } from './snap/coordinateTransforms.js';
-import { SNAP_CONNECTION_SCHEMA_VERSION } from './snap/policy.js';
-export { SNAP_CORE_RUNTIME_BOUNDARY } from './snap/runtimeBoundary.js';
 
 // These anchors describe the painted footprint rather than the transparent PNG
 // rectangle. Values are fractions of the scaled half-width/half-height.
@@ -14,10 +10,8 @@ const BLOCK_IDS = [
   'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block',
   'sticker-blockfolk-brick-stone-block'
 ];
-export const DOOR_ASSET_IDS = Object.freeze([
-  'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door'
-]);
-const WINDOW_IDS = [
+const FACE_IDS = [
+  'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door',
   'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
 ];
 
@@ -45,40 +39,26 @@ const blockAnchors = Object.freeze({
 });
 const buildingFaceAnchors = Object.freeze({ ...edgeAnchors(.68, .84), backFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: -1, mate: 'frontFace' }) });
 
-// Phase 0 safety boundary: the failed doorway experiment emitted these endpoint
-// IDs into page@3 saves. They remain validation-only so those pictures load
-// byte-for-byte, but allObjectAnchors() filters them and no new door connection
-// can be proposed. Do not restore the old centered face-overlay fallback.
-const legacyDoorAnchors = Object.freeze({
-  doorJambLowerLeft: Object.freeze({ mate: 'blockJambLowerLeft', legacy: true }),
-  doorJambLowerRight: Object.freeze({ mate: 'blockJambLowerRight', legacy: true }),
-  doorJambUpperLeft: Object.freeze({ mate: 'blockJambUpperLeft', legacy: true }),
-  doorJambUpperRight: Object.freeze({ mate: 'blockJambUpperRight', legacy: true }),
-  doorLintel: Object.freeze({ mate: 'blockLintel', legacy: true }),
-  backFace: Object.freeze({ mate: 'frontFace', legacy: true })
-});
-const legacyDoorwayBlockAnchors = Object.freeze({
-  ...blockAnchors,
-  blockJambLowerLeft: Object.freeze({ mate: 'doorJambLowerLeft', legacy: true }),
-  blockJambLowerRight: Object.freeze({ mate: 'doorJambLowerRight', legacy: true }),
-  blockJambUpperLeft: Object.freeze({ mate: 'doorJambUpperLeft', legacy: true }),
-  blockJambUpperRight: Object.freeze({ mate: 'doorJambUpperRight', legacy: true }),
-  blockLintel: Object.freeze({ mate: 'doorLintel', legacy: true })
-});
-
 // This is intentionally measured on the screen, not in world units: an 80px
 // magnetic catch area remains equally forgiving at every camera zoom.
 export const SNAP_TOLERANCE_SCREEN_PX = 80;
-export const SNAPPABLE_ASSET_METADATA = Object.freeze(Object.fromEntries([
-  ...BLOCK_IDS.map((id) => [id, Object.freeze({ kind: 'block', anchors: ['sticker-blockfolk-brick-stone-block', 'sticker-blockfolk-wood-log-block'].includes(id) ? legacyDoorwayBlockAnchors : blockAnchors, candidateEnabled: true })]),
-  ...WINDOW_IDS.map((id) => [id, Object.freeze({ kind: 'building-face', anchors: buildingFaceAnchors, candidateEnabled: true })]),
-  ...DOOR_ASSET_IDS.map((id) => [id, Object.freeze({ kind: 'door-validation-only', anchors: legacyDoorAnchors, candidateEnabled: false })])
+export const SNAPPABLE_ASSET_METADATA = Object.freeze(Object.fromEntries(
+  BLOCK_IDS.map((id) => [id, Object.freeze({ kind: 'block', anchors: blockAnchors })])
+));
+
+// Page@3 briefly allowed doors and windows to appear in generic saved edges.
+// Keep those anchor identities for validation only; they are deliberately not
+// exposed to candidate search or the Phase 0 Snap control.
+const LEGACY_CONNECTION_ASSET_METADATA = Object.freeze(Object.fromEntries([
+  ...Object.entries(SNAPPABLE_ASSET_METADATA),
+  ...FACE_IDS.map((id) => [id, Object.freeze({ kind: 'building-face', anchors: buildingFaceAnchors })])
 ]));
 
-export const SNAPPABLE_ASSET_IDS = Object.freeze(Object.entries(SNAPPABLE_ASSET_METADATA).filter(([, metadata]) => metadata.candidateEnabled).map(([id]) => id));
+export const SNAPPABLE_ASSET_IDS = Object.freeze(Object.keys(SNAPPABLE_ASSET_METADATA));
 
-export function isSnappableAsset(assetId) { return SNAPPABLE_ASSET_METADATA[assetId]?.candidateEnabled === true; }
+export function isSnappableAsset(assetId) { return Object.hasOwn(SNAPPABLE_ASSET_METADATA, assetId); }
 export function anchorsForAsset(assetId) { return SNAPPABLE_ASSET_METADATA[assetId]?.anchors || null; }
+function anchorsForConnectionAsset(assetId) { return LEGACY_CONNECTION_ASSET_METADATA[assetId]?.anchors || null; }
 
 function rotate(x, y, degrees = 0) {
   const radians = degrees * Math.PI / 180; const cosine = Math.cos(radians); const sine = Math.sin(radians);
@@ -114,46 +94,14 @@ export function connectedLayerIds(connections = [], layerId) {
 
 export function hasAssembly(connections = [], layerId) { return connectedLayerIds(connections, layerId).size > 1; }
 
-export function isTypedSnapConnection(connection) {
-  return connection?.schemaVersion === SNAP_CONNECTION_SCHEMA_VERSION
-    && typeof connection?.aPortId === 'string' && typeof connection?.bPortId === 'string';
-}
-
-function asLayerMap(layers = []) {
-  if (layers instanceof Map) return layers;
-  return new Map((Array.isArray(layers) ? layers : []).map((layer) => [layer.layerId || layer.blockfolkLayerId, layer]));
-}
-
-function validRelativeTransform(transform) {
-  return Number.isFinite(transform?.dx) && Number.isFinite(transform?.dy) && Number.isFinite(transform?.scale)
-    && typeof transform?.orientation === 'string' && typeof transform?.flipped === 'boolean';
-}
-
-export function validConnections(connections = [], layerIds = new Set(), layers = []) {
-  const seen = new Set(); const endpointOccupancy = new Map(); const result = []; const layerMap = asLayerMap(layers);
+export function validConnections(connections = [], layerIds = new Set()) {
+  const seen = new Set(); const result = [];
   for (const connection of connections || []) {
     if (!connection || typeof connection.id !== 'string' || !connection.id || typeof connection.aLayerId !== 'string' || typeof connection.bLayerId !== 'string') continue;
     if (!layerIds.has(connection.aLayerId) || !layerIds.has(connection.bLayerId) || connection.aLayerId === connection.bLayerId) continue;
+    if (!anchorsForConnectionAsset(connection.aAssetId)?.[connection.aAnchorId] || !anchorsForConnectionAsset(connection.bAssetId)?.[connection.bAnchorId]) continue;
     const pair = [connection.aLayerId, connection.bLayerId].sort().join('::');
     if (seen.has(pair)) continue;
-    if (isTypedSnapConnection(connection)) {
-      const aProfile = ASSET_CONSTRUCTION_PROFILES[connection.aAssetId]; const bProfile = ASSET_CONSTRUCTION_PROFILES[connection.bAssetId];
-      const aPort = aProfile?.ports?.find((port) => port.id === connection.aPortId); const bPort = bProfile?.ports?.find((port) => port.id === connection.bPortId);
-      const aLayer = layerMap.get(connection.aLayerId); const bLayer = layerMap.get(connection.bLayerId);
-      if (!aProfile?.productionEnabled || !bProfile?.productionEnabled || !aPort || !bPort || !validRelativeTransform(connection.relativeTransform)) continue;
-      if (!aPort.compatibleTypes.includes(bPort.type) || !bPort.compatibleTypes.includes(aPort.type)) continue;
-      if (aLayer && (aLayer.assetId || aLayer.blockfolkAssetId) !== connection.aAssetId) continue;
-      if (bLayer && (bLayer.assetId || bLayer.blockfolkAssetId) !== connection.bAssetId) continue;
-      if (resolveConstructionPlane(aProfile, aPort, aLayer || {}, connection.plane) !== connection.plane
-        || resolveConstructionPlane(bProfile, bPort, bLayer || {}, connection.plane) !== connection.plane) continue;
-      const aEndpoint = `${connection.aLayerId}::${connection.aPortId}`; const bEndpoint = `${connection.bLayerId}::${connection.bPortId}`;
-      const nextA = (endpointOccupancy.get(aEndpoint) || 0) + 1; const nextB = (endpointOccupancy.get(bEndpoint) || 0) + 1;
-      if (nextA > aPort.capacity || nextB > bPort.capacity) continue;
-      endpointOccupancy.set(aEndpoint, nextA); endpointOccupancy.set(bEndpoint, nextB); seen.add(pair);
-      result.push({ ...connection, relativeTransform: { ...connection.relativeTransform } });
-      continue;
-    }
-    if (!anchorsForAsset(connection.aAssetId)?.[connection.aAnchorId] || !anchorsForAsset(connection.bAssetId)?.[connection.bAnchorId]) continue;
     seen.add(pair); result.push({ id: connection.id, aLayerId: connection.aLayerId, bLayerId: connection.bLayerId, aAssetId: connection.aAssetId, bAssetId: connection.bAssetId, aAnchorId: connection.aAnchorId, bAnchorId: connection.bAnchorId });
   }
   return result;
@@ -181,8 +129,7 @@ export function findSnapCandidate({ movingObjects, stationaryObjects, worldToler
 
 export function duplicateConnections(connections, idMap) {
   return connections.filter((connection) => idMap.has(connection.aLayerId) && idMap.has(connection.bLayerId)).map((connection) => ({
-    ...connection, id: createStableId(isTypedSnapConnection(connection) ? 'blockfolk-snap-connection' : 'blockfolk-connection'), aLayerId: idMap.get(connection.aLayerId), bLayerId: idMap.get(connection.bLayerId),
-    ...(connection.relativeTransform ? { relativeTransform: { ...connection.relativeTransform } } : {})
+    ...connection, id: createStableId('blockfolk-connection'), aLayerId: idMap.get(connection.aLayerId), bLayerId: idMap.get(connection.bLayerId)
   }));
 }
 

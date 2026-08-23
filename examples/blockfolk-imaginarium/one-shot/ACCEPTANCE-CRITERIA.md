@@ -1,4 +1,22 @@
-# Acceptance Criteria — PASS
+---
+{"schema":"sfhs.one-shot-acceptance@1","status":"UNTESTED","facts":{"physicalDevice":"UNTESTED"}}
+---
+# Acceptance Criteria
+
+## Grid-snap recovery Phase 0 — ACTIVE
+
+- Failed typed ports, doorway recipes, reserved-space scans, formation messages/evaluation, face overlays, typed migration, calibration harness, and their dead tests are absent from active source and packed bytes.
+- The current permanent controller still satisfies the `b639f72` behavior without wholesale historical file restoration.
+- Supported Block Snap succeeds with exactly one activation/edge, survives 900 ms and save/reload, moves from either member, and deliberately Unsnaps once. Failed Snap creates zero edges.
+- Doors and Windows remain ordinary editable stickers while Snap is visibly disabled and silent for those selections.
+- New and ordinary editable pictures use page@3. Historical page@1–3 fixtures load through the accepted writer behavior.
+- Historical page@4 fixtures render exact stickers through `ReadOnlyLegacySession`; all links are inactive; list/open/view/close produces zero write transactions; rename, Duplicate, Delete, Save, Snap, edits, Undo/Redo, and recovery export are disabled.
+- Page@4 key, schema, database version, deep contents, and stable canonical hash remain unchanged. No page@4 record can reach the page@3 writer under the same ID.
+- Protected artwork/background/catalog/product/Pages hashes remain unchanged while intended BlockFolk source and packed HTML changes are allowed.
+- Canonical SFHS, focused/full repository, packed/offline, deterministic, local/live phone browser, and byte-identity lanes pass.
+- `PHASE_0_RECOVERY` becomes `PASS` only after Samsung save/reload and controller acceptance against the exact live hash. `GRID_CONSTRUCTION_ROADMAP` remains `PENDING`.
+
+## Historical acceptance records
 
 - Categories are exactly Animals, People, Building, Nature, Magic, and Emoji, with artwork counts 2, 6, 6, 12, and 4 plus native emoji input.
 - All 30 accepted PNGs are byte-identical, have working thumbnails, can be placed, and have no missing references; no source sheet or obsolete asset is shipped.

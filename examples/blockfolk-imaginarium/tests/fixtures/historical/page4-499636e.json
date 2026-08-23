@@ -1,0 +1,70 @@
+{
+  "schema": "blockfolk-imaginarium.page@4",
+  "id": "fixture-page4-499636e",
+  "title": "Historical failed page 4",
+  "createdAt": "2026-05-05T00:00:00.000Z",
+  "updatedAt": "2026-05-05T00:00:00.000Z",
+  "page": {
+    "width": 4096,
+    "height": 4096,
+    "backgroundAssetId": "blockfolk-valley",
+    "camera": {
+      "centerX": 1940,
+      "centerY": 2180,
+      "zoom": 2.15
+    }
+  },
+  "ui": {
+    "category": "building"
+  },
+  "stickers": [
+    {
+      "layerId": "page4-layer-a",
+      "assetId": "sticker-blockfolk-stone-block",
+      "x": 1000,
+      "y": 1200,
+      "scaleX": 1,
+      "scaleY": 1,
+      "angle": 0,
+      "flipX": false,
+      "flipY": false,
+      "opacity": 1,
+      "zIndex": 0
+    },
+    {
+      "layerId": "page4-layer-b",
+      "assetId": "sticker-blockfolk-brick-stone-block",
+      "x": 1105,
+      "y": 1200,
+      "scaleX": 1,
+      "scaleY": 1,
+      "angle": 0,
+      "flipX": false,
+      "flipY": false,
+      "opacity": 1,
+      "zIndex": 1
+    }
+  ],
+  "connections": [
+    {
+      "id": "page4-typed-edge-a",
+      "schemaVersion": 1,
+      "aLayerId": "page4-layer-a",
+      "aAssetId": "sticker-blockfolk-stone-block",
+      "aPortId": "wallRight",
+      "bLayerId": "page4-layer-b",
+      "bAssetId": "sticker-blockfolk-brick-stone-block",
+      "bPortId": "wallLeft",
+      "plane": "wall-iso-a",
+      "relativeTransform": {
+        "dx": 100,
+        "dy": 0,
+        "scale": 1,
+        "orientation": "default",
+        "flipped": false
+      }
+    }
+  ],
+  "embeddedAssets": [],
+  "promptId": null
+}

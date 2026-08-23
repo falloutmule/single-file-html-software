@@ -1,5 +1,7 @@
 # BlockFolk Snapping Overhaul — Final Automated Report
 
+> **SUPERSEDED BY PHYSICAL FAILURE.** Samsung review showed the Stone Door too short and partly over/behind a Log Block. The automated PASS claims below are historical evidence only and are not current product or release authority. See `docs/archive/TYPED-SNAP-FORMATION-ENGINE-2026-08-20.md` and the grid-snap recovery Phase 0 report.
+
 Status: **AUTOMATED PASS / FAIL — awaiting physical Samsung review**
 
 ## Release identity

@@ -1,0 +1,61 @@
+{
+  "schema": "blockfolk-imaginarium.page@3",
+  "id": "fixture-page3-8340d78",
+  "title": "Historical page 3 origin",
+  "createdAt": "2026-03-03T00:00:00.000Z",
+  "updatedAt": "2026-03-03T00:00:00.000Z",
+  "page": {
+    "width": 4096,
+    "height": 4096,
+    "backgroundAssetId": "blockfolk-valley",
+    "camera": {
+      "centerX": 1940,
+      "centerY": 2180,
+      "zoom": 2.15
+    }
+  },
+  "ui": {
+    "category": "building"
+  },
+  "stickers": [
+    {
+      "layerId": "page3-origin-layer-a",
+      "assetId": "sticker-blockfolk-stone-block",
+      "x": 1900,
+      "y": 2050,
+      "scaleX": 1.4,
+      "scaleY": 1.4,
+      "angle": 0,
+      "flipX": false,
+      "flipY": false,
+      "opacity": 1,
+      "zIndex": 0
+    },
+    {
+      "layerId": "page3-origin-layer-b",
+      "assetId": "sticker-blockfolk-brick-stone-block",
+      "x": 2100,
+      "y": 2050,
+      "scaleX": 1.4,
+      "scaleY": 1.4,
+      "angle": 0,
+      "flipX": false,
+      "flipY": false,
+      "opacity": 1,
+      "zIndex": 1
+    }
+  ],
+  "connections": [
+    {
+      "id": "blockfolk-connection-5d8048361184",
+      "aLayerId": "page3-origin-layer-a",
+      "bLayerId": "page3-origin-layer-b",
+      "aAssetId": "sticker-blockfolk-stone-block",
+      "bAssetId": "sticker-blockfolk-brick-stone-block",
+      "aAnchorId": "right",
+      "bAnchorId": "left"
+    }
+  ],
+  "embeddedAssets": [],
+  "promptId": null
+}

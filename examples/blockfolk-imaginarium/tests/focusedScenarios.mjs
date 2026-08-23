@@ -10,16 +10,16 @@ import { ASSET_LIMITS, mimeFromFilename } from '../src/model/assetModel.js';
 import { BUILT_IN_BACKGROUNDS, BUILT_IN_CATEGORIES, BUILT_IN_STICKERS, validateBuiltInLibrary } from '../src/model/builtInLibrary.js';
 import { BLOCKFOLK_DEFAULT_WORLD_EXTENT } from '../src/model/blockfolkStickerLibrary.js';
 import { migrateAssetCategory, migrateBuiltInCategory } from '../src/model/categoryModel.js';
-import { DOOR_ASSET_IDS, SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_IDS, allObjectAnchors, connectedLayerIds, duplicateConnections, findSnapCandidate, hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections } from '../src/model/constructionModel.js';
+import { SNAP_TOLERANCE_SCREEN_PX, SNAPPABLE_ASSET_IDS, connectedLayerIds, duplicateConnections, findSnapCandidate, hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections } from '../src/model/constructionModel.js';
 import { isNativeEmojiSequence, splitGraphemes, validateNativeEmojiSequence } from '../src/model/emojiModel.js';
 import { PictureHistory } from '../src/model/history.js';
 import { buildPuzzleGrid, createPuzzle, DEFAULT_DIFFICULTY, elapsedRaceTime, formatRaceTime, isPieceCenterInsideDestination, isPuzzleComplete, PUZZLE_HEIGHT, PUZZLE_WIDTH, restartPuzzle, validatePuzzle } from '../src/model/puzzleModel.js';
 import { drawFramedImage, fitGeometry } from '../src/model/puzzleImage.js';
 import { createStableId, resetIdCounterForTests } from '../src/model/ids.js';
 import {
-  GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, PAGE_HEIGHT, PAGE_SCHEMA, PAGE_WIDTH, PRE_CONSTRUCTION_PAGE_SCHEMA, PREVIOUS_PAGE_SCHEMA, clampStickerPosition,
+  GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, PAGE_HEIGHT, PAGE_SCHEMA, PAGE_WIDTH, PREVIOUS_PAGE_SCHEMA, clampStickerPosition,
   createPicture, createSticker, duplicatePicture, duplicateSticker, flipSticker, mapChildSafeError, moveStickerOneStep,
-  normalizePicture, normalizePictureDetailed, resizeSticker, rotateSticker, validatePicture
+  normalizePicture, resizeSticker, rotateSticker, validatePicture
 } from '../src/model/pageModel.js';
 import { BlockFolkImaginariumStorage, DB_NAME, PREFERENCE_KEY } from '../src/model/storage.js';
 import { PACK_SCHEMA, inferPackManifest, normalizeArchivePath, resolveImportCategory, safeId, validatePackManifest } from '../src/model/stickerPacks.js';
@@ -217,31 +217,12 @@ assert.equal(migratedWorldPicture.stickers[0].x, 2048);
 assert.equal(migratedWorldPicture.stickers[0].y, 2048);
 assert.equal(migratedWorldPicture.stickers[0].assetId, 'local-piece', 'legacy migration must preserve user content');
 const preConstructionPicture = createPicture({ id: 'pre-construction', now: '2026-08-18T00:00:00.000Z' });
-preConstructionPicture.schema = PRE_CONSTRUCTION_PAGE_SCHEMA; delete preConstructionPicture.connections;
+preConstructionPicture.schema = PREVIOUS_PAGE_SCHEMA; delete preConstructionPicture.connections;
 preConstructionPicture.stickers.push({ ...createSticker('sticker-blockfolk-stone-block', { layerId: 'preserved-size', scale: .81 }), x: 1200, y: 1600, angle: 25, flipX: true, zIndex: 0 });
 const migratedConstructionPicture = normalizePicture(preConstructionPicture);
 assert.equal(migratedConstructionPicture.schema, PAGE_SCHEMA, 'the BlockFolk construction migration must be versioned');
 assert.deepEqual(migratedConstructionPicture.connections, [], 'a pre-snap picture must gain an empty connection list without destructive migration');
 assert.deepEqual(migratedConstructionPicture.stickers[0], { ...preConstructionPicture.stickers[0], flipY: false, opacity: 1 }, 'pre-construction sticker coordinates, scale, flip, angle, and z-order must remain unchanged');
-const page3Picture = createPicture({ id: 'page-3-picture', now: '2026-08-19T00:00:00.000Z' });
-page3Picture.schema = PREVIOUS_PAGE_SCHEMA;
-page3Picture.stickers = [
-  { ...createSticker('sticker-blockfolk-stone-door', { layerId: 'legacy-door', scale: .77 }), x: 1200, y: 1300, angle: 12 },
-  { ...createSticker('sticker-blockfolk-brick-stone-block', { layerId: 'legacy-block', scale: .83 }), x: 1250, y: 1320, angle: 0 }
-];
-page3Picture.connections = [{
-  id: 'failed-doorway-connection', aLayerId: 'legacy-door', bLayerId: 'legacy-block',
-  aAssetId: 'sticker-blockfolk-stone-door', bAssetId: 'sticker-blockfolk-brick-stone-block',
-  aAnchorId: 'doorJambLowerLeft', bAnchorId: 'blockJambLowerLeft'
-}];
-const migrationDetail = normalizePictureDetailed(page3Picture);
-assert.equal(migrationDetail.picture.schema, PAGE_SCHEMA);
-assert.deepEqual(migrationDetail.picture.connections, [], 'failed doorway links must be detached only in the migrated in-memory page');
-assert.deepEqual(migrationDetail.migration.quarantinedConnectionIds, ['failed-doorway-connection']);
-assert.equal(migrationDetail.migration.required, true);
-assert.equal(page3Picture.schema, PREVIOUS_PAGE_SCHEMA, 'normalization must not mutate the raw legacy record');
-assert.equal(page3Picture.connections.length, 1, 'normalization must leave the raw failed link available until an authorized write');
-assert.deepEqual(migrationDetail.picture.stickers.map(({ x, y, scaleX, scaleY, angle }) => ({ x, y, scaleX, scaleY, angle })), page3Picture.stickers.map(({ x, y, scaleX, scaleY, angle }) => ({ x, y, scaleX, scaleY, angle })), 'migration must preserve sticker transforms exactly');
 
 const sticker = createSticker('pack-local-test-piece', { layerId: 'layer-a', scale: 1 });
 let resized = sticker;
@@ -279,40 +260,26 @@ assert.equal(clamped.y, PAGE_HEIGHT + 120, 'at least 10% of sticker height must 
 
 assert.equal(SNAP_TOLERANCE_SCREEN_PX, 80, 'construction snap tolerance must remain a forgiving screen-space value');
 assert.deepEqual(SNAPPABLE_ASSET_IDS, [
-  'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block', 'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block', 'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block', 'sticker-blockfolk-brick-stone-block',
-  'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
-], 'Phase 0 must expose blocks and windows, but no door, as new snap candidates');
-assert.deepEqual(DOOR_ASSET_IDS, ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door']);
-const constructionObject = (layerId, assetId, left, top = 700) => ({ blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top, angle: 0, getScaledWidth: () => 273, getScaledHeight: () => 320 });
-for (const doorAssetId of DOOR_ASSET_IDS) {
-  const door = constructionObject('door-validation', doorAssetId, 404);
-  assert.equal(isSnappableAsset(doorAssetId), false, `${doorAssetId} must not create connections during the Phase 0 gate`);
-  assert.deepEqual(allObjectAnchors(door), [], `${doorAssetId} validation anchors must never enter candidate generation`);
-}
+  'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block', 'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block', 'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block', 'sticker-blockfolk-brick-stone-block'
+], 'Phase 0 candidate search must expose Blocks only');
 assert.equal(isSnappableAsset('sticker-blockfolk-wolf'), false, 'animals must remain freely placed');
+for (const assetId of ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window']) assert.equal(isSnappableAsset(assetId), false, `${assetId} must remain an ordinary sticker in Phase 0`);
+const constructionObject = (layerId, assetId, left, top = 700) => ({ blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top, angle: 0, getScaledWidth: () => 273, getScaledHeight: () => 320 });
 const constructionA = constructionObject('block-a', 'sticker-blockfolk-stone-block', 400);
 const constructionB = constructionObject('block-b', 'sticker-blockfolk-brick-stone-block', 510, 764);
 const constructionCandidate = findSnapCandidate({ movingObjects: [constructionA], stationaryObjects: [constructionB], worldTolerance: 4 });
 assert.ok(constructionCandidate, 'compatible isometric terrain sockets must propose a snap');
 assert.deepEqual([constructionCandidate.sourceAnchor.id, constructionCandidate.targetAnchor.id], ['southEast', 'northWest'], 'terrain blocks must use diagonal isometric sockets rather than rectangular edges');
 assert.ok(Math.abs(constructionCandidate.dx) < 4 && Math.abs(constructionCandidate.dy) < 4, 'isometric terrain sockets must align the painted diamond faces');
-const disabledDoorCandidate = findSnapCandidate({ movingObjects: [constructionObject('door-a', 'sticker-blockfolk-wood-door', 404)], stationaryObjects: [constructionA], worldTolerance: 12 });
-assert.equal(disabledDoorCandidate, null, 'Phase 0 must not revive the failed centered door-over-block snap');
-const faceCandidate = findSnapCandidate({ movingObjects: [constructionObject('window-a', 'sticker-blockfolk-square-window', 404)], stationaryObjects: [constructionA], worldTolerance: 12 });
-assert.ok(faceCandidate && faceCandidate.sourceAnchor.id === 'backFace' && faceCandidate.targetAnchor.id === 'frontFace', 'window face snapping must remain available during the doorway gate');
+const faceCandidate = findSnapCandidate({ movingObjects: [constructionObject('door-a', 'sticker-blockfolk-wood-door', 404)], stationaryObjects: [constructionA], worldTolerance: 12 });
+assert.equal(faceCandidate, null, 'Doors and Windows must not produce new Phase 0 Snap candidates');
 const constructionConnection = makeConnection(constructionCandidate);
 const constructionConnections = validConnections([constructionConnection], new Set(['block-a', 'block-b']));
 assert.equal(constructionConnections.length, 1, 'a valid connection must survive normalization');
 const legacyConstructionConnection = { ...constructionConnection, id: 'legacy-connection', aAnchorId: 'right', bAnchorId: 'left' };
 assert.equal(validConnections([legacyConstructionConnection], new Set(['block-a', 'block-b'])).length, 1, 'saved cardinal connections from the earlier build must remain valid without becoming new snap candidates');
-const failedDoorwayConnection = {
-  id: 'failed-doorway-connection', aLayerId: 'legacy-door', bLayerId: 'legacy-block',
-  aAssetId: 'sticker-blockfolk-stone-door', bAssetId: 'sticker-blockfolk-brick-stone-block',
-  aAnchorId: 'doorJambLowerLeft', bAnchorId: 'blockJambLowerLeft'
-};
-assert.equal(validConnections([failedDoorwayConnection], new Set(['legacy-door', 'legacy-block'])).length, 1, 'failed doorway endpoint IDs must remain loadable as validation-only legacy data');
-const legacyOverlayConnection = { ...failedDoorwayConnection, id: 'legacy-overlay-connection', aAnchorId: 'backFace', bAnchorId: 'frontFace' };
-assert.equal(validConnections([legacyOverlayConnection], new Set(['legacy-door', 'legacy-block'])).length, 1, 'older door overlay connections must remain loadable without becoming new candidates');
+const legacyFaceConnection = { id: 'legacy-face-edge', aLayerId: 'door-a', bLayerId: 'block-a', aAssetId: 'sticker-blockfolk-wood-door', bAssetId: 'sticker-blockfolk-stone-block', aAnchorId: 'backFace', bAnchorId: 'frontFace' };
+assert.equal(validConnections([legacyFaceConnection], new Set(['door-a', 'block-a'])).length, 1, 'historical page@3 face edges remain readable without enabling new face snapping');
 assert.deepEqual([...connectedLayerIds(constructionConnections, 'block-a')].sort(), ['block-a', 'block-b']);
 assert.equal(hasAssembly(constructionConnections, 'block-a'), true, 'a two-member connection is an assembly');
 assert.equal(removeMemberConnections(constructionConnections, 'block-a').length, 0, 'Unsnap removes only the selected member links');
@@ -429,6 +396,9 @@ assert.match(html, /data-action="snap-context"[\s\S]*data-action="flip"[\s\S]*da
 assert.equal((html.match(/data-action="snap-context"/g) || []).length, 1, 'Snap and Unsnap must share exactly one stable contextual button');
 assert.doesNotMatch(html, /data-action="(?:toggle-snap|unsnap)"/, 'the superseded sibling Snap and Unsnap controls must not remain');
 assert.match(source, /'snap-context': \(\) => this\.snapContextSelected\(\)/, 'the stable control must resolve its current action in application state');
+assert.match(source, /Sticker detached\./, 'Unsnap must retain the accepted exact feedback');
+assert.match(source, /ReadOnlyLegacySession/, 'page@4 routing must remain isolated behind the read-only adapter');
+assert.doesNotMatch(source, /model\/snap\//, 'the failed typed Snap subsystem must not remain active');
 assert.match(controlSource, /setContextState[\s\S]*replaceChildren[\s\S]*dataset\.contextState/, 'the contextual control must update content and state without remounting');
 assert.match(html, /id="selection-more-sheet"[\s\S]*data-action="smaller"[\s\S]*data-action="bigger"[\s\S]*data-action="turn"/, 'manual transform tools must remain available in More / Edit');
 for (const required of ['make-puzzle', 'puzzle-photo', 'puzzle-show-creations', 'puzzle-build', 'puzzle-restart', 'puzzle-hint', 'puzzle-race', 'puzzle-snap']) assert.match(html, new RegExp(required), `missing ${required} puzzle workflow`);

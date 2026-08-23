@@ -1,4 +1,19 @@
+---
+{"schema":"sfhs.one-shot-intake@1","status":"VERIFIED","facts":{"adapterIntegration":{"status":"VERIFIED","evidence":["test-results/production-catalog-001/local","test-results/grid-snap-recovery-phase0/page4-read-only"]},"physicalDevice":"UNTESTED"}}
+---
 # Intake Status
+
+- Active classification: `REPAIR`
+- Active card: BlockFolk grid-snap recovery Phase 0
+- Recovery branch: `feature/blockfolk-grid-snap-recovery-001`
+- Verified source authority: `origin/feature/blockfolk-imaginarium-001` at `5c2a13184f46da9ab9c408c8bd6e5f76ae45711d`
+- Verified Pages authority before recovery: `origin/gh-pages` at `200dd59ffe5f6fe906effcae50c9695c3a5305aa`
+- Verified live artifact before recovery: 12,308,382 bytes; SHA-256 `288c6664584137ceb97226b29a3fd6bcdd99aaac5b1056f7daa268f1d00f92c6`
+- Physical authority: the typed doorway release is `SUPERSEDED` by Samsung failure.
+- Active result: `PHASE_0_RECOVERY: IN PROGRESS`
+- Roadmap result: `GRID_CONSTRUCTION_ROADMAP: PENDING`
+
+## Historical intake record
 
 - Classification: `IMPLEMENT`
 - Authority: `VERIFIED`

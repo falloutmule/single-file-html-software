@@ -9,13 +9,10 @@
     "node": ">=22.18.0"
   },
   "scripts": {
-    "test:snap-core": "node tests/snap/rendererNeutralCore.mjs && node tests/snap/blockCalibration.mjs && node tests/snap/blockPilot.mjs && node tests/snap/doorwayFormation.mjs",
-    "test:snap-calibration": "node tests/snap/calibrationHarnessBrowser.mjs",
-    "test:snap-pilot-browser": "node tests/snap/blockPilotBrowser.mjs",
-    "test:snap-doorway-browser": "node tests/snap/doorwayBrowser.mjs",
-    "test:page4-migration-browser": "node tests/snap/page4MigrationBrowser.mjs",
-    "test:source": "node tests/focusedScenarios.mjs && node tests/snap/rendererNeutralCore.mjs && node tests/snap/blockCalibration.mjs && node tests/snap/blockPilot.mjs && node tests/snap/doorwayFormation.mjs && node tools/static-audit.mjs",
-    "test:browser": "node tests/worldFoundationBrowserScenario.mjs",
+    "test:recovery-core": "node tests/historicalRecovery.mjs",
+    "test:page4-readonly-browser": "node tests/page4ReadOnlyBrowser.mjs",
+    "test:source": "node tests/focusedScenarios.mjs && node tests/historicalRecovery.mjs && node tools/static-audit.mjs",
+    "test:browser": "node tests/worldFoundationBrowserScenario.mjs && node tests/page4ReadOnlyBrowser.mjs",
     "test:background": "node tests/backgroundSharpnessDiagnosis.mjs",
     "test:packed": "node tools/packed-audit.mjs"
   },

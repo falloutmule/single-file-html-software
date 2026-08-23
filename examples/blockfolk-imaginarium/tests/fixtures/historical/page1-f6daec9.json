@@ -1,0 +1,29 @@
+{
+  "schema": "blockfolk-imaginarium.page@1",
+  "id": "fixture-page1-f6daec9",
+  "title": "Historical page 1",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "page": {
+    "width": 1080,
+    "height": 1440,
+    "backgroundAssetId": null
+  },
+  "stickers": [
+    {
+      "layerId": "page1-layer-a",
+      "assetId": "historical-page1-sticker",
+      "x": 270,
+      "y": 360,
+      "scaleX": 0.78,
+      "scaleY": 0.78,
+      "angle": 0,
+      "flipX": false,
+      "flipY": false,
+      "opacity": 1,
+      "zIndex": 0
+    }
+  ],
+  "embeddedAssets": [],
+  "promptId": null
+}

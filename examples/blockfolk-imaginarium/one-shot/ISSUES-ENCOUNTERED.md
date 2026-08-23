@@ -1,4 +1,21 @@
+---
+{"schema":"sfhs.one-shot-issue-log@1","status":"REPORTED","facts":{"issues":["BFS-008"]}}
+---
 # Issues Encountered
+
+## BFS-008 — Typed formation release failed physical geometry and persistence authority
+
+- Phase: grid-snap recovery Phase 0
+- Status: `INVESTIGATING`
+- Severity: blocking
+- Observed: Samsung evidence shows the Stone Door too short and partly over/behind a Log Block. Current page@4 validation treats numeric typed connections as current rather than quarantining them, while the claimed page@4 migration browser exercises a page@3 fixture.
+- Expected: active production contains no formation semantics; normal pictures use the last-good page@3 writer; failed page@4 pictures render unchanged in a zero-write read-only session.
+- Best explanation: the product needed ordinary cell alignment, but port roles, reserved cells, formation progress, and the page@4 writer coupled persistence to a physically rejected semantic model.
+- Resolution plan: archive the architecture, selectively remove typed/formation production paths, preserve the current stable controller, restore block-only/page@3 behavior, and isolate page@4 reads behind one capability adapter.
+- Affected files: BlockFolk source, focused tests, package scripts, and Phase 0 reports only.
+- Verification: historical-writer fixtures; page@4 deep-equality/canonical-hash/zero-transaction proof; exact controller activation/edge proof; packed/static/offline/deterministic/browser/live gates; Samsung save/reload verdict.
+- Remaining risk: physical Samsung acceptance against the exact published artifact.
+
 
 ## BFV-001 — NVIDIA node dependency missing
 

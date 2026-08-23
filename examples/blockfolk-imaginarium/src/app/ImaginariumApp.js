@@ -9,19 +9,14 @@ import { BlockFolkImaginariumControls } from './ImaginariumControls.js';
 import { PuzzleController } from './PuzzleController.js';
 import {
   GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, clampStickerPosition, createPicture,
-  createSticker, duplicatePicture, flipSticker, mapChildSafeError, normalizePicture, normalizePictureDetailed, resizeSticker, rotateSticker, validatePicture
+  createSticker, duplicatePicture, flipSticker, mapChildSafeError, normalizePicture, resizeSticker, rotateSticker, validatePicture
 } from '../model/pageModel.js';
 import { createStableId } from '../model/ids.js';
+import { READ_ONLY_LEGACY_NOTICE, ReadOnlyLegacySession } from '../model/ReadOnlyLegacySession.js';
 import {
-  SNAP_CORE_RUNTIME_BOUNDARY, connectedLayerIds, duplicateConnections,
-  hasAssembly, isTypedSnapConnection, removeMemberConnections, validConnections
+  SNAP_TOLERANCE_SCREEN_PX, connectedLayerIds, duplicateConnections, findSnapCandidate,
+  hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
-import { ASSET_CONSTRUCTION_PROFILES } from '../model/snap/assetProfiles.js';
-import { findTypedSnapCandidate } from '../model/snap/candidateSearch.js';
-import { resolveConstructionPlane } from '../model/snap/coordinateTransforms.js';
-import { doorwayFeedback, doorwayReservedSpaceValidator } from '../model/snap/doorwayFormation.js';
-import { evaluateFormations } from '../model/snap/formationEngine.js';
-import { applySnapTransaction, planSnapTransaction } from '../model/snap/snapTransaction.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
 import {
@@ -30,6 +25,10 @@ import {
 } from '../model/worldModel.js';
 
 const SCREEN_IDS = ['home-screen', 'editor-screen', 'gallery-screen', 'parent-gate-screen', 'parent-tools-screen', 'puzzle-source-screen', 'puzzle-frame-screen', 'puzzle-play-screen'];
+const READ_ONLY_BLOCKED_ACTIONS = new Set([
+  'undo', 'redo', 'choose-world', 'add-emoji', 'snap-context', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front',
+  'copy', 'trash', 'surprise-sticker', 'export-recovery', 'clear-data'
+]);
 
 function dataUrlToBlob(dataUrl) {
   const [header, payload] = dataUrl.split(',');
@@ -82,9 +81,8 @@ export class BlockFolkImaginariumApp {
     this.rendering = false;
     this.transformBefore = null;
     this.autosaveTimer = null;
-    this.pendingPictureMigration = null;
-    this.migrationWriteAuthorized = false;
-    this.migrationNoticesShown = new Set();
+    this.legacySession = null;
+    this.legacyNoticesShown = new Set();
     this.toastTimer = null;
     this.confirmResolver = null;
     this.gateHeld = new Set();
@@ -211,9 +209,10 @@ export class BlockFolkImaginariumApp {
       const fabricPoint = new fabricNS.Point(worldPoint.x, worldPoint.y);
       const target = [...this.canvas.getObjects()].reverse().find((object) => object.visible !== false && object.evented !== false && object.containsPoint(fabricPoint)) || null;
       const before = this.snapshot();
-      const memberIds = target ? this.selectedMemberIds(target) : null;
-      const origins = target ? new Map(this.objectsForMemberIds(memberIds).map((object) => [object.blockfolkLayerId, { x: Number(object.left || 0), y: Number(object.top || 0) }])) : null;
-      this.worldInteraction = target
+      const editableTarget = target && !this.legacySession;
+      const memberIds = editableTarget ? this.selectedMemberIds(target) : null;
+      const origins = editableTarget ? new Map(this.objectsForMemberIds(memberIds).map((object) => [object.blockfolkLayerId, { x: Number(object.left || 0), y: Number(object.top || 0) }])) : null;
+      this.worldInteraction = editableTarget
         ? { mode: 'sticker', before, target, memberIds, origins, start: location, last: location, moved: false }
         : { mode: 'pan', before, startCamera: structuredClone(this.camera), start: location, last: location, moved: false };
       if (target) { this.canvas.setActiveObject(target); this.canvas.requestRenderAll(); this.updateSelection(); }
@@ -255,7 +254,7 @@ export class BlockFolkImaginariumApp {
         }
         this.snapPreview = null; this.canvas.setActiveObject(interaction.target); interaction.target.setCoords(); this.canvas.requestRenderAll();
         this.commit(interaction.before, interaction.moved ? 'Sticker moved.' : 'Sticker selected.');
-      } else if (interaction.moved) this.commit(interaction.before, interaction.mode === 'pinch' ? 'World view changed.' : 'World moved.', { contentMutation: false });
+      } else if (interaction.moved) this.commit(interaction.before, interaction.mode === 'pinch' ? 'World view changed.' : 'World moved.');
       this.snapPreview = null; this.worldInteraction = null;
       this.updateSelection();
     };
@@ -296,11 +295,12 @@ export class BlockFolkImaginariumApp {
 
   async activateControl(target) {
     const actionElement = target.closest?.('[data-action]');
+    if (actionElement && this.legacySession && READ_ONLY_BLOCKED_ACTIONS.has(actionElement.dataset.action)) return;
     if (actionElement) await this.handleAction(actionElement.dataset.action, actionElement);
     const stickerButton = target.closest?.('[data-sticker-id]');
-    if (stickerButton) await this.addSticker(stickerButton.dataset.stickerId);
+    if (stickerButton && !this.legacySession) await this.addSticker(stickerButton.dataset.stickerId);
     const categoryButton = target.closest?.('[data-category]');
-    if (categoryButton) { this.category = categoryButton.dataset.category; this.preferences.category = migrateBuiltInCategory(this.category); savePreferences(this.preferences); if (this.current) this.current.ui.category = this.preferences.category; this.renderLibrary(); }
+    if (categoryButton && !this.legacySession) { this.category = categoryButton.dataset.category; this.preferences.category = migrateBuiltInCategory(this.category); savePreferences(this.preferences); if (this.current) this.current.ui.category = this.preferences.category; this.renderLibrary(); }
     const locationButton = target.closest?.('[data-location-id]');
     if (locationButton) this.openStartingLocation(locationButton.dataset.locationId);
     const galleryAction = target.closest?.('[data-gallery-action]');
@@ -365,10 +365,12 @@ export class BlockFolkImaginariumApp {
       await this.showGallery();
       return;
     }
+    this.legacySession = null;
     this.current = createPicture({ title: `My Picture ${pictures.length + 1}`, category: this.category });
-    this.pendingPictureMigration = null; this.migrationWriteAuthorized = false;
     this.history.clear();
     await this.renderCurrentPicture();
+    this.renderLibrary();
+    this.applyLegacyCapabilities();
     this.showScreen('editor-screen');
     if (surprise) {
       const choices = BUILT_IN_STICKERS;
@@ -388,24 +390,48 @@ export class BlockFolkImaginariumApp {
   async openPicture(id) {
     const picture = id ? await this.storage.getPicture(id) : this.current;
     if (!picture) return;
-    const normalized = normalizePictureDetailed(picture);
-    this.current = normalized.picture;
-    this.pendingPictureMigration = normalized.migration.required ? normalized.migration : null;
-    this.migrationWriteAuthorized = false;
+    const legacySession = await ReadOnlyLegacySession.openIfSupported(picture);
+    if (legacySession) {
+      this.legacySession = legacySession;
+      this.current = this.legacySession.renderedPicture;
+    } else {
+      this.legacySession = null;
+      this.current = normalizePicture(picture);
+    }
     this.category = migrateBuiltInCategory(this.current.ui?.category);
     this.preferences.category = this.category;
-    savePreferences(this.preferences);
+    if (!this.legacySession) savePreferences(this.preferences);
     this.history.clear();
     await this.renderCurrentPicture();
+    this.renderLibrary();
+    this.applyLegacyCapabilities();
     this.showScreen('editor-screen');
-    if (this.pendingPictureMigration && !this.migrationNoticesShown.has(this.current.id)) {
-      this.migrationNoticesShown.add(this.current.id);
-      this.toast(this.pendingPictureMigration.notice);
-      this.announce(this.pendingPictureMigration.notice);
+    if (this.legacySession && !this.legacyNoticesShown.has(this.current.id)) {
+      this.legacyNoticesShown.add(this.current.id);
+      this.toast(READ_ONLY_LEGACY_NOTICE);
+      this.announce(READ_ONLY_LEGACY_NOTICE);
     }
   }
 
   getAllPackAssets() { return this.packs.flatMap((pack) => (pack.assets || []).map((asset) => ({ ...asset, category: migrateAssetCategory(asset.category) }))); }
+
+  applyLegacyCapabilities() {
+    const readOnly = !!this.legacySession;
+    this.root.dataset.legacyReadOnly = String(readOnly);
+    if (readOnly) this.elements.saveStatus.textContent = 'Read-only';
+    const selectors = [
+      '[data-sticker-id]', '[data-action="add-emoji"]', '[data-action="choose-world"]', '[data-action="snap-context"]',
+      '[data-action="smaller"]', '[data-action="bigger"]', '[data-action="turn"]', '[data-action="flip"]', '[data-action="behind"]',
+      '[data-action="in-front"]', '[data-action="copy"]', '[data-action="trash"]', '[data-action="surprise-sticker"]',
+      '[data-action="export-recovery"]', '[data-action="clear-data"]'
+    ];
+    for (const control of this.root.querySelectorAll(selectors.join(','))) {
+      if (readOnly) this.controls.setEnabled(control, false);
+      else if (!control.closest('#selection-toolbar, #selection-more-sheet')) this.controls.setEnabled(control, true);
+    }
+    const emojiInput = this.root.querySelector('#emoji-input'); if (emojiInput) emojiInput.disabled = readOnly;
+    this.updateSelection();
+  }
 
   getAsset(assetId) {
     return findBuiltInAsset(assetId)
@@ -415,12 +441,12 @@ export class BlockFolkImaginariumApp {
   }
 
   snapshot() {
-    this.syncCurrentFromCanvas();
+    if (!this.legacySession) this.syncCurrentFromCanvas();
     return structuredClone(this.current);
   }
 
   syncCurrentFromCanvas() {
-    if (!this.current || this.rendering) return;
+    if (!this.current || this.rendering || this.legacySession) return;
     this.current.stickers = this.canvas.getObjects().map((object, index) => ({
       layerId: object.blockfolkLayerId,
       assetId: object.blockfolkAssetId,
@@ -430,7 +456,7 @@ export class BlockFolkImaginariumApp {
       opacity: Number(object.opacity ?? 1), zIndex: index,
       ...(object.blockfolkSourceEmoji ? { sourceEmoji: object.blockfolkSourceEmoji } : {})
     }));
-    this.current.connections = validConnections(this.current.connections || [], new Set(this.current.stickers.map((sticker) => sticker.layerId)), this.current.stickers);
+    this.current.connections = validConnections(this.current.connections || [], new Set(this.current.stickers.map((sticker) => sticker.layerId)));
     if (!isBuiltInWorldBackgroundId(this.current.page.backgroundAssetId)) this.current.page.backgroundAssetId = WORLD_BACKGROUND_ID;
     this.current.page.camera = normalizeCamera(this.camera);
     this.current.ui = { category: migrateBuiltInCategory(this.category) };
@@ -559,6 +585,7 @@ export class BlockFolkImaginariumApp {
       }
     }
     this.controls.setEnabled(this.root.querySelector('[data-action="surprise-sticker"]'), stickers.length > 0);
+    if (this.legacySession) this.applyLegacyCapabilities();
   }
 
   async addEmojiFromInput() {
@@ -603,6 +630,7 @@ export class BlockFolkImaginariumApp {
       const label = document.createElement('span'); label.className = 'background-label'; label.textContent = asset.name; button.append(image, label);
       return this.controls.upgradeButton(button, { family: 'choice', semantic: { kind: 'choice', groupId: 'blockfolk-imaginarium-world-background', value: asset.id }, value: asset.id, palette: asset.id === this.current?.page?.backgroundAssetId ? 'mint' : 'cream' });
     }));
+    if (this.legacySession) this.applyLegacyCapabilities();
   }
 
   async chooseWorld(backgroundId) {
@@ -612,16 +640,16 @@ export class BlockFolkImaginariumApp {
 
   openStartingLocation(locationId) {
     const location = STARTING_LOCATIONS.find((item) => item.id === locationId); if (!location || !this.current) return;
-    const before = this.snapshot(); this.camera = normalizeCamera(location); this.applyCamera(); this.commit(before, `${location.title} opened.`, { contentMutation: false }); this.elements.worldSheet.hidden = true;
+    const before = this.snapshot(); this.camera = normalizeCamera(location); this.applyCamera(); this.commit(before, `${location.title} opened.`); this.elements.worldSheet.hidden = true;
   }
 
   zoomCamera(factor) {
     if (!this.current) return; const before = this.snapshot(); const nextZoom = Math.max(CAMERA_MIN_ZOOM, Math.min(CAMERA_MAX_ZOOM, this.camera.zoom * factor));
-    this.camera = zoomCameraAt(this.camera, nextZoom, this.canvas.width / 2, this.canvas.height / 2, this.canvas.width, this.canvas.height); this.applyCamera(); this.commit(before, 'World zoom changed.', { contentMutation: false });
+    this.camera = zoomCameraAt(this.camera, nextZoom, this.canvas.width / 2, this.canvas.height / 2, this.canvas.width, this.canvas.height); this.applyCamera(); this.commit(before, 'World zoom changed.');
   }
 
   fitWorld() {
-    if (!this.current) return; const before = this.snapshot(); this.camera = clampCamera({ centerX: WORLD_SIZE / 2, centerY: WORLD_SIZE / 2, zoom: CAMERA_MIN_ZOOM }, this.canvas.width, this.canvas.height); this.applyCamera(); this.commit(before, 'Complete world fitted.', { contentMutation: false });
+    if (!this.current) return; const before = this.snapshot(); this.camera = clampCamera({ centerX: WORLD_SIZE / 2, centerY: WORLD_SIZE / 2, zoom: CAMERA_MIN_ZOOM }, this.canvas.width, this.canvas.height); this.applyCamera(); this.commit(before, 'Complete world fitted.');
   }
 
   async addSticker(assetId, recordHistory = true, preparedBefore = null) {
@@ -629,11 +657,7 @@ export class BlockFolkImaginariumApp {
     if (!asset || !['sticker', 'emoji'].includes(asset.kind)) throw new Error('That sticker could not be opened.');
     const before = preparedBefore || this.snapshot();
     const offset = (this.canvas.getObjects().length % 5) * 70;
-    const constructionProfile = ASSET_CONSTRUCTION_PROFILES[assetId];
-    const scale = constructionProfile?.productionEnabled
-      ? constructionProfile.canonicalInsertScale
-      : Math.min(MAX_SCALE, (asset.defaultWorldExtent || 720) / Math.max(asset.width || 560, asset.height || 560));
-    const sticker = createSticker(assetId, { x: this.camera.centerX + offset, y: this.camera.centerY + offset, scale, sourceEmoji: asset.kind === 'emoji' ? asset.glyph : undefined });
+    const sticker = createSticker(assetId, { x: this.camera.centerX + offset, y: this.camera.centerY + offset, scale: Math.min(MAX_SCALE, (asset.defaultWorldExtent || 720) / Math.max(asset.width || 560, asset.height || 560)), sourceEmoji: asset.kind === 'emoji' ? asset.glyph : undefined });
     sticker.zIndex = this.canvas.getObjects().length;
     const image = await this.addFabricSticker(asset, sticker);
     this.canvas.setActiveObject(image); this.canvas.requestRenderAll();
@@ -664,105 +688,60 @@ export class BlockFolkImaginariumApp {
     };
   }
 
-  refreshTypedConnectionTransforms(memberIds) {
-    if (!(memberIds instanceof Set) || !memberIds.size) return;
-    const objects = new Map(this.canvas.getObjects().map((object) => [object.blockfolkLayerId, object]));
-    this.current.connections = (this.current.connections || []).map((connection) => {
-      if (!isTypedSnapConnection(connection) || !memberIds.has(connection.aLayerId) || !memberIds.has(connection.bLayerId)) return connection;
-      const first = objects.get(connection.aLayerId); const second = objects.get(connection.bLayerId);
-      const profile = ASSET_CONSTRUCTION_PROFILES[connection.aAssetId]; const port = profile?.ports?.find((item) => item.id === connection.aPortId);
-      if (!first || !second || !profile || !port) return connection;
-      return {
-        ...connection,
-        plane: resolveConstructionPlane(profile, port, this.constructionObject(first)),
-        relativeTransform: {
-          dx: Number(second.left || 0) - Number(first.left || 0),
-          dy: Number(second.top || 0) - Number(first.top || 0),
-          scale: Math.abs(Number(first.scaleX || 1)) / Math.max(Math.abs(Number(second.scaleX || 1)), Number.EPSILON),
-          orientation: 'default', flipped: !!first.flipX
-        }
-      };
-    });
+  translateObjects(objects, dx, dy) {
+    for (const object of objects) { object.set({ left: Number(object.left || 0) + dx, top: Number(object.top || 0) + dy }); this.clampFabricObject(object); object.setCoords(); }
   }
 
-  isTypedConstructionAsset(assetId) { return ASSET_CONSTRUCTION_PROFILES[assetId]?.productionEnabled === true; }
-
-  isConstructionSnapAsset(assetId) { return this.isTypedConstructionAsset(assetId); }
-
-  constructionObject(object) {
-    return {
-      layerId: object.blockfolkLayerId, assetId: object.blockfolkAssetId,
-      x: Number(object.left || 0), y: Number(object.top || 0),
-      scaleX: Number(object.scaleX || 1), scaleY: Number(object.scaleY || 1),
-      angle: Number(object.angle || 0), flipX: !!object.flipX, flipY: !!object.flipY,
-      orientationId: 'default'
-    };
-  }
-
-  proposeTypedSnap(movingObjects) {
-    if (!movingObjects.some((object) => this.isTypedConstructionAsset(object.blockfolkAssetId))) return null;
+  proposeSnap(movingObjects) {
+    if (!movingObjects.some((object) => isSnappableAsset(object.blockfolkAssetId))) return null;
     const movingIds = new Set(movingObjects.map((object) => object.blockfolkLayerId));
-    const stationaryObjects = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && this.isTypedConstructionAsset(object.blockfolkAssetId));
-    const objects = this.canvas.getObjects().map((object) => this.constructionObject(object));
-    return findTypedSnapCandidate({
-      movingObjects: movingObjects.map((object) => this.constructionObject(object)),
-      stationaryObjects: stationaryObjects.map((object) => this.constructionObject(object)),
-      profiles: ASSET_CONSTRUCTION_PROFILES,
-      connections: this.current.connections || [],
-      viewportTransform: [...(this.canvas.viewportTransform || [1, 0, 0, 1, 0, 0])],
-      reservedSpaceValidator: doorwayReservedSpaceValidator({
-        objects, connections: this.current.connections || [], movingLayerIds: movingIds,
-        profiles: ASSET_CONSTRUCTION_PROFILES
-      })
-    });
+    const stationary = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && isSnappableAsset(object.blockfolkAssetId));
+    const { scale } = cameraMetrics(this.camera, this.canvas.width, this.canvas.height);
+    return findSnapCandidate({ movingObjects, stationaryObjects: stationary, worldTolerance: SNAP_TOLERANCE_SCREEN_PX / Math.max(scale, .0001) });
+  }
+
+  addSnapConnection(candidate) {
+    if (!candidate || !this.current) return null;
+    const connections = this.current.connections || [];
+    const existing = connections.find((connection) => (connection.aLayerId === candidate.source.blockfolkLayerId && connection.bLayerId === candidate.target.blockfolkLayerId) || (connection.bLayerId === candidate.source.blockfolkLayerId && connection.aLayerId === candidate.target.blockfolkLayerId));
+    if (existing) return existing;
+    const connection = makeConnection(candidate);
+    const layerIds = new Set(this.canvas.getObjects().map((object) => object.blockfolkLayerId));
+    const nextConnections = validConnections([...connections, connection], layerIds);
+    const stored = nextConnections.find((item) => item.id === connection.id);
+    if (!stored) return null;
+    this.current.connections = nextConnections;
+    const lockedIds = connectedLayerIds(nextConnections, candidate.source.blockfolkLayerId);
+    if (!lockedIds.has(candidate.target.blockfolkLayerId)) return null;
+    this.ensureAssemblyContiguous(lockedIds);
+    return stored;
   }
 
   async snapSelected() {
     const active = this.activeSticker(); if (!active || !this.current) return;
-    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active));
-    const typedProposal = this.proposeTypedSnap(members);
-    if (typedProposal?.candidate) { await this.commitTypedSnap({ active, activeLayerId, before, members, candidate: typedProposal.candidate }); return; }
-    const feedback = typedProposal?.rejectionReason === 'scale'
-      ? ['Match piece sizes', 'Match the construction piece sizes, then press Snap again.']
-      : typedProposal?.rejectionReason === 'ambiguous'
-        ? ['Move closer to one piece', 'Move closer to the construction piece you want, then press Snap again.']
-        : ['Move closer to snap', 'Move closer to a compatible construction piece, then press Snap again.'];
-    this.toast(feedback[0]); this.announce(feedback[1]);
-  }
-
-  async commitTypedSnap({ active, activeLayerId, before, members, candidate }) {
-    const objects = this.canvas.getObjects().map((object) => this.constructionObject(object));
-    const typedConnections = (this.current.connections || []).filter(isTypedSnapConnection);
-    const movingLayerIds = new Set(members.map((object) => object.blockfolkLayerId));
-    const plan = planSnapTransaction({ state: { objects, connections: typedConnections }, candidate, movingLayerIds, profiles: ASSET_CONSTRUCTION_PROFILES });
-    const applied = plan.ok ? applySnapTransaction({ objects, connections: typedConnections }, plan) : { ok: false, reason: plan.reason };
-    if (!applied.ok) {
-      this.toast('Could not connect pieces'); this.announce('The construction changed before it could connect. Move the pieces closer and try Snap again.'); return;
+    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const candidate = this.proposeSnap(members);
+    if (!candidate) { this.toast('Move closer to snap'); this.announce('Move closer to a compatible construction piece, then press Snap.'); return; }
+    this.translateObjects(members, candidate.dx, candidate.dy);
+    const connection = this.addSnapConnection(candidate);
+    this.syncCurrentFromCanvas();
+    const lockedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
+    const locked = !!connection && lockedIds.has(candidate.target.blockfolkLayerId);
+    if (!locked) {
+      this.current = before;
+      await this.renderCurrentPicture(activeLayerId);
+      this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
+      return;
     }
-    const positions = new Map(applied.state.objects.map((object) => [object.layerId, object]));
-    for (const object of members) {
-      const position = positions.get(object.blockfolkLayerId); if (!position) continue;
-      object.set({ left: position.x, top: position.y }); this.clampFabricObject(object); object.setCoords();
+    this.ensureAssemblyContiguous(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.commit(before, 'Pieces snapped and locked.');
+    const persistedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
+    if (!persistedIds.has(candidate.target.blockfolkLayerId)) {
+      this.current = before;
+      await this.renderCurrentPicture(activeLayerId);
+      this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
+      return;
     }
-    const nextConnections = [...(this.current.connections || []), plan.connection];
-    const layerIds = new Set(objects.map((object) => object.layerId));
-    const validated = validConnections(nextConnections, layerIds, applied.state.objects);
-    if (validated.length !== nextConnections.length) {
-      this.current = before; await this.renderCurrentPicture(activeLayerId);
-      this.toast('Could not connect pieces'); this.announce('The pieces could not be connected safely. Move them and try Snap again.'); return;
-    }
-    this.current.connections = validated;
-    const lockedIds = connectedLayerIds(validated, candidate.movingLayerId);
-    if (!lockedIds.has(candidate.targetLayerId)) {
-      this.current = before; await this.renderCurrentPicture(activeLayerId);
-      this.toast('Could not connect pieces'); this.announce('The pieces could not be connected safely. Move them and try Snap again.'); return;
-    }
-    this.ensureAssemblyContiguous(lockedIds); this.ensureTypedComponentDepthOrder(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
-    this.commit(before, 'Construction pieces connected.');
-    const formationFeedback = doorwayFeedback(this.currentFormationStates().filter((formation) => formation.componentLayerIds.includes(candidate.movingLayerId)));
-    if (formationFeedback) { this.toast(formationFeedback.toast); this.announce(formationFeedback.announcement); }
-    else { this.toast('Pieces connected'); this.announce('Construction pieces connected. Move either piece to move the whole assembly.'); }
-    this.feedback('pop');
+    this.toast('Snapped and locked'); this.announce('Snapped and locked. Move either piece to move the whole assembly.'); this.feedback('pop');
   }
 
   async snapContextSelected() {
@@ -797,26 +776,6 @@ export class BlockFolkImaginariumApp {
     this.reorderObjects([...before, ...selected, ...after]);
   }
 
-  currentFormationStates() {
-    return evaluateFormations({
-      objects: this.canvas.getObjects().map((object) => this.constructionObject(object)),
-      connections: this.current?.connections || [], profiles: ASSET_CONSTRUCTION_PROFILES
-    });
-  }
-
-  ensureTypedComponentDepthOrder(memberIds) {
-    const original = this.canvas.getObjects(); const members = original.filter((object) => memberIds.has(object.blockfolkLayerId));
-    if (members.length < 2) return;
-    const band = (object) => ASSET_CONSTRUCTION_PROFILES[object.blockfolkAssetId]?.defaultDepthBand
-      ?? (ASSET_CONSTRUCTION_PROFILES[object.blockfolkAssetId]?.family === 'block' ? 2 : 3);
-    const orderedMembers = [...members].sort((first, second) => band(first) - band(second)
-      || Number(first.top || 0) - Number(second.top || 0)
-      || first.blockfolkLayerId.localeCompare(second.blockfolkLayerId));
-    const memberSet = new Set(members); const insertion = Math.min(...members.map((object) => original.indexOf(object)));
-    const others = original.filter((object) => !memberSet.has(object));
-    this.reorderObjects([...others.slice(0, insertion), ...orderedMembers, ...others.slice(insertion)]);
-  }
-
   moveMembersToEdge(memberIds, direction) {
     const groups = this.objectGroups(); const index = groups.findIndex((group) => group.some((object) => memberIds.has(object.blockfolkLayerId)));
     if (index < 0) return;
@@ -833,30 +792,20 @@ export class BlockFolkImaginariumApp {
       const resized = resizeSticker({ scaleX: member.scaleX, scaleY: member.scaleY }, factor); const applied = resized.scaleX / Math.max(.0001, Number(member.scaleX || 1));
       member.set({ left: center.x + (Number(member.left || 0) - center.x) * applied, top: center.y + (Number(member.top || 0) - center.y) * applied, scaleX: resized.scaleX, scaleY: resized.scaleY }); this.clampFabricObject(member); member.setCoords();
     }
-    this.refreshTypedConnectionTransforms(new Set(members.map((member) => member.blockfolkLayerId)));
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? (factor > 1 ? 'Assembly made bigger.' : 'Assembly made smaller.') : (factor > 1 ? 'Sticker made bigger.' : 'Sticker made smaller.')); this.feedback('turn');
   }
 
   async turnSelected() {
     const active = this.activeSticker(); if (!active) return;
-    const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds);
-    if (members.length > 1 && (this.current.connections || []).some((connection) => isTypedSnapConnection(connection) && memberIds.has(connection.aLayerId) && memberIds.has(connection.bLayerId))) {
-      this.toast('Unsnap before turning'); this.announce('Connected construction pieces use a fixed wall direction. Unsnap before turning one.'); return;
-    }
-    const before = this.snapshot(); const center = this.assemblyCenter(members);
+    const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const center = this.assemblyCenter(members);
     for (const member of members) { const turned = rotateSticker({ angle: member.angle || 0 }, 15); const dx = Number(member.left || 0) - center.x; const dy = Number(member.top || 0) - center.y; const radians = Math.PI / 12; member.set({ left: center.x + dx * Math.cos(radians) - dy * Math.sin(radians), top: center.y + dx * Math.sin(radians) + dy * Math.cos(radians), angle: turned.angle }); member.setCoords(); }
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? 'Assembly turned.' : 'Sticker turned.'); this.feedback('turn');
   }
 
   async flipSelected() {
     const active = this.activeSticker(); if (!active) return;
-    const before = this.snapshot(); const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds); const center = this.assemblyCenter(members);
-    const typedAssembly = (this.current.connections || []).some((connection) => isTypedSnapConnection(connection) && memberIds.has(connection.aLayerId) && memberIds.has(connection.bLayerId));
-    for (const member of members) {
-      const flipped = flipSticker({ flipX: !!member.flipX });
-      member.set({ left: center.x - (Number(member.left || 0) - center.x), flipX: flipped.flipX, angle: typedAssembly ? Number(member.angle || 0) : (180 - Number(member.angle || 0) + 360) % 360 }); member.setCoords();
-    }
-    this.refreshTypedConnectionTransforms(memberIds);
+    const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const center = this.assemblyCenter(members);
+    for (const member of members) { const flipped = flipSticker({ flipX: !!member.flipX }); member.set({ left: center.x - (Number(member.left || 0) - center.x), flipX: flipped.flipX, angle: (180 - Number(member.angle || 0) + 360) % 360 }); member.setCoords(); }
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? 'Assembly flipped.' : 'Sticker flipped.'); this.feedback('turn');
   }
 
@@ -897,28 +846,32 @@ export class BlockFolkImaginariumApp {
     object.set({ left: clamped.x, top: clamped.y }); object.setCoords();
   }
 
-  commit(before, announcement, { contentMutation = true } = {}) {
-    this.syncCurrentFromCanvas();
-    const changed = JSON.stringify(before) !== JSON.stringify(this.current);
-    if (changed) {
-      this.history.push(before);
-      if (contentMutation && this.pendingPictureMigration) this.migrationWriteAuthorized = true;
-      this.current.updatedAt = new Date().toISOString();
-      this.scheduleAutosave();
+  commit(before, announcement) {
+    if (this.legacySession) {
+      this.current.page.camera = normalizeCamera(this.camera);
+      this.legacySession.camera = normalizeCamera(this.camera);
+      this.announce(announcement); this.updateSelection();
+      return;
     }
-    this.announce(announcement); this.updateSelection();
+    this.syncCurrentFromCanvas();
+    const after = JSON.stringify(this.current);
+    if (JSON.stringify(before) !== after) this.history.push(before);
+    this.current.updatedAt = new Date().toISOString();
+    this.scheduleAutosave(); this.announce(announcement); this.updateSelection();
   }
 
   async undo() {
+    if (this.legacySession) return;
     const selectedLayerId = this.activeSticker()?.blockfolkLayerId || null;
     const current = this.snapshot(); const prior = this.history.undo(current); if (!prior) return;
-    this.current = prior; if (this.pendingPictureMigration) this.migrationWriteAuthorized = true; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Undid the last change.');
+    this.current = prior; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Undid the last change.');
   }
 
   async redo() {
+    if (this.legacySession) return;
     const selectedLayerId = this.activeSticker()?.blockfolkLayerId || null;
     const current = this.snapshot(); const next = this.history.redo(current); if (!next) return;
-    this.current = next; if (this.pendingPictureMigration) this.migrationWriteAuthorized = true; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Redid the change.');
+    this.current = next; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Redid the change.');
   }
 
   updateSelection() {
@@ -932,57 +885,58 @@ export class BlockFolkImaginariumApp {
     const flip = this.elements.selection.querySelector('[data-action="flip"]');
     const behind = this.elements.selection.querySelector('[data-action="behind"]');
     const inFront = this.elements.selection.querySelector('[data-action="in-front"]');
+    const copy = this.elements.selection.querySelector('[data-action="copy"]');
+    const trash = this.elements.selection.querySelector('[data-action="trash"]');
+    const showMore = this.elements.selection.querySelector('[data-action="show-selection-more"]');
     const turn = this.elements.selectionMore.querySelector('[data-action="turn"]');
     const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds); const groups = this.objectGroups(); const activeIndex = groups.findIndex((group) => group.some((object) => memberIds.has(object.blockfolkLayerId)));
     const assembled = hasAssembly(this.current?.connections || [], active?.blockfolkLayerId);
-    const typedAssembly = assembled && (this.current.connections || []).some((connection) => isTypedSnapConnection(connection) && memberIds.has(connection.aLayerId) && memberIds.has(connection.bLayerId));
+    if (this.legacySession) {
+      for (const control of [...this.elements.selection.querySelectorAll('[data-action]'), ...this.elements.selectionMore.querySelectorAll('[data-action]')]) this.controls.setEnabled(control, false);
+      return;
+    }
     if (smaller) this.controls.setEnabled(smaller, !!active && active.scaleX > MIN_SCALE + .001);
     if (bigger) this.controls.setEnabled(bigger, !!active && active.scaleX < MAX_SCALE - .001);
     if (snapContext) {
       this.controls.setContextState(snapContext, assembled
         ? { state: 'unsnap', icon: '⤨', label: 'Unsnap', ariaLabel: 'Detach selected sticker from its assembly', title: 'Detach selected sticker from its assembly' }
         : { state: 'snap', icon: '⌘', label: 'Snap', ariaLabel: 'Snap selected construction pieces', title: 'Snap selected construction pieces' });
-      this.controls.setEnabled(snapContext, !!active && (assembled || members.some((object) => this.isConstructionSnapAsset(object.blockfolkAssetId))));
+      this.controls.setEnabled(snapContext, !!active && (assembled || members.some((object) => isSnappableAsset(object.blockfolkAssetId))));
     }
     if (flip) this.controls.setEnabled(flip, !!active);
+    if (copy) this.controls.setEnabled(copy, !!active);
+    if (trash) this.controls.setEnabled(trash, !!active);
+    if (showMore) this.controls.setEnabled(showMore, !!active);
+    if (turn) this.controls.setEnabled(turn, !!active);
     if (behind) this.controls.setEnabled(behind, !!active && activeIndex > 0);
     if (inFront) this.controls.setEnabled(inFront, !!active && activeIndex >= 0 && activeIndex < groups.length - 1);
-    if (turn) this.controls.setEnabled(turn, !!active && !typedAssembly);
   }
 
   scheduleAutosave() {
     clearTimeout(this.autosaveTimer);
     this.autosaveTimer = null;
-    if (this.pendingPictureMigration && !this.migrationWriteAuthorized) {
-      this.elements.saveStatus.textContent = 'Older picture open';
-      return;
-    }
+    if (this.legacySession) { this.elements.saveStatus.textContent = 'Read-only'; return; }
     const policy = autosavePolicy(this.preferences.autosaveMode);
     this.elements.saveStatus.textContent = policy.pendingLabel;
     if (policy.delayMs === null) return;
     this.autosaveTimer = setTimeout(() => this.saveCurrent({ quiet: true }).catch((error) => this.handleError(error)), policy.delayMs);
   }
 
-  async saveCurrent({ quiet = false, intentional = false } = {}) {
+  async saveCurrent({ quiet = false } = {}) {
     if (!this.current) return;
-    if (this.pendingPictureMigration && !this.migrationWriteAuthorized && !intentional) {
-      clearTimeout(this.autosaveTimer); this.autosaveTimer = null;
-      this.elements.saveStatus.textContent = 'Older picture open';
-      return false;
-    }
+    if (this.legacySession) { clearTimeout(this.autosaveTimer); this.autosaveTimer = null; this.elements.saveStatus.textContent = 'Read-only'; return false; }
     clearTimeout(this.autosaveTimer); this.syncCurrentFromCanvas();
     this.current.updatedAt = new Date().toISOString();
     const active = this.activeSticker(); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
     this.current.thumbnail = this.canvas.toDataURL({ format: 'png', multiplier: .18, enableRetinaScaling: false });
     if (active) this.canvas.setActiveObject(active);
     await this.storage.putPicture(this.current);
-    this.pendingPictureMigration = null; this.migrationWriteAuthorized = false;
     this.elements.saveStatus.textContent = 'Saved!';
     if (!quiet) { this.announce('Picture saved!'); this.feedback('save'); }
     return true;
   }
 
-  async donePicture() { await this.saveCurrent({ intentional: true }); await this.showGallery(); }
+  async donePicture() { if (!this.legacySession) await this.saveCurrent(); await this.showGallery(); }
 
   exportDataUrl() {
     const active = this.activeSticker(); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
@@ -1017,15 +971,19 @@ export class BlockFolkImaginariumApp {
   }
 
   createGalleryCard(picture) {
+    const readOnly = ReadOnlyLegacySession.capabilitiesFor(picture)?.contentMutation === false;
     const card = document.createElement('article'); card.className = 'gallery-card-item';
     const image = picture.thumbnail ? document.createElement('img') : document.createElement('div'); image.className = 'gallery-thumb';
     if (picture.thumbnail) { image.alt = picture.title; image.src = picture.thumbnail; } else { image.classList.add('gallery-thumb-empty'); image.setAttribute('aria-label', `${picture.title}, empty page`); }
     const body = document.createElement('div'); body.className = 'gallery-card-body';
     const input = document.createElement('input'); input.className = 'gallery-title-input'; input.value = picture.title; input.maxLength = 48; input.dataset.pictureTitle = picture.id; input.setAttribute('aria-label', `Title for ${picture.title}`);
-    const date = document.createElement('p'); date.className = 'gallery-date'; date.textContent = `Last made ${formatDate(picture.updatedAt)}`;
+    if (readOnly) { input.disabled = true; input.title = 'Older pictures cannot be renamed in read-only mode.'; }
+    const date = document.createElement('p'); date.className = 'gallery-date'; date.textContent = readOnly ? `Older picture · read-only · ${formatDate(picture.updatedAt)}` : `Last made ${formatDate(picture.updatedAt)}`;
     const actions = document.createElement('div'); actions.className = 'gallery-card-actions';
     for (const [action, label, className] of [['edit', 'Edit', 'edit'], ['puzzle', 'Make Puzzle', 'puzzle'], ['download', 'Download', ''], ['share', 'Share', ''], ['duplicate', 'Duplicate', ''], ['delete', 'Delete', 'delete']]) {
-      const button = document.createElement('button'); button.type = 'button'; button.dataset.galleryAction = action; button.dataset.pictureId = picture.id; button.className = className; button.textContent = label; actions.appendChild(button);
+      const button = document.createElement('button'); button.type = 'button'; button.dataset.galleryAction = action; button.dataset.pictureId = picture.id; button.className = className; button.textContent = readOnly && action === 'edit' ? 'View' : label;
+      if (readOnly && !['edit', 'download', 'share'].includes(action)) { button.disabled = true; button.title = 'Unavailable for an older read-only picture.'; }
+      actions.appendChild(button);
     }
     this.controls.upgradeWithin(actions);
     body.append(input, date, actions); card.append(image, body); return card;
@@ -1033,8 +991,19 @@ export class BlockFolkImaginariumApp {
 
   async handleGalleryAction(action, pictureId) {
     if (action === 'edit') return this.openPicture(pictureId);
-    if (action === 'puzzle') return this.puzzle.openCreation(pictureId);
     const picture = await this.storage.getPicture(pictureId); if (!picture) return;
+    if (ReadOnlyLegacySession.capabilitiesFor(picture)?.contentMutation === false) {
+      if (!['download', 'share'].includes(action)) return;
+      const restore = { current: this.current, legacySession: this.legacySession, camera: structuredClone(this.camera), category: this.category };
+      const session = await ReadOnlyLegacySession.open(picture);
+      this.legacySession = session; this.current = session.renderedPicture; this.category = migrateBuiltInCategory(this.current.ui?.category);
+      await this.renderCurrentPicture();
+      if (action === 'download') await this.downloadCurrent(); else await this.shareCurrent();
+      this.current = restore.current; this.legacySession = restore.legacySession; this.camera = restore.camera; this.category = restore.category;
+      if (this.current) await this.renderCurrentPicture(); else { this.canvas.clear(); this.canvas.requestRenderAll(); }
+      return;
+    }
+    if (action === 'puzzle') return this.puzzle.openCreation(pictureId);
     if (action === 'duplicate') {
       const pictures = await this.storage.listPictures();
       if (pictures.length >= GALLERY_LIMIT) { this.toast('Your sticker book is full.'); return; }
@@ -1051,8 +1020,8 @@ export class BlockFolkImaginariumApp {
   }
 
   async renamePicture(id, title) {
-    const stored = await this.storage.getPicture(id); if (!stored) return;
-    const picture = normalizePicture(stored);
+    const picture = await this.storage.getPicture(id); if (!picture) return;
+    if (ReadOnlyLegacySession.capabilitiesFor(picture)?.rename === false) return false;
     picture.title = title.trim() || picture.title; picture.updatedAt = new Date().toISOString(); await this.storage.putPicture(picture);
     if (this.current?.id === id) this.current.title = picture.title;
     this.announce('Picture title saved.');
@@ -1060,6 +1029,7 @@ export class BlockFolkImaginariumApp {
 
   async flattenPictureForPuzzle(id) {
     const picture = await this.storage.getPicture(id); if (!picture) throw new Error('That creation could not be opened.');
+    if (ReadOnlyLegacySession.capabilitiesFor(picture)?.puzzle === false) throw new Error('That older picture is read-only.');
     const restore = this.current ? structuredClone(this.current) : null;
     this.current = normalizePicture(picture); await this.renderCurrentPicture();
     const dataUrl = this.exportDataUrl(); const title = this.current.title;
@@ -1141,6 +1111,7 @@ export class BlockFolkImaginariumApp {
 
   exportRecovery() {
     if (!this.current) { this.toast('Make or open a picture first.'); return; }
+    if (this.legacySession) return;
     this.syncCurrentFromCanvas(); downloadBlob(new Blob([JSON.stringify(this.current, null, 2)], { type: 'application/json' }), `blockfolk-imaginarium-${safeFilename(this.current.title)}-recovery.json`);
   }
 
@@ -1151,6 +1122,7 @@ export class BlockFolkImaginariumApp {
   }
 
   async clearData() {
+    if (this.legacySession) return;
     const typed = prompt('Type CLEAR to erase all local BlockFolk Imaginarium pictures, packs, and settings.');
     if (typed !== 'CLEAR') { this.toast('Nothing was erased.'); return; }
     await this.storage.clearAll(); localStorage.removeItem(PREFERENCE_KEY); this.current = null; this.packs = []; this.renderPackList(); this.renderLibrary(); this.toast('Local BlockFolk Imaginarium data cleared.'); await this.goHome();
@@ -1213,7 +1185,7 @@ export class BlockFolkImaginariumApp {
         imageSmoothingQuality: this.canvas.contextContainer?.imageSmoothingQuality ?? null
       },
       storageMode: this.storage.mode,
-      snapCore: SNAP_CORE_RUNTIME_BOUNDARY,
+      legacySession: this.legacySession ? { schema: this.legacySession.schema, pictureId: this.legacySession.originalIdentity.id, canonicalHash: this.legacySession.canonicalHash, capabilities: this.legacySession.capabilities } : null,
       controlFeedback: this.controls?.diagnostics() || null,
       puzzle: this.puzzle?.diagnostics() || null,
       externalRuntimeUrls: []
