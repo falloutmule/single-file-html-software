@@ -19,6 +19,16 @@ Local recovery verification is complete against `blockfolk-imaginarium-b7ef8a62c
 - `test-results/grid-snap-recovery-phase0/page4-read-only/`
 - `tests/fixtures/historical/manifest.json`
 
+## Publication gate
+
+- Recovery source commit: `c36d7574bf50d91184fe992ad9da23c39d0a4c06`
+- Published Pages commit: `f7e15856d76009f1783d4b7b922b9d5b3da183a5`
+- Live URL: `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?phase0=f7e1585`
+- Local/Pages-blob/live identity: 12,279,999 bytes; SHA-256 `5ab0f8eee0098b89759718fc10b24ab65a30d856ee26362d39b8c0012acb4b14`
+- Pages diff: only `blockfolk-imaginarium/index.html`
+- Unrelated Pages tree-listing SHA-256 before/after: `7b5b94f761c802e1185b1fa312ac38f4901a7056a5907f3865a17f183221ead1`
+- Live Chromium: portrait 400×844 and landscape 844×400 passed; zero console errors, page errors, and unexpected requests.
+
 ## Current independent results
 
 - `PHASE_0_RECOVERY: FAIL` — Samsung verdict is still required against the exact published artifact hash.

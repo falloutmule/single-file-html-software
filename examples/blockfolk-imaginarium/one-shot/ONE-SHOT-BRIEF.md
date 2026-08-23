@@ -3,7 +3,7 @@
 ---
 # BlockFolk Grid-Snap Recovery — Phase 0 Brief
 
-Status: `PHASE_0_RECOVERY: IN PROGRESS` / `GRID_CONSTRUCTION_ROADMAP: PENDING`.
+Status: `PHASE_0_RECOVERY: FAIL` (Samsung verdict pending) / `GRID_CONSTRUCTION_ROADMAP: PENDING`.
 
 Archive and remove the physically failed typed doorway/formation engine, restore the last honest page@3 and block-only production behavior, retain the accepted permanent Snap/Unsnap controller without transplanting old files, and protect failed-overhaul page@4 pictures behind one minimal read-only session adapter. Publish only after local deterministic, packed, browser, persistence, controller, and protected-integrity lanes pass. Overall Phase 0 remains incomplete until the exact live artifact passes the Samsung save/reload protocol.
 

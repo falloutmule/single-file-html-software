@@ -6,7 +6,7 @@
 ## BFS-008 — Typed formation release failed physical geometry and persistence authority
 
 - Phase: grid-snap recovery Phase 0
-- Status: `INVESTIGATING`
+- Status: `AWAITING SAMSUNG`
 - Severity: blocking
 - Observed: Samsung evidence shows the Stone Door too short and partly over/behind a Log Block. Current page@4 validation treats numeric typed connections as current rather than quarantining them, while the claimed page@4 migration browser exercises a page@3 fixture.
 - Expected: active production contains no formation semantics; normal pictures use the last-good page@3 writer; failed page@4 pictures render unchanged in a zero-write read-only session.
@@ -148,4 +148,4 @@
 - Risk: Chromium automation proves geometry, rendering, persistence, and touch transaction invariants but cannot certify how the complete frame reads or feels on the user's Samsung browser.
 - Resolution: published the exact deterministic candidate, committed twelve portrait/landscape screenshots plus a contact sheet, and recorded a five-step physical review checklist.
 - Verification: Pages bytes match SHA-256 `288c6664584137ceb97226b29a3fd6bcdd99aaac5b1056f7daa268f1d00f92c6`; local/live typed scenarios have zero console errors, page errors, and unexpected requests.
-- Remaining acceptance: user confirmation of the visible one-wide/two-tier complete doorway and locked six-piece drag. Physical evidence supersedes automated status.
+- Remaining acceptance: superseded historical requirement. The active recovery gate is the Samsung page@3 save/reload/connected-drag/Unsnap protocol plus one page@4 read-only open/close.
