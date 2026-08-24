@@ -15,7 +15,7 @@
     "test:grid-browser": "node tests/gridBrowserScenario.mjs",
     "test:source": "node tests/constructionGridScenarios.mjs && node tests/focusedScenarios.mjs && node tests/historicalRecovery.mjs && node tools/static-audit.mjs",
     "test:browser": "node tests/gridBrowserScenario.mjs && node tests/worldFoundationBrowserScenario.mjs && node tests/page4ReadOnlyBrowser.mjs",
-    "test:packed": "node tools/packed-audit.mjs"
+    "test:packed": "node tools/packed-audit.test.mjs && node tools/packed-audit.mjs"
   },
   "dependencies": {
     "@lucide/icons": "1.16.0",

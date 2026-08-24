@@ -190,6 +190,7 @@ const expectedCatalog = {
   magic: ['Slime', 'Bat', 'Golem', 'Dragon'],
   emoji: []
 };
+const activeProductionDataUrls = new Set([await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.backgroundImage._element.src)]);
 assert.deepEqual(await page.locator('#category-tabs [data-category]').evaluateAll((buttons) => buttons.map((button) => [button.dataset.category, button.closest('.sfhs-cf-root')?.textContent.trim()])), expectedCategories);
 let placedCatalogCount = 0;
 for (const [id, title] of expectedCategories) {
@@ -203,9 +204,12 @@ for (const [id, title] of expectedCategories) {
     assert.equal(await page.getByRole('button', { name: 'Add Emoji' }).count(), 1);
   } else {
     const stickerButtons = page.locator('#sticker-list [data-sticker-id]');
+    const stickerImages = page.locator('#sticker-list img');
     assert.equal(await stickerButtons.count(), expectedCatalog[id].length);
     assert.deepEqual(await stickerButtons.evaluateAll((buttons) => buttons.map((button) => button.dataset.name)), expectedCatalog[id]);
-    assert.equal(await stickerButtons.locator('img').evaluateAll((images) => images.every((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0)), true, `${title} thumbnails must all decode`);
+    assert.equal(await stickerImages.count(), expectedCatalog[id].length, `${title} must render one image for every production sticker`);
+    assert.equal(await stickerImages.evaluateAll((images) => images.every((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0)), true, `${title} thumbnails must all decode`);
+    for (const dataUrl of await stickerImages.evaluateAll((images) => images.map((image) => image.src))) activeProductionDataUrls.add(dataUrl);
     for (let index = 0; index < expectedCatalog[id].length; index += 1) {
       await stickerButtons.nth(index).click(); placedCatalogCount += 1;
       await page.waitForFunction((count) => window.BlockFolkImaginarium.diagnostics().stickers === count, placedCatalogCount);
@@ -213,6 +217,8 @@ for (const [id, title] of expectedCategories) {
   }
 }
 assert.equal(placedCatalogCount, 30); assert.equal((await stickerState()).length, 30);
+assert.equal(activeProductionDataUrls.size, 31, 'the live production UI must consume 30 unique sticker PNGs plus one unique Classic world PNG');
+assert.equal([...activeProductionDataUrls].every((dataUrl) => dataUrl.startsWith('data:image/png;base64,')), true, 'every active production image must be an embedded PNG data URL');
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => Math.abs(Math.max(object.getScaledWidth(), object.getScaledHeight()) - (420 / (1.1 ** 10))) < 1)), true, 'new artwork stickers must spawn exactly ten Smaller steps below the previous default');
 await page.screenshot({ path: resolve(evidenceDirectory, 'catalog-all-30-400x844.png'), fullPage: true });
 await page.evaluate(async (pictureId) => window.BlockFolkImaginarium.app.openPicture(pictureId), existingEmptyPictureId);
