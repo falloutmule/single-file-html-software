@@ -3,9 +3,11 @@
 ---
 # BlockFolk Grid-Snap Completion — Active Brief
 
-Status: `IMPLEMENT` / `STAGE_1_MULTI_BLOCK_GRID: IN PROGRESS`.
+Status: `IMPLEMENT` / `STAGE_1_CLASSIC_Z_REPAIR: IN PROGRESS`.
 
-Starting from accepted commit `a3dd766e2245d6a585b264e9503677d6e238c620`, replace the painted two-piece anchor matcher with one derived component-local A/B/Z cell grid. Stage 1 proves Log Block and Brick Block as representatives, including third/fourth/later attachment, occupancy, ambiguity, component merging, one-edge atomic Snap, assembly edits, save/reload, and the permanent exact-once Snap/Unsnap controller. Stop at the representative Samsung multi-block gate with an exact local single-file artifact; do not push or publish.
+Repair local Stage 1 commit `0d9e7f2cf8f52a52cf2e8572e12660f50a24f036` after the Samsung verdict that horizontal Snap works but vertical Snap does not. Preserve A/B exactly, use one named 73.1-world-unit canonical Z tier inside the existing grid engine, prove three-tier construction, and stop at the lean Samsung sequence with an exact local single-file artifact.
+
+Authority change: the Classic-only decision supersedes Game Specification §5 World and Camera, all Locations requirements, and former-Valley exploration completion language. Keep the page@3 4096×4096 coordinate plane, resolve canonical `blockfolk-valley` to the contained Classic PNG at 4096×3072 and `(0,512)`, accept the old Classic ID only at the load boundary, and delete active large-world/Locations code. Do not push or publish.
 
 The August 24, 2026 product specification and `BLOCKFOLK-SNAP-COMPLETION-HANDOFF.md` supersede stale Phase 0 wording below. Historical records remain evidence only.
 

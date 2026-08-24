@@ -3,6 +3,11 @@
 ---
 # Grid-Snap Completion — ACTIVE
 
+- The user-approved Classic-only repair supersedes Game Specification §5 World and Camera, every Locations requirement, and former-Valley exploration completion language. Unrelated requirements remain authoritative.
+- `blockfolk-valley` remains the page@3 canonical ID but resolves only to the exact Classic PNG; `blockfolk-valley-classic` is a read-only input alias normalized in memory without a load-only storage write.
+- The page@3 scene remains 4096×4096. Classic renders aspect-preserving at 4096×3072 and `(0,512)`; no background change rewrites sticker, connection, or camera coordinates.
+- Locations and alternate-world product code are deleted. The packed artifact contains no 4096 WebP.
+- A/B geometry remains exact. Z uses one named 73.1-world-unit canonical tier, scales with the block extent, and passes both directions, all Log/Brick pairings, three tiers without drift, existing-component attachment, occupied/ambiguous rejection, resize, component movement, persistence, and Unsnap.
 - Stage 1 derives deterministic integer A/B/Z component grids from page@3 edge identities; there is no persisted global grid or component ID.
 - Third, fourth, later, and generated 64-member assemblies work; A/B rows, corners, Z stacks, 2+2 component merge, cycles, contradictions, used faces, occupancy, pose consensus, ambiguity, and deterministic ordering have model proof.
 - One successful Snap moves the complete component once, persists one edge, creates one history entry, and says `Pieces connected.`. None/ambiguous/occupied failures are atomic with the exact required messages.

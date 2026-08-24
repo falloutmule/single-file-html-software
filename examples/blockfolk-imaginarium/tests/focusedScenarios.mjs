@@ -24,7 +24,7 @@ import {
 import { BlockFolkImaginariumStorage, DB_NAME, PREFERENCE_KEY } from '../src/model/storage.js';
 import { PACK_SCHEMA, inferPackManifest, normalizeArchivePath, resolveImportCategory, safeId, validatePackManifest } from '../src/model/stickerPacks.js';
 import { findAlphaBounds } from '../src/model/trimTransparent.js';
-import { CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, CLASSIC_WORLD_BACKGROUND_ID, DEFAULT_CAMERA, STARTING_LOCATIONS, WORLD_BACKGROUND_ID, WORLD_SIZE, cameraTransform, clampCamera, panCamera, screenToWorld, zoomCameraAt } from '../src/model/worldModel.js';
+import { CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, DEFAULT_CAMERA, WORLD_BACKGROUND_ID, WORLD_SIZE, cameraTransform, clampCamera, normalizeWorldBackgroundId, panCamera, screenToWorld, zoomCameraAt } from '../src/model/worldModel.js';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const source = readFileSync(join(root, 'src', 'app', 'ImaginariumApp.js'), 'utf8');
@@ -87,18 +87,9 @@ assert.equal(PAGE_HEIGHT, 4096);
 assert.equal(WORLD_SIZE, 4096);
 assert.equal(CAMERA_MIN_ZOOM, 1);
 assert.equal(CAMERA_MAX_ZOOM, 8);
-assert.deepEqual(STARTING_LOCATIONS.map(({ id, title }) => ({ id, title })), [
-  { id: 'coast', title: 'Coast' }, { id: 'mountain-source', title: 'Mountain Source' },
-  { id: 'forest-river', title: 'Forest River' }, { id: 'plains-bend', title: 'Plains Bend' },
-  { id: 'world-center', title: 'World Center' }
-]);
-assert.deepEqual(STARTING_LOCATIONS, [
-  { id: 'coast', title: 'Coast', centerX: 760, centerY: 1040, zoom: 2.4 },
-  { id: 'mountain-source', title: 'Mountain Source', centerX: 3030, centerY: 760, zoom: 2.65 },
-  { id: 'forest-river', title: 'Forest River', centerX: 2930, centerY: 2460, zoom: 2.4 },
-  { id: 'plains-bend', title: 'Plains Bend', centerX: 1760, centerY: 2260, zoom: 2.3 },
-  { id: 'world-center', title: 'World Center', centerX: 2048, centerY: 2048, zoom: 1.35 }
-]);
+assert.equal(normalizeWorldBackgroundId(WORLD_BACKGROUND_ID), WORLD_BACKGROUND_ID);
+assert.equal(normalizeWorldBackgroundId('blockfolk-valley-classic'), WORLD_BACKGROUND_ID, 'the former Classic ID remains a read-only input alias');
+assert.equal(normalizeWorldBackgroundId('unknown-world'), null);
 assert.equal(migrateBuiltInCategory('things'), 'building');
 assert.equal(migrateBuiltInCategory('silly'), 'magic');
 assert.equal(migrateBuiltInCategory('words'), 'emoji');
@@ -199,6 +190,13 @@ assert.deepEqual(picture.page.camera, DEFAULT_CAMERA);
 assert.equal(picture.ui.category, 'animals');
 assert.equal(validatePicture(picture), true);
 assert.deepEqual(normalizePicture(JSON.parse(JSON.stringify(picture))), picture, 'picture JSON must round-trip');
+const classicAliasPicture = JSON.parse(JSON.stringify(picture));
+classicAliasPicture.page.backgroundAssetId = 'blockfolk-valley-classic';
+classicAliasPicture.stickers.push({ ...createSticker('sticker-blockfolk-wood-log-block', { layerId: 'alias-preserved', scale: .5 }), x: 1234, y: 2345, zIndex: 0 });
+assert.equal(validatePicture(classicAliasPicture), true, 'the former Classic ID must remain readable');
+const normalizedClassicAliasPicture = normalizePicture(classicAliasPicture);
+assert.equal(normalizedClassicAliasPicture.page.backgroundAssetId, WORLD_BACKGROUND_ID);
+assert.deepEqual(normalizedClassicAliasPicture.stickers, classicAliasPicture.stickers.map((sticker) => ({ ...sticker, flipY: false, opacity: 1 })), 'background normalization must not move or resize stickers');
 assert.throws(() => validatePicture({ ...picture, schema: 'blockfolk-imaginarium.page@99' }), /not supported/);
 assert.throws(() => validatePicture({ ...picture, stickers: [{ layerId: 'x', assetId: 'a', x: NaN, y: 0, scaleX: 1, scaleY: 1, angle: 0 }] }), /invalid sticker/);
 
@@ -322,14 +320,13 @@ assert.deepEqual(history.undo({ value: 4 }), { value: 3 });
 assert.deepEqual(history.redo({ value: 3 }), { value: 4 });
 
 const library = validateBuiltInLibrary();
-assert.deepEqual(library, { backgrounds: 2, stickers: 30, categories: 6 });
+assert.deepEqual(library, { backgrounds: 1, stickers: 30, categories: 6 });
 assert.deepEqual(BUILT_IN_CATEGORIES.map(({ id, title }) => ({ id, title })), [
   { id: 'animals', title: 'Animals' }, { id: 'people', title: 'People' }, { id: 'building', title: 'Building' },
   { id: 'nature', title: 'Nature' }, { id: 'magic', title: 'Magic' }, { id: 'emoji', title: 'Emoji' }
 ]);
 assert.equal(BUILT_IN_CATEGORIES.every((category) => category.icon?.node?.length > 0), true, 'every temporary category control must use Lucide icon data');
-assert.equal(BUILT_IN_BACKGROUNDS.length, 2); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].production, true); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, false); assert.match(BUILT_IN_BACKGROUNDS[0].dataUrl, /^data:image\/webp;base64,/);
-assert.equal(BUILT_IN_BACKGROUNDS[1].id, CLASSIC_WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[1].presentation, 'contain'); assert.match(BUILT_IN_BACKGROUNDS[1].dataUrl, /^data:image\/png;base64,/);
+assert.equal(BUILT_IN_BACKGROUNDS.length, 1); assert.equal(BUILT_IN_BACKGROUNDS[0].id, WORLD_BACKGROUND_ID); assert.equal(BUILT_IN_BACKGROUNDS[0].production, true); assert.equal(BUILT_IN_BACKGROUNDS[0].classic, true); assert.equal(BUILT_IN_BACKGROUNDS[0].debug, false); assert.equal(BUILT_IN_BACKGROUNDS[0].presentation, 'contain'); assert.match(BUILT_IN_BACKGROUNDS[0].dataUrl, /^data:image\/png;base64,/);
 assert.deepEqual(readFileSync(join(root, 'src', 'assets', 'backgrounds', 'blockfolk-valley-classic.png')), readFileSync(join(root, '..', 'the-imaginarium', 'src', 'assets', 'backgrounds', 'blockfolk-valley.png')), 'Classic BlockFolk Valley must remain byte-identical to its original Imaginarium asset');
 assert.deepEqual(Object.fromEntries(BUILT_IN_CATEGORIES.map((category) => [category.id, BUILT_IN_STICKERS.filter((sticker) => sticker.category === category.id).length])), { animals: 2, people: 6, building: 6, nature: 12, magic: 4, emoji: 0 });
 assert.deepEqual(BUILT_IN_STICKERS.map(({ name, category }) => ({ name, category })), [
@@ -345,9 +342,9 @@ const acceptedFiles = readdirSync(acceptedStickerRoot).filter((name) => name.end
 const productFiles = readdirSync(productStickerRoot).filter((name) => name.endsWith('.png')).sort();
 assert.equal(productFiles.length, 30); assert.deepEqual(productFiles, acceptedFiles);
 for (const filename of productFiles) assert.deepEqual(readFileSync(join(productStickerRoot, filename)), readFileSync(join(acceptedStickerRoot, filename)), `${filename} must remain byte-identical to the accepted individual asset`);
-assert.deepEqual(assetManifest.bundles[0], { name: 'blockfolk-world', assets: [{ alias: 'blockfolk-valley', src: 'backgrounds/blockfolk-valley.webp' }, { alias: 'blockfolk-valley-classic', src: 'backgrounds/blockfolk-valley-classic.png' }] }, 'the production and Classic world bundle must retain both declared assets');
+assert.deepEqual(assetManifest.bundles[0], { name: 'blockfolk-world', assets: [{ alias: 'blockfolk-valley', src: 'backgrounds/blockfolk-valley-classic.png' }] }, 'the world bundle must ship Classic under the canonical persisted ID');
 const manifestAssets = assetManifest.bundles.flatMap((bundle) => bundle.assets || []);
-assert.equal(assetManifest.bundles.length, 2); assert.equal(manifestAssets.length, 32); assert.equal(manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley.webp').length, 1); assert.equal(manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley-classic.png').length, 1); assert.equal(manifestAssets.filter((asset) => /^blockfolk\/[^/]+\.png$/.test(asset.src)).length, 30);
+assert.equal(assetManifest.bundles.length, 2); assert.equal(manifestAssets.length, 31); assert.equal(manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley.webp').length, 0); assert.equal(manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley-classic.png').length, 1); assert.equal(manifestAssets.filter((asset) => /^blockfolk\/[^/]+\.png$/.test(asset.src)).length, 30);
 
 assert.equal(normalizeArchivePath('../bad/cat.png'), null);
 assert.equal(normalizeArchivePath('Pack\\stickers\\animals\\cat.png'), 'Pack/stickers/animals/cat.png');
@@ -389,7 +386,7 @@ await storage.deletePuzzle(); assert.equal(await storage.getPuzzle(), null);
 
 assert.match(mapChildSafeError(new Error('QuotaExceededError')), /download/);
 assert.match(mapChildSafeError(new Error('bad zip archive')), /grown-up/);
-for (const required of ['new-picture', 'show-gallery', 'show-parent-gate', 'show-world-locations', 'camera-zoom-out', 'camera-fit', 'camera-zoom-in', 'add-emoji', 'snap-context', 'show-selection-more', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front', 'copy', 'trash', 'undo', 'redo', 'download', 'share']) assert.match(`${source}\n${html}`, new RegExp(required), `missing ${required} workflow`);
+for (const required of ['new-picture', 'show-gallery', 'show-parent-gate', 'camera-zoom-out', 'camera-fit', 'camera-zoom-in', 'add-emoji', 'snap-context', 'show-selection-more', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front', 'copy', 'trash', 'undo', 'redo', 'download', 'share']) assert.match(`${source}\n${html}`, new RegExp(required), `missing ${required} workflow`);
 assert.match(source, /reorderObjects\(groups\.flat\(\)\)/, 'depth controls must reorder contiguous assembly layers deterministically');
 assert.match(source, /flipX: flipped\.flipX/, 'Flip must use the native horizontal mirror property');
 assert.match(html, /data-action="snap-context"[\s\S]*data-action="flip"[\s\S]*data-action="behind"[\s\S]*data-action="in-front"[\s\S]*data-action="copy"[\s\S]*data-action="trash"[\s\S]*data-action="show-selection-more"/, 'primary selected-sticker tools must prioritize construction and layering');
@@ -422,8 +419,7 @@ assert.match(source, /addEventListener\('pointerdown'/, 'the world must route di
 assert.match(source, /zoomCameraAt\(/, 'pinch and accessible zoom must share midpoint camera math');
 assert.match(source, /pointercancel/, 'camera and sticker contact must handle cancellation');
 assert.match(source, /sourceEmoji/, 'native emoji source must remain authoritative in editor state');
-assert.match(html, /id="world-sheet"/); assert.match(html, /id="location-grid"/);
-assert.match(html, /id="background-grid"/); assert.match(source, /chooseWorld\(/, 'the shell must expose the production and Classic world choices');
+assert.doesNotMatch(`${source}\n${html}`, /show-world-locations|close-world-locations|choose-world|world-sheet|location-grid|background-grid|STARTING_LOCATIONS|chooseWorld\(|renderLocations\(|renderWorldChoices\(/, 'the obsolete world and Locations product path must be deleted');
 assert.doesNotMatch(html, /\b(asset|layer|artboard|manifest|serialization|opacity|coordinate|MIME|decompression|Fabric object)\b/i, 'child-facing shell must avoid professional editor terms');
 
 assert.match(html, /BlockFolk Imaginarium/); assert.match(source, /asset\.defaultWorldExtent \|\| 720/);

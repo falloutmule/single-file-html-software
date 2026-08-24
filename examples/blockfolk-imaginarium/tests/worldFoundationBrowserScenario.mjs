@@ -118,7 +118,7 @@ async function delayedCompatibilityTap(selector) {
 const bootStarted = performance.now();
 await boot();
 const bootMs = Math.round(performance.now() - bootStarted);
-assert.ok(bootMs < 5000, `embedded 4096 world boot took too long: ${bootMs} ms`);
+assert.ok(bootMs < 5000, `embedded Classic world boot took too long: ${bootMs} ms`);
 
 // Seed both the original product and the old BlockFolk selection vocabulary.
 await page.evaluate(async () => {
@@ -168,8 +168,10 @@ assert.deepEqual(await page.evaluate(() => {
 }), { background: 'blockfolk-valley', stickers: 0, world: 4096 });
 assert.deepEqual(await page.evaluate(() => {
   const image = window.BlockFolkImaginarium.app.canvas.backgroundImage._element;
-  return { width: image.naturalWidth, height: image.naturalHeight, webp: image.src.startsWith('data:image/webp;base64,') };
-}), { width: 4096, height: 4096, webp: true }, 'the default runtime world must be the embedded 4096 WebP');
+  const background = window.BlockFolkImaginarium.app.canvas.backgroundImage;
+  return { width: image.naturalWidth, height: image.naturalHeight, png: image.src.startsWith('data:image/png;base64,'), left: background.left, top: background.top, renderedWidth: image.naturalWidth * background.scaleX, renderedHeight: image.naturalHeight * background.scaleY };
+}), { width: 1448, height: 1086, png: true, left: 0, top: 512, renderedWidth: 4096, renderedHeight: 3072 }, 'Classic must use the deterministic contained transform without changing the 4096 scene plane');
+assert.equal(await page.locator('[data-action="show-world-locations"], #world-sheet, #location-grid, #background-grid').count(), 0, 'the obsolete world and Locations UI must be deleted');
 assert.deepEqual(await page.evaluate(() => ({ innerWidth: window.innerWidth, editorWidth: document.querySelector('#editor-screen').getBoundingClientRect().width, canvasWidth: window.BlockFolkImaginarium.diagnostics().world.viewport.width })), { innerWidth: 400, editorWidth: 400, canvasWidth: 380 }, 'portrait world shell must stay inside the 400px viewport');
 assert.deepEqual(await delayedCompatibilityTap('[data-action="camera-fit"]'), { physicalActivations: 1, assistiveActivations: 1 }, 'one physical tap must activate once while a genuine assistive click remains available');
 const existingEmptyPictureId = await page.evaluate(async () => {
@@ -305,50 +307,44 @@ const halfVisibleWidth = boundedCamera.viewport.width / (2 * boundedScale); cons
 assert.ok(boundedCamera.camera.centerX >= Math.min(2048, halfVisibleWidth) && boundedCamera.camera.centerX <= Math.max(2048, 4096 - halfVisibleWidth));
 assert.ok(boundedCamera.camera.centerY >= Math.min(2048, halfVisibleHeight) && boundedCamera.camera.centerY <= Math.max(2048, 4096 - halfVisibleHeight));
 
-// Accessible camera controls and all five bookmarks operate on the same world.
+// Accessible camera controls operate on the unchanged 4096 scene plane.
 await page.locator('[data-action="camera-fit"]').click();
 assert.deepEqual((await cameraState()).camera, { centerX: 2048, centerY: 2048, zoom: 1 });
 await page.locator('[data-action="camera-zoom-in"]').click(); assert.ok((await cameraState()).camera.zoom > 1);
 await page.locator('[data-action="camera-zoom-out"]').click(); assert.equal((await cameraState()).camera.zoom, 1);
-const locationTitles = ['Coast', 'Mountain Source', 'Forest River', 'Plains Bend', 'World Center'];
-const locationIds = ['coast', 'mountain-source', 'forest-river', 'plains-bend', 'world-center'];
-for (let locationIndex = 0; locationIndex < locationTitles.length; locationIndex += 1) {
-  await page.locator('[data-action="show-world-locations"]').click();
-  assert.deepEqual(await page.locator('#location-grid [data-location-id]').evaluateAll((buttons) => buttons.map((button) => button.closest('.sfhs-cf-root').textContent.trim())), locationTitles);
-  assert.equal(await page.locator('#location-grid canvas').count(), 5, 'bookmarks must derive runtime previews from the one world');
-  if (locationIndex === 0) {
-    assert.ok(await page.locator('#location-grid canvas').first().evaluate((canvas) => canvas.toDataURL().length) > 1000, 'runtime bookmark crop must contain pixels from the one world');
-    await page.locator('#world-sheet').screenshot({ path: resolve(evidenceDirectory, 'bookmark-previews-400x844.png') });
-  }
-  await page.locator(`#location-grid [data-location-id="${locationIds[locationIndex]}"]`).click();
-  assert.equal(await page.locator('#world-sheet').getAttribute('hidden'), '');
-  await page.screenshot({ path: resolve(evidenceDirectory, `bookmark-${locationIds[locationIndex]}-400x844.png`) });
-}
-assert.deepEqual((await stickerState()).map((sticker) => sticker.sourceEmoji).filter(Boolean), emojiSequences, 'bookmarks must not move or delete stickers');
+assert.deepEqual((await stickerState()).map((sticker) => sticker.sourceEmoji).filter(Boolean), emojiSequences, 'camera controls must not move or delete stickers');
 
-// The exact earlier Imaginarium BlockFolk Valley remains available as a contained Classic world.
-const worldBeforeClassic = { stickers: await stickerState(), camera: (await cameraState()).camera };
-await page.locator('[data-action="show-world-locations"]').click();
-assert.equal(await page.locator('#background-grid [data-background-id]').count(), 2, 'World picker must offer production and Classic BlockFolk Valley');
-assert.deepEqual(await page.locator('#background-grid [data-background-id]').evaluateAll((buttons) => buttons.map((button) => button.dataset.backgroundId)), ['blockfolk-valley', 'blockfolk-valley-classic']);
-await page.locator('#background-grid [data-background-id="blockfolk-valley-classic"]').click();
-await page.waitForFunction(() => {
+// The former Classic ID is accepted only at the load boundary and does not trigger a write-on-load.
+const pictureBeforeAlias = await page.evaluate(async () => { const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); return app.current.id; });
+const aliasCompatibility = await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app;
-  return app.current.page.backgroundAssetId === 'blockfolk-valley-classic' && app.canvas.backgroundImage?._element?.naturalWidth === 1448;
+  const aliasRecord = {
+    schema: 'blockfolk-imaginarium.page@3', id: 'classic-alias-record', title: 'Classic Alias',
+    createdAt: '2026-08-24T00:00:00.000Z', updatedAt: '2026-08-24T00:00:00.000Z',
+    page: { width: 4096, height: 4096, backgroundAssetId: 'blockfolk-valley-classic', camera: { centerX: 1777, centerY: 2111, zoom: 2.35 } },
+    ui: { category: 'building' },
+    stickers: [{ layerId: 'alias-layer', assetId: 'sticker-blockfolk-wood-log-block', x: 1234, y: 2345, scaleX: .5, scaleY: .5, angle: 0, flipX: false, flipY: false, opacity: 1, zIndex: 0 }],
+    connections: [], embeddedAssets: [], promptId: null
+  };
+  await app.storage.putPicture(aliasRecord); await app.openPicture(aliasRecord.id);
+  const stored = await app.storage.getPicture(aliasRecord.id); app.syncCurrentFromCanvas();
+  return {
+    currentBackground: app.current.page.backgroundAssetId,
+    storedBackground: stored.page.backgroundAssetId,
+    currentSticker: app.current.stickers[0],
+    storedSticker: stored.stickers[0],
+    camera: app.current.page.camera,
+    natural: { width: app.canvas.backgroundImage._element.naturalWidth, height: app.canvas.backgroundImage._element.naturalHeight },
+    transform: { left: app.canvas.backgroundImage.left, top: app.canvas.backgroundImage.top }
+  };
 });
-assert.deepEqual(await page.evaluate(() => {
-  const app = window.BlockFolkImaginarium.app; const image = app.canvas.backgroundImage._element;
-  return { background: app.current.page.backgroundAssetId, natural: { width: image.naturalWidth, height: image.naturalHeight }, left: app.canvas.backgroundImage.left, top: app.canvas.backgroundImage.top };
-}), { background: 'blockfolk-valley-classic', natural: { width: 1448, height: 1086 }, left: 0, top: 512 }, 'Classic Valley must retain its original landscape pixels inside the square world without cropping');
-assert.deepEqual(await stickerState(), worldBeforeClassic.stickers, 'changing worlds must not move stickers');
-assert.deepEqual((await cameraState()).camera, worldBeforeClassic.camera, 'changing worlds must not move the camera');
-await page.locator('#background-grid [data-background-id="blockfolk-valley"]').click();
-await page.waitForFunction(() => {
-  const app = window.BlockFolkImaginarium.app;
-  return app.current.page.backgroundAssetId === 'blockfolk-valley' && app.canvas.backgroundImage?._element?.naturalWidth === 4096;
-});
-assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.page.backgroundAssetId), 'blockfolk-valley', 'the production Valley remains selectable after Classic Valley');
-await page.locator('[data-action="close-world-locations"]').click();
+assert.equal(aliasCompatibility.currentBackground, 'blockfolk-valley');
+assert.equal(aliasCompatibility.storedBackground, 'blockfolk-valley-classic', 'loading the alias must not rewrite storage');
+assert.deepEqual(aliasCompatibility.currentSticker, aliasCompatibility.storedSticker, 'alias normalization must preserve exact sticker coordinates and transforms');
+assert.deepEqual(aliasCompatibility.camera, { centerX: 1777, centerY: 2111, zoom: 2.35 });
+assert.deepEqual(aliasCompatibility.natural, { width: 1448, height: 1086 }); assert.deepEqual(aliasCompatibility.transform, { left: 0, top: 512 });
+await page.evaluate(async (pictureId) => window.BlockFolkImaginarium.app.openPicture(pictureId), pictureBeforeAlias);
+assert.deepEqual((await stickerState()).map((sticker) => sticker.sourceEmoji).filter(Boolean), emojiSequences, 'the compatibility check must restore the active picture unchanged');
 
 // Emoji stickers keep all applicable image-sticker tools, history, stack, copy, and deletion.
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects()[2]); app.updateSelection(); });
@@ -585,8 +581,7 @@ assert.deepEqual(await page.evaluate(() => {
 // Save/reload restores camera and exact source strings. Puzzle/copy/export still flatten the current framed view.
 await page.evaluate(() => window.BlockFolkImaginarium.app.showScreen('editor-screen'));
 await page.waitForTimeout(100);
-await page.evaluate(() => window.BlockFolkImaginarium.app.openStartingLocation('forest-river'));
-await page.waitForTimeout(50);
+await page.locator('[data-action="camera-zoom-in"]').click();
 const beforeSave = await stickerState(); const worldBeforeSave = await cameraState(); const cameraBeforeSave = worldBeforeSave.camera;
 const persistenceProof = await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); const id = app.current.id;

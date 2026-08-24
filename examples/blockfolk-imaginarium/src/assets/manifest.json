@@ -4,8 +4,7 @@
     {
       "name": "blockfolk-world",
       "assets": [
-        { "alias": "blockfolk-valley", "src": "backgrounds/blockfolk-valley.webp" },
-        { "alias": "blockfolk-valley-classic", "src": "backgrounds/blockfolk-valley-classic.png" }
+        { "alias": "blockfolk-valley", "src": "backgrounds/blockfolk-valley-classic.png" }
       ]
     },
     {

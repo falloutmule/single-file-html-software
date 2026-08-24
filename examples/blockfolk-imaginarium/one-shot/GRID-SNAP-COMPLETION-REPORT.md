@@ -1,67 +1,74 @@
-# BlockFolk Grid-Snap Completion Report
+# BlockFolk Stage 1 Classic/Z Repair Report
 
-Status: **STAGE 1 AUTOMATED PASS — PHONE GATE PENDING**
+Status: **REPAIR AUTOMATED PASS — SAMSUNG RETEST PENDING**
 
-## Failure-mode audit
+## WHAT WAS DONE
 
-- Goal/card: replace Phase 0 painted anchors with the bounded component-local A/B/Z grid and stop at physical Gate 1.
-- Baseline: accepted commit `a3dd766e2245d6a585b264e9503677d6e238c620`; accepted artifact SHA-256 `5ab0f8eee0098b89759718fc10b24ab65a30d856ee26362d39b8c0012acb4b14`.
-- Actively guarded: A, B, C, D, E, F, G, K, L, M, N, P, Q, R, S, T.
-- N/A for Stage 1: H, I, J, O (no viewport, backing-store, safe-area, or custom-control schema change).
-- Unchanged by contract: artwork/background bytes, Original Imaginarium, page@3 writer unless a demonstrated requirement appears, catalog/categories/native emoji, world/camera, puzzle/export appearance, permanent controller DOM identity, unrelated products/routes.
-- Required proof: focused model rules, accepted source lane, public-interaction browser lane, SFHS inspect/validate/check/pack/verify, packed/offline audit, two-build identity, protected hashes, exact artifact identity, and representative Samsung Gate 1.
+- Recorded the physical Stage 1 verdict honestly: horizontal Snap passed; vertical Snap failed.
+- Applied the user-approved authority change that supersedes the former 4096 Valley and Locations requirements while preserving unrelated BlockFolk requirements.
+- Kept the page@3 scene at 4096×4096 and canonical persisted ID `blockfolk-valley`; that ID now resolves only to the exact Classic PNG at 4096×3072 and `(0,512)`.
+- Retained `blockfolk-valley-classic` as a load-boundary alias that normalizes in memory without a load-only storage write.
+- Deleted the active large-world/Locations product path and the runtime 4096 WebP; retained historical art/evidence outside the shipping path.
+- Preserved A/B calibration exactly and replaced only Z with the named 73.1-world-unit canonical tier, scaled proportionally through the existing grid candidate/occupancy/transaction engine.
 
-## Current exact state
+## WHAT WAS VERIFIED
 
-### What changed
+- Source/model: both Z directions, every Log/Brick pairing, proportional resize, three tiers without drift, existing-component attachment, occupied Z rejection, ambiguity, 64-member traversal, and exact A/B constants.
+- Public browser: isolated mixed vertical pair, A/B corner, three-tier assembly, native touch, one-edge Snap, component drag, exact gallery reopen, occupied Z rejection, ambiguity, and one-shot Unsnap.
+- Classic compatibility: canonical and alias IDs render the exact 1448×1086 PNG with the deterministic contained transform; alias load leaves stored bytes unchanged; sticker and camera coordinates remain exact.
+- Product/browser: one background plus 30 stickers, no Locations/world-choice UI, portrait/landscape, page@4 zero-write view, puzzle/export, native emoji, zero errors, and zero runtime requests.
+- `test:source`, `test:browser`, lint, typecheck, SFHS inspect/validate/check/pack/verify, packed audit, and deterministic double build all exit 0.
+- Failure modes guarded: A, B, C, D, F, Q, R, S, and T. H/I/K/N/P retain their browser regression proof; E/G/L/M/O are unaffected by this bounded card.
 
-- `constructionModel.js`: one A/B/Z direction map, shared one-cell Log/Brick profile, deterministic derived component grids, occupied cells/used ports, same-pose contact grouping, stable candidate ranking, ambiguity/occupied results, scale/orientation validation, and legacy read-only edge compatibility.
-- `ImaginariumApp.js`: explicit result feedback, one-edge atomic Snap with rollback/postconditions, stable component-local draw ordering, connected Turn disablement, and unchanged permanent Snap/Unsnap controller identity.
-- Tests: dedicated 64-member/generic model lane and dedicated visible-catalog/real-touch public browser lane; accepted Phase 0 tests now use the Log/Brick representative pair.
+## WHAT FAILED
 
-### What was tested
+- The first offline determinism attempt could not find the cached `@eslint/js` tarball. The authorized retry used registry access plus a process-local Git `safe.directory` setting and passed; no global Git configuration or tracked source was changed.
+- Physical Samsung acceptance has not yet been rerun against this repair.
 
-- `pnpm --filter @sfhs/example-blockfolk-imaginarium test:source` — exit 0.
-- `pnpm --filter @sfhs/example-blockfolk-imaginarium test:browser` — exit 0; grid, accepted product, and page@4 read-only scenarios; zero unexpected requests/errors.
-- `pnpm lint` and `pnpm typecheck` — exit 0.
-- `pnpm sfhs check --json --project examples/blockfolk-imaginarium ...` — exit 0; lint, typecheck, build/pack/verify units, full unit suite, and browser smoke pass; expected changed-path review warning only.
-- `pnpm sfhs inspect`, `validate`, `pack`, and exact `verify` — exit 0 with zero findings.
-- `pnpm --filter @sfhs/example-blockfolk-imaginarium test:packed` — exit 0; offline artifact and accepted embedded assets pass.
-- `pnpm determinism -- --project examples/blockfolk-imaginarium ...` — exit 0; isolated builds A/B are byte-identical.
+## CURRENT EXACT STATE
 
-### Repository state
-
-- Repository: `falloutmule/single-file-html-software`.
 - Worktree: `.worktrees/blockfolk-grid-snap-completion-001`.
 - Branch: `feature/blockfolk-grid-snap-completion-001`.
-- Base: `a3dd766e2245d6a585b264e9503677d6e238c620`.
-- Upstream: none.
-- PR: none.
-- Push/publication: not authorized and not performed.
-
-### Artifact
-
-- Build ID: `blockfolk-imaginarium-59b80aa021e4`.
-- Bytes: `12,286,043`.
-- SHA-256: `317d677beb6a894a79e96b8a2960bfb5f8af250d3b73e0f74851bb55dec03a2d`.
-- Exact local phone file: `test-results/blockfolk-grid-snap-completion-001/blockfolk-grid-stage1.html`.
-
-### Current result
+- Repair parent: `0d9e7f2cf8f52a52cf2e8572e12660f50a24f036`.
+- Upstream/PR/publication: none; no push, publication, merge, tag, or release performed.
+- Build ID: `blockfolk-imaginarium-056a48777aa5`.
+- Artifact bytes: `10,380,890`.
+- Artifact SHA-256: `6cad1237f735fa7ee54d40b6d48e47876613862f653a3c2337b041f93871260b`.
+- Source SHA-256: `056a48777aa5c0d00075d6ac81f63ae886a92452e7166532ff7b4cdd9e0dc2a5`.
+- Exact local phone file: `test-results/blockfolk-classic-z-repair-001/blockfolk-classic-z-repair-001.html`.
 
 ```text
+CLASSIC_ONLY_WORLD: AUTOMATED PASS
+PAGE3_COORDINATE_PRESERVATION: AUTOMATED PASS
+HORIZONTAL_A_B: REGRESSION PASS
+VERTICAL_Z: AUTOMATED REPAIR PASS / PHYSICAL RETEST PENDING
 MULTI_BLOCK_GRID: AUTOMATED PASS
 ALL_BLOCK_PROFILES: PENDING STAGE 2
 WINDOWS: PENDING STAGE 3
 DOORS: PENDING STAGE 4
 FINAL_HARDENING: PENDING STAGE 5
-PHONE_GATE_1: PENDING
 PUBLICATION: NOT AUTHORIZED
 ```
 
-### Next actionable step
+## REMAINING BLOCKERS
 
-Run the one representative Samsung multi-block protocol against the exact local artifact above and report PASS or the first visible/interaction defect.
+- Physical Samsung Gate 1 must approve the repaired vertical registration and interaction before Stage 2 begins.
 
-## Result
+## NEXT ACTIONABLE STEP
 
-**AUTOMATED PASS / PHYSICAL PENDING**
+On the exact local artifact, run only: horizontal regression → mixed vertical stack → drag assembly → save/reload → Unsnap.
+
+## EVIDENCE
+
+- Ignored backup: `test-results/blockfolk-classic-z-repair-001/index.before-classic-z-repair.html`, SHA-256 `317d677beb6a894a79e96b8a2960bfb5f8af250d3b73e0f74851bb55dec03a2d`.
+- Determinism report: `test-results/blockfolk-classic-z-repair-001/determinism-report.json`.
+- Vertical/corner evidence: `test-results/blockfolk-grid-snap-completion-001/browser/`.
+- Classic product evidence: `test-results/production-catalog-001/local/`.
+
+## GITHUB PAGES URL
+
+- N/A — publication was not authorized.
+
+## RESULT
+
+**AUTOMATED PASS / PHYSICAL RETEST PENDING**

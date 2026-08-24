@@ -23,6 +23,7 @@ page.on('console', (message) => { if (message.type() === 'error') failures.push(
 
 const snapSelector = '#selection-toolbar [data-action="snap-context"]';
 const LOG = 'sticker-blockfolk-wood-log-block'; const BRICK = 'sticker-blockfolk-brick-stone-block';
+const ACCEPTED_CANONICAL_EXTENT = 420 / (1.1 ** 10); const ACCEPTED_Z_TIER = 73.1; const ACCEPTED_Z_RATIO = ACCEPTED_Z_TIER / ACCEPTED_CANONICAL_EXTENT;
 
 async function nativeTouch(x, y, type = 'tap', destination = null) {
   const rect = await page.locator('.upper-canvas').boundingBox(); assert.ok(rect);
@@ -85,7 +86,7 @@ function intendedOffset(source, target, direction, nudge = { x: 0, y: 0 }) {
   const vectors = {
     A: { x: -.4 * width, y: -.2 * height },
     B: { x: .4 * width, y: -.2 * height },
-    Z: { x: 0, y: -.85 * height }
+    Z: { x: 0, y: -ACCEPTED_Z_RATIO * height }
   };
   return { x: target.x + vectors[direction].x + nudge.x, y: target.y + vectors[direction].y + nudge.y };
 }
@@ -123,23 +124,34 @@ await page.locator('[data-action="new-picture"]').first().click(); await page.lo
 await page.locator('#category-tabs [data-category="building"]').click();
 assert.equal(await page.locator('[data-sticker-id]').count(), 6, 'visible Building category retains its accepted six stickers');
 
+const isolatedLog = await addVisible(LOG); const isolatedBrick = await addVisible(BRICK);
+await connectByVisibleInteraction(isolatedBrick.id, isolatedLog.id, 'Z', true);
+const verticalPair = await metrics(); const firstVertical = verticalPair.find((entry) => entry.id === isolatedLog.id); const secondVertical = verticalPair.find((entry) => entry.id === isolatedBrick.id);
+assert.ok(Math.abs(Math.abs(secondVertical.y - firstVertical.y) - ACCEPTED_Z_RATIO * ((secondVertical.height + firstVertical.height) / 2)) < .1, 'the visible mixed-material pair must use the independent accepted Z calibration');
+await page.screenshot({ path: resolve(evidence, 'blocks-vertical-pair-400x844.png'), fullPage: true });
+
+await page.locator('[data-action="go-home"]').first().click(); await page.locator('[data-action="new-picture"]').first().click(); await page.locator('#category-tabs [data-category="building"]').click();
 const first = await addVisible(LOG); const second = await addVisible(BRICK);
 await page.evaluate(() => { const root = document.querySelector('#selection-toolbar [data-action="snap-context"]').closest('.sfhs-cf-root'); window.__gridSnapRoot = root; window.__gridSnapControlId = root.dataset.sfhsControlId; });
 await connectByVisibleInteraction(second.id, first.id, 'A', true);
 const third = await addVisible(LOG); await connectByVisibleInteraction(third.id, first.id, 'B');
-assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 2, 'third block joins the existing assembly');
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 2, 'third block joins the existing horizontal assembly');
 await page.screenshot({ path: resolve(evidence, 'blocks-third-member-400x844.png'), fullPage: true });
 
 const fourth = await addVisible(BRICK); await connectByVisibleInteraction(fourth.id, second.id, 'Z');
+const fifth = await addVisible(LOG); await connectByVisibleInteraction(fifth.id, fourth.id, 'Z');
 const construction = await page.evaluate(() => {
   const app = window.BlockFolkImaginarium.app; const edges = app.current.connections;
   const directions = edges.map((edge) => edge.aAnchorId);
   return { edges: edges.length, members: app.selectedMemberIds(app.activeSticker()).size, directions, sameRoot: document.querySelector('#selection-toolbar [data-action="snap-context"]').closest('.sfhs-cf-root') === window.__gridSnapRoot, controlId: document.querySelector('#selection-toolbar [data-action="snap-context"]').closest('.sfhs-cf-root').dataset.sfhsControlId };
 });
-assert.equal(construction.edges, 3); assert.equal(construction.members, 4); assert.equal(construction.sameRoot, true); assert.equal(construction.controlId, await page.evaluate(() => window.__gridSnapControlId));
+assert.equal(construction.edges, 4); assert.equal(construction.members, 5); assert.equal(construction.sameRoot, true); assert.equal(construction.controlId, await page.evaluate(() => window.__gridSnapControlId));
 assert.equal(construction.directions.some((id) => ['northWest', 'southEast'].includes(id)), true, 'public lane creates an A connection');
 assert.equal(construction.directions.some((id) => ['northEast', 'southWest'].includes(id)), true, 'public lane creates a B connection/corner');
-assert.equal(construction.directions.some((id) => ['stackTop', 'stackBase'].includes(id)), true, 'public lane creates a Z stack');
+assert.equal(construction.directions.filter((id) => ['stackTop', 'stackBase'].includes(id)).length, 2, 'public lane creates a three-tier Z stack');
+const threeTierMetrics = await metrics(); const threeTier = [second.id, fourth.id, fifth.id].map((id) => threeTierMetrics.find((entry) => entry.id === id));
+assert.ok(Math.abs(Math.abs(threeTier[1].y - threeTier[0].y) - ACCEPTED_Z_RATIO * ((threeTier[1].height + threeTier[0].height) / 2)) < .1);
+assert.ok(Math.abs(Math.abs(threeTier[2].y - threeTier[1].y) - ACCEPTED_Z_RATIO * ((threeTier[2].height + threeTier[1].height) / 2)) < .1, 'the third tier must not accumulate Z drift');
 await page.screenshot({ path: resolve(evidence, 'blocks-corner-stack-400x844.png'), fullPage: true });
 
 await page.locator('[data-action="show-selection-more"]').click();
@@ -162,7 +174,7 @@ await page.setViewportSize({ width: 844, height: 400 }); await page.waitForTimeo
 await page.screenshot({ path: resolve(evidence, 'blocks-persisted-844x400.png'), fullPage: true });
 await page.setViewportSize({ width: 400, height: 844 }); await page.waitForTimeout(120);
 
-const leaf = (await metrics()).find((entry) => entry.id === fourth.id); await nativeTouch(leaf.x, leaf.y); await page.waitForTimeout(60);
+const leaf = (await metrics()).find((entry) => entry.id === fifth.id); await nativeTouch(leaf.x, leaf.y); await page.waitForTimeout(60);
 const unsnapBefore = await page.evaluate(() => {
   const app = window.BlockFolkImaginarium.app; const active = app.activeSticker();
   const immediate = app.current.connections.filter((edge) => edge.aLayerId === active.blockfolkLayerId || edge.bLayerId === active.blockfolkLayerId).length;
@@ -180,7 +192,7 @@ await page.screenshot({ path: resolve(evidence, 'blocks-unsnapped-400x844.png'),
 // Occupied and ambiguous failures use only visible additions, real drags, and
 // the public Snap control. The assertions inspect state but never inject poses.
 await page.locator('[data-action="go-home"]').first().click(); await page.locator('[data-action="new-picture"]').first().click(); await page.locator('#category-tabs [data-category="building"]').click();
-const occupiedTarget = await addVisible(LOG); const occupiedNeighbor = await addVisible(BRICK); await connectByVisibleInteraction(occupiedNeighbor.id, occupiedTarget.id, 'A');
+const occupiedTarget = await addVisible(LOG); const occupiedNeighbor = await addVisible(BRICK); await connectByVisibleInteraction(occupiedNeighbor.id, occupiedTarget.id, 'Z');
 const occupiedMoving = await addVisible(LOG); const occupiedNeighborPosition = (await metrics()).find((entry) => entry.id === occupiedNeighbor.id);
 await dragLayerTo(occupiedMoving.id, { x: occupiedNeighborPosition.x, y: occupiedNeighborPosition.y });
 const occupiedBefore = await normalizedPictureState(); await touchControl();
@@ -200,4 +212,4 @@ assert.deepEqual(await normalizedPictureState(), ambiguousBefore); assert.equal(
 
 assert.deepEqual(failures, [], failures.join('\n')); assert.deepEqual(requests, []);
 await browser.close();
-console.log('BLOCKFOLK_GRID_BROWSER_SCENARIO PASS', JSON.stringify({ members: 4, edges: 3, persistence: 'exact', occupied: 'atomic', ambiguous: 'atomic', requests: requests.length, evidence }));
+console.log('BLOCKFOLK_GRID_BROWSER_SCENARIO PASS', JSON.stringify({ members: 5, edges: 4, zTiers: 3, persistence: 'exact', occupied: 'atomic-z', ambiguous: 'atomic', requests: requests.length, evidence }));

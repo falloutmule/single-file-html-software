@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -44,7 +44,7 @@ const expectedCategoryDefinitions = [
 for (const definition of expectedCategoryDefinitions) if (!librarySource.includes(definition)) throw new Error(`Missing category definition: ${definition}`);
 if (/id:\s*['"](?:things|silly|words)['"]/.test(librarySource)) throw new Error('An obsolete category definition remains in the built-in library.');
 if (!/BUILT_IN_STICKERS\s*=\s*BLOCKFOLK_STICKERS/.test(librarySource)) throw new Error('The accepted BlockFolk sticker catalog is not connected.');
-if (!/BUILT_IN_BACKGROUNDS\s*=\s*Object\.freeze\(\[BLOCKFOLK_VALLEY_ASSET, BLOCKFOLK_CLASSIC_VALLEY_ASSET\]\)/.test(librarySource)) throw new Error('The built-in library must expose the production and Classic BlockFolk worlds.');
+if (!/BUILT_IN_BACKGROUNDS\s*=\s*Object\.freeze\(\[BLOCKFOLK_VALLEY_ASSET\]\)/.test(librarySource)) throw new Error('The built-in library must expose only Classic BlockFolk Valley.');
 const worldSource = readFileSync(join(src, 'model', 'worldModel.js'), 'utf8');
 for (const marker of ['4096', 'worldAssetUrl', 'BLOCKFOLK_VALLEY_ASSET', 'production: true', 'debug: false']) if (!worldSource.includes(marker)) throw new Error(`Production world contract marker is missing: ${marker}`);
 for (const forbidden of ['DEBUG WORLD • NOT PRODUCTION', 'debugWorldSvg', 'OCEAN BAY']) if (worldSource.includes(forbidden)) throw new Error(`Debug world payload remains: ${forbidden}`);
@@ -52,7 +52,7 @@ const htmlInputs = [...combined.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi
 if (htmlInputs.some((value) => /^https?:/i.test(value))) throw new Error('Runtime source includes an external network dependency.');
 const manifest = JSON.parse(readFileSync(join(src, 'assets', 'manifest.json'), 'utf8'));
 const manifestAssets = manifest.bundles.flatMap((bundle) => bundle.assets || []);
-if (manifest.bundles.length !== 2 || manifestAssets.length !== 32 || manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley.webp').length !== 1 || manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley-classic.png').length !== 1 || manifestAssets.filter((asset) => /^blockfolk\/[^/]+\.png$/.test(asset.src)).length !== 30) throw new Error('The asset manifest must contain the production and Classic worlds plus exactly 30 BlockFolk PNG stickers.');
+if (manifest.bundles.length !== 2 || manifestAssets.length !== 31 || manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley.webp').length !== 0 || manifestAssets.filter((asset) => asset.src === 'backgrounds/blockfolk-valley-classic.png').length !== 1 || manifestAssets.filter((asset) => /^blockfolk\/[^/]+\.png$/.test(asset.src)).length !== 30) throw new Error('The asset manifest must contain only Classic Valley plus exactly 30 BlockFolk PNG stickers.');
 if (new Set(manifestAssets.map((asset) => asset.alias)).size !== manifestAssets.length || new Set(manifestAssets.map((asset) => asset.src)).size !== manifestAssets.length) throw new Error('The BlockFolk manifest contains duplicate asset references.');
 const productStickerRoot = join(src, 'assets', 'blockfolk');
 const acceptedStickerRoot = join(root, '..', 'the-imaginarium', 'src', 'assets', 'blockfolk');
@@ -61,4 +61,6 @@ const acceptedPngs = readdirSync(acceptedStickerRoot).filter((name) => name.ends
 if (productPngs.length !== 30 || JSON.stringify(productPngs) !== JSON.stringify(acceptedPngs)) throw new Error('The product must contain exactly the 30 accepted individual PNG filenames.');
 for (const filename of productPngs) if (!readFileSync(join(productStickerRoot, filename)).equals(readFileSync(join(acceptedStickerRoot, filename)))) throw new Error(`${filename} differs from the accepted original Imaginarium asset.`);
 if (!readFileSync(join(src, 'assets', 'backgrounds', 'blockfolk-valley-classic.png')).equals(readFileSync(join(root, '..', 'the-imaginarium', 'src', 'assets', 'backgrounds', 'blockfolk-valley.png')))) throw new Error('Classic BlockFolk Valley must remain byte-identical to the original Imaginarium asset.');
-console.log('BLOCKFOLK_IMAGINARIUM_STATIC_AUDIT PASS offline source, isolated identity, six categories, production and Classic worlds, 30 byte-identical accepted PNG stickers, pinned Fabric/fflate/Lucide, no dynamic code or inline handlers');
+if (existsSync(join(src, 'assets', 'backgrounds', 'blockfolk-valley.webp'))) throw new Error('The removed 4096 WebP must not remain in runtime source assets.');
+if (/show-world-locations|close-world-locations|choose-world|world-sheet|location-grid|background-grid|STARTING_LOCATIONS/.test(combined)) throw new Error('The removed world and Locations product path remains active.');
+console.log('BLOCKFOLK_IMAGINARIUM_STATIC_AUDIT PASS offline source, isolated identity, six categories, Classic-only world, 30 byte-identical accepted PNG stickers, pinned Fabric/fflate/Lucide, no dynamic code or inline handlers');

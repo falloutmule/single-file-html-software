@@ -3,11 +3,15 @@
 ---
 # Authorized Scope — Grid-Snap Completion
 
+- Authority change for the Stage 1 repair: the user-approved Classic-only decision supersedes Game Specification §5 World and Camera, every Locations requirement, and completion language that requires exploration of the former 4096×4096 Valley. All unrelated BlockFolk requirements remain authoritative.
+- Authorized repair: delete the active large-world/Locations product path, ship only the exact Classic PNG under canonical persisted ID `blockfolk-valley`, accept `blockfolk-valley-classic` only as a no-write-on-load input alias, and repair Z through the existing grid engine's named 73.1-world-unit canonical tier.
+- Coordinate invariant: page@3 remains a 4096×4096 scene; Classic uses the existing aspect-preserving 4096×3072 transform at `(0,512)`. Loading either background ID must not rewrite or reposition stickers, connections, or camera state.
+- Preserve the physically working A/B calibration exactly. Do not add material-specific vertical cases, fallback matchers, post-Snap corrections, or another candidate engine.
 - Active branch/worktree: `feature/blockfolk-grid-snap-completion-001` in `.worktrees/blockfolk-grid-snap-completion-001`, created directly from accepted commit `a3dd766e2245d6a585b264e9503677d6e238c620`.
 - Authorized: bounded BlockFolk construction source, focused/public browser tests, canonical packing/verification, ignored evidence, coherent local commits, and exact local phone-test HTML.
 - Not authorized: push, PR, merge, publication, Pages changes, tags, releases, branch deletion, or unrelated routes/products.
 - Stage 1 stops at the one representative physical multi-block gate. Later stages continue only after that verdict.
-- Protected: accepted artwork/background bytes, Original Imaginarium, storage namespace, catalog/categories/native emoji, world/camera, puzzle/export behavior, permanent controller identity, offline deterministic packaging, and unrelated products.
+- Protected after the authority change: Classic artwork bytes, Original Imaginarium, storage namespace, catalog/categories/native emoji, the page@3 coordinate plane, puzzle/export behavior, permanent controller identity, offline deterministic packaging, and unrelated products. The former shipping WebP and Locations code are intentionally not protected.
 
 # Authorized Scope — Grid-Snap Recovery Phase 0
 

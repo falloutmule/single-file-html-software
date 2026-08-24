@@ -18,9 +18,10 @@ for (const marker of [
   '<title>BlockFolk Imaginarium</title>', 'blockfolk-imaginarium-library-v1',
   'blockfolk-imaginarium.preferences@1', 'blockfolk-imaginarium.page@2',
   'blockfolk-imaginarium.sticker-pack@1', 'blockfolk-imaginarium.puzzle@1',
-  'blockfolk-valley', 'BlockFolk Valley', 'Classic BlockFolk Valley', 'sticker-blockfolk-', 'Wolf', 'red-dragon', 'Dragon',
-  'show-world-locations', 'camera-zoom-in', 'camera-zoom-out', 'camera-fit', 'Add Emoji'
+  'blockfolk-valley', 'Classic BlockFolk Valley', 'sticker-blockfolk-', 'Wolf', 'red-dragon', 'Dragon',
+  'camera-zoom-in', 'camera-zoom-out', 'camera-fit', 'Add Emoji'
 ]) assert.equal(artifact.includes(marker), true, `packed artifact must contain ${marker}`);
+for (const marker of ['show-world-locations', 'close-world-locations', 'choose-world', 'world-sheet', 'location-grid', 'background-grid', 'STARTING_LOCATIONS']) assert.equal(artifact.includes(marker), false, `packed artifact must not contain removed world/location marker ${marker}`);
 for (const obsoleteDefinition of [
   /id:\s*["']things["']\s*,\s*title:\s*["']Things["']/,
   /id:\s*["']silly["']\s*,\s*title:\s*["']Silly["']/,
@@ -40,6 +41,5 @@ const classicWorld = readFileSync(join(root, 'src', 'assets', 'backgrounds', 'bl
 assert.equal(packedPngs.length, 31, 'packed product must contain 30 PNG stickers plus the Classic BlockFolk Valley');
 assert.deepEqual(packedPngs.map(sha256).sort(), [...expectedPngs, classicWorld].map(sha256).sort(), 'every packed PNG must match an accepted sticker or the exact Classic BlockFolk Valley');
 const packedWebps = [...artifact.matchAll(/data:image\/webp;base64,([A-Za-z0-9+/=]+)/g)].map((match) => Buffer.from(match[1], 'base64'));
-assert.equal(packedWebps.length, 1, 'packed product must contain exactly one WebP world payload');
-assert.equal(sha256(packedWebps[0]), sha256(readFileSync(join(root, 'src', 'assets', 'backgrounds', 'blockfolk-valley.webp'))), 'packed world must match the accepted sole shipping WebP');
-console.log('BLOCKFOLK_IMAGINARIUM_PACKED_AUDIT PASS isolated identity, six-category contract, production and Classic worlds, 30 exact accepted PNG stickers, no source sheets, no external script or stylesheet');
+assert.equal(packedWebps.length, 0, 'packed product must not contain the removed 4096 WebP world payload');
+console.log('BLOCKFOLK_IMAGINARIUM_PACKED_AUDIT PASS isolated identity, six-category contract, Classic-only world, 30 exact accepted PNG stickers, no source sheets, no external script or stylesheet');

@@ -43,7 +43,6 @@
 
         <div class="editor-main">
           <div class="idea-row">
-            <button type="button" class="pill-button" data-action="show-world-locations"><span aria-hidden="true">⌖</span> Locations</button>
             <button type="button" class="pill-button" data-action="show-idea"><span aria-hidden="true">✦</span> Idea</button>
             <div class="camera-actions" aria-label="World view controls">
               <button type="button" data-action="camera-zoom-out" aria-label="Zoom world out">−</button>
@@ -188,10 +187,6 @@
           </section>
         </main>
       </section>
-
-      <div id="world-sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="world-title" hidden>
-        <div class="sheet-panel"><header><div><p class="eyebrow">Choose a world, then a viewpoint</p><h2 id="world-title">World &amp; Locations</h2></div><button type="button" data-action="close-world-locations" data-control-family="big" data-control-tone="mint">Done</button></header><p class="world-sheet-note">Changing worlds and locations keeps every sticker exactly where you placed it.</p><div id="background-grid" class="background-grid" role="group" aria-label="Choose a BlockFolk world"></div><h3 class="world-section-title">Starting Locations</h3><div id="location-grid" class="location-grid" role="group" aria-label="Open a starting location"></div></div>
-      </div>
 
       <div id="confirm-sheet" class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
         <div class="sheet-panel confirm-panel"><span class="confirm-icon" aria-hidden="true">?</span><h2 id="confirm-title">Are you sure?</h2><p id="confirm-message"></p><div class="button-row"><button type="button" data-action="cancel-confirm" data-control-family="big" data-control-tone="mint">Keep it</button><button type="button" class="danger-button" data-action="accept-confirm" data-control-family="big">Yes, delete</button></div></div>

@@ -2,18 +2,10 @@ import { worldAssetUrl } from './worldAssetRegistry.js';
 
 export const WORLD_SIZE = 4096;
 export const WORLD_BACKGROUND_ID = 'blockfolk-valley';
-export const CLASSIC_WORLD_BACKGROUND_ID = 'blockfolk-valley-classic';
+const LEGACY_CLASSIC_WORLD_BACKGROUND_ID = 'blockfolk-valley-classic';
 export const CAMERA_MIN_ZOOM = 1;
 export const CAMERA_MAX_ZOOM = 8;
 export const DEFAULT_CAMERA = Object.freeze({ centerX: 1940, centerY: 2180, zoom: 2.15 });
-
-export const STARTING_LOCATIONS = Object.freeze([
-  Object.freeze({ id: 'coast', title: 'Coast', centerX: 760, centerY: 1040, zoom: 2.4 }),
-  Object.freeze({ id: 'mountain-source', title: 'Mountain Source', centerX: 3030, centerY: 760, zoom: 2.65 }),
-  Object.freeze({ id: 'forest-river', title: 'Forest River', centerX: 2930, centerY: 2460, zoom: 2.4 }),
-  Object.freeze({ id: 'plains-bend', title: 'Plains Bend', centerX: 1760, centerY: 2260, zoom: 2.3 }),
-  Object.freeze({ id: 'world-center', title: 'World Center', centerX: 2048, centerY: 2048, zoom: 1.35 })
-]);
 
 function finite(value, fallback) { return Number.isFinite(value) ? value : fallback; }
 function clamp(value, minimum, maximum) { return Math.max(minimum, Math.min(maximum, value)); }
@@ -68,32 +60,19 @@ export function zoomCameraAt(camera, nextZoom, screenX, screenY, viewportWidth, 
 
 export const BLOCKFOLK_VALLEY_ASSET = Object.freeze({
   id: WORLD_BACKGROUND_ID,
-  name: 'BlockFolk Valley',
-  alt: 'Square BlockFolk Valley terrain with an ocean coast, mountain source, river, plains, and forest',
-  kind: 'background',
-  builtIn: true,
-  production: true,
-  debug: false,
-  width: WORLD_SIZE,
-  height: WORLD_SIZE,
-  get dataUrl() { return worldAssetUrl(WORLD_BACKGROUND_ID); }
-});
-
-// This is the exact earlier BlockFolk Valley PNG retained by the original
-// Imaginarium. It remains landscape-shaped, so the renderer contains it in the
-// square world rather than cropping or stretching its composition.
-export const BLOCKFOLK_CLASSIC_VALLEY_ASSET = Object.freeze({
-  id: CLASSIC_WORLD_BACKGROUND_ID,
   name: 'Classic BlockFolk Valley',
   alt: 'Original isometric BlockFolk Valley with grassy terraces, trees, paths, waterfall, and ponds',
   kind: 'background',
   builtIn: true,
-  production: false,
+  production: true,
   classic: true,
+  debug: false,
   width: 1448,
   height: 1086,
   presentation: 'contain',
-  get dataUrl() { return worldAssetUrl(CLASSIC_WORLD_BACKGROUND_ID); }
+  get dataUrl() { return worldAssetUrl(WORLD_BACKGROUND_ID); }
 });
 
-export function isBuiltInWorldBackgroundId(id) { return id === WORLD_BACKGROUND_ID || id === CLASSIC_WORLD_BACKGROUND_ID; }
+export function normalizeWorldBackgroundId(id) {
+  return id === WORLD_BACKGROUND_ID || id === LEGACY_CLASSIC_WORLD_BACKGROUND_ID ? WORLD_BACKGROUND_ID : null;
+}

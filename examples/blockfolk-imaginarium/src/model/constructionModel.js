@@ -1,4 +1,5 @@
 import { createStableId } from './ids.js';
+import { BLOCKFOLK_DEFAULT_WORLD_EXTENT } from './blockfolkStickerLibrary.js';
 
 const ALL_BLOCK_IDS = Object.freeze([
   'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block',
@@ -27,6 +28,10 @@ export const PORT_DIRECTION = Object.freeze(Object.fromEntries(
   Object.entries(GRID_DIRECTIONS).map(([direction, value]) => [value.portId, direction])
 ));
 
+export const CANONICAL_BLOCK_EXTENT_WORLD = BLOCKFOLK_DEFAULT_WORLD_EXTENT;
+export const CANONICAL_Z_TIER_WORLD = 73.1;
+export const Z_TIER_EXTENT_RATIO = CANONICAL_Z_TIER_WORLD / CANONICAL_BLOCK_EXTENT_WORLD;
+
 const edgeAnchors = (x, y, extra = {}) => Object.freeze({
   left: Object.freeze({ x: -x, y: 0, nx: -1, ny: 0, mate: 'right', ...extra }),
   right: Object.freeze({ x, y: 0, nx: 1, ny: 0, mate: 'left', ...extra }),
@@ -35,16 +40,17 @@ const edgeAnchors = (x, y, extra = {}) => Object.freeze({
 });
 
 // Fractions are accepted painted-cell calibration, not transparent PNG bounds.
-// Logical A/B/Z relations are authoritative; these values only turn a chosen
-// integer pose into the visible world-space translation.
+// A/B retain the physically working Stage 1 geometry. Z derives from the named
+// 73.1-world-unit canonical tier and scales with the block extent. Logical grid
+// relations remain authoritative; calibration only projects them onto the art.
 const blockAnchors = Object.freeze({
   ...edgeAnchors(.72, .66, { legacy: true }),
   northWest: Object.freeze({ x: -.4, y: -.2, nx: -1, ny: -1, mate: 'southEast' }),
   northEast: Object.freeze({ x: .4, y: -.2, nx: 1, ny: -1, mate: 'southWest' }),
   southWest: Object.freeze({ x: -.4, y: .2, nx: -1, ny: 1, mate: 'northEast' }),
   southEast: Object.freeze({ x: .4, y: .2, nx: 1, ny: 1, mate: 'northWest' }),
-  stackTop: Object.freeze({ x: 0, y: -.425, nx: 0, ny: -1, mate: 'stackBase' }),
-  stackBase: Object.freeze({ x: 0, y: .425, nx: 0, ny: 1, mate: 'stackTop' }),
+  stackTop: Object.freeze({ x: 0, y: -Z_TIER_EXTENT_RATIO, nx: 0, ny: -1, mate: 'stackBase' }),
+  stackBase: Object.freeze({ x: 0, y: Z_TIER_EXTENT_RATIO, nx: 0, ny: 1, mate: 'stackTop' }),
   frontFace: Object.freeze({ x: 0, y: 0, nx: 0, ny: 1, mate: 'backFace' })
 });
 const buildingFaceAnchors = Object.freeze({

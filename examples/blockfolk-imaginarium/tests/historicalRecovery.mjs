@@ -35,7 +35,8 @@ assert.deepEqual(session.renderedPicture.connections, [], 'page@4 connections mu
 assert.deepEqual(session.quarantinedConnections, rawPage4.connections, 'page@4 connections must be quarantined without interpretation');
 assert.equal(session.originalIdentity.id, rawPage4.id); assert.equal(session.canonicalHash, manifest.fixtures.find((entry) => entry.file === 'page4-499636e.json').originalCanonicalSha256);
 for (const capability of ['contentMutation', 'stickerEdit', 'snap', 'undoRedo', 'save', 'rename', 'duplicate', 'delete', 'recoveryExport', 'puzzle']) assert.equal(session.capabilities[capability], false, `${capability} must fail closed`);
-for (const capability of ['camera', 'fit', 'bookmarks', 'orientation', 'pngExport', 'close']) assert.equal(session.capabilities[capability], true, `${capability} must remain available`);
+for (const capability of ['camera', 'fit', 'orientation', 'pngExport', 'close']) assert.equal(session.capabilities[capability], true, `${capability} must remain available`);
+assert.equal('bookmarks' in session.capabilities, false, 'the removed Locations concept must not remain in read-only capabilities');
 assert.equal(READ_ONLY_LEGACY_NOTICE, 'This older picture is open read-only. Your stickers are safe, but its snap links are inactive.');
 await assert.rejects(() => ReadOnlyLegacySession.open({ ...rawPage4, stickers: [{ ...rawPage4.stickers[0], x: 'bad' }] }), /invalid sticker settings/i);
 

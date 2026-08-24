@@ -1,6 +1,6 @@
 /* global Blob, File, ResizeObserver, TextEncoder, URL, atob, clearInterval, clearTimeout, console, document, localStorage, matchMedia, navigator, performance, prompt, requestAnimationFrame, setInterval, setTimeout, structuredClone, window */
 import * as fabricNS from 'fabric';
-import { BUILT_IN_BACKGROUNDS, BUILT_IN_CATEGORIES, BUILT_IN_STICKERS, CREATIVE_PROMPTS, findBuiltInAsset } from '../model/builtInLibrary.js';
+import { BUILT_IN_CATEGORIES, BUILT_IN_STICKERS, CREATIVE_PROMPTS, findBuiltInAsset } from '../model/builtInLibrary.js';
 import { migrateAssetCategory, migrateBuiltInCategory } from '../model/categoryModel.js';
 import { validateNativeEmojiSequence } from '../model/emojiModel.js';
 import { DEFAULT_AUTOSAVE_MODE, autosavePolicy, normalizeAutosaveMode } from '../model/autosave.js';
@@ -21,13 +21,13 @@ import {
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
 import {
-  CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, DEFAULT_CAMERA, STARTING_LOCATIONS, WORLD_BACKGROUND_ID, WORLD_SIZE, isBuiltInWorldBackgroundId,
-  cameraMetrics, cameraTransform, clampCamera, normalizeCamera, panCamera, screenToWorld, zoomCameraAt
+  CAMERA_MAX_ZOOM, CAMERA_MIN_ZOOM, DEFAULT_CAMERA, WORLD_BACKGROUND_ID, WORLD_SIZE,
+  cameraMetrics, cameraTransform, clampCamera, normalizeCamera, normalizeWorldBackgroundId, panCamera, screenToWorld, zoomCameraAt
 } from '../model/worldModel.js';
 
 const SCREEN_IDS = ['home-screen', 'editor-screen', 'gallery-screen', 'parent-gate-screen', 'parent-tools-screen', 'puzzle-source-screen', 'puzzle-frame-screen', 'puzzle-play-screen'];
 const READ_ONLY_BLOCKED_ACTIONS = new Set([
-  'undo', 'redo', 'choose-world', 'add-emoji', 'snap-context', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front',
+  'undo', 'redo', 'add-emoji', 'snap-context', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front',
   'copy', 'trash', 'surprise-sticker', 'export-recovery', 'clear-data'
 ]);
 
@@ -124,7 +124,6 @@ export class BlockFolkImaginariumApp {
     this.applyPreferences();
     savePreferences(this.preferences);
     this.renderLibrary();
-    this.renderLocations();
     this.renderPackList();
     await this.refreshContinueButton();
     this.showScreen('home-screen');
@@ -136,8 +135,8 @@ export class BlockFolkImaginariumApp {
     const $ = (selector) => this.root.querySelector(selector);
     this.elements = {
       canvas: $('#picture-canvas'), viewport: $('#page-viewport'), scaler: $('#page-scaler'), frame: $('#page-frame'), empty: $('#empty-invitation'),
-      selection: $('#selection-toolbar'), selectionMore: $('#selection-more-sheet'), categories: $('#category-tabs'), stickers: $('#sticker-list'), stripTitle: $('#sticker-strip-title'), locations: $('#location-grid'), backgrounds: $('#background-grid'),
-      worldSheet: $('#world-sheet'), gallery: $('#gallery-grid'), galleryEmpty: $('#gallery-empty'), galleryNote: $('#gallery-limit-note'),
+      selection: $('#selection-toolbar'), selectionMore: $('#selection-more-sheet'), categories: $('#category-tabs'), stickers: $('#sticker-list'), stripTitle: $('#sticker-strip-title'),
+      gallery: $('#gallery-grid'), galleryEmpty: $('#gallery-empty'), galleryNote: $('#gallery-limit-note'),
       continueButton: $('#continue-picture'), saveStatus: $('#save-status'), ideaCard: $('#idea-card'), ideaText: $('#idea-text'),
       parentGate: $('#parent-gate-screen'), gateCount: $('#gate-count'), parentTools: $('#parent-tools-screen'),
       packInput: $('#pack-input'), packList: $('#pack-list'), importStatus: $('#import-status'), importReport: $('#import-report'), importDetails: $('#import-report-details'),
@@ -302,8 +301,6 @@ export class BlockFolkImaginariumApp {
     if (stickerButton && !this.legacySession) await this.addSticker(stickerButton.dataset.stickerId);
     const categoryButton = target.closest?.('[data-category]');
     if (categoryButton && !this.legacySession) { this.category = categoryButton.dataset.category; this.preferences.category = migrateBuiltInCategory(this.category); savePreferences(this.preferences); if (this.current) this.current.ui.category = this.preferences.category; this.renderLibrary(); }
-    const locationButton = target.closest?.('[data-location-id]');
-    if (locationButton) this.openStartingLocation(locationButton.dataset.locationId);
     const galleryAction = target.closest?.('[data-gallery-action]');
     if (galleryAction) await this.handleGalleryAction(galleryAction.dataset.galleryAction, galleryAction.dataset.pictureId);
     const packRemove = target.closest?.('[data-remove-pack]');
@@ -325,9 +322,6 @@ export class BlockFolkImaginariumApp {
       'toggle-motion': () => this.updatePreference('reducedMotion', !this.preferences.reducedMotion),
       'set-autosave': () => this.updatePreference('autosaveMode', normalizeAutosaveMode(actionElement?.dataset.autosaveMode)),
       'done-picture': () => this.donePicture(),
-      'show-world-locations': () => { this.renderWorldChoices(); this.renderLocations(); this.elements.worldSheet.hidden = false; },
-      'close-world-locations': () => { this.elements.worldSheet.hidden = true; },
-      'choose-world': (actionElement) => this.chooseWorld(actionElement?.dataset.backgroundId),
       'camera-zoom-in': () => this.zoomCamera(1.25), 'camera-zoom-out': () => this.zoomCamera(1 / 1.25), 'camera-fit': () => this.fitWorld(),
       'add-emoji': () => this.addEmojiFromInput(),
       'show-idea': () => this.showIdea(), 'hide-idea': () => { this.elements.ideaCard.hidden = true; },
@@ -383,7 +377,6 @@ export class BlockFolkImaginariumApp {
 
   async goHome() {
     if (this.current) await this.saveCurrent({ quiet: true });
-    this.elements.worldSheet.hidden = true;
     await this.refreshContinueButton();
     this.showScreen('home-screen');
   }
@@ -421,7 +414,7 @@ export class BlockFolkImaginariumApp {
     this.root.dataset.legacyReadOnly = String(readOnly);
     if (readOnly) this.elements.saveStatus.textContent = 'Read-only';
     const selectors = [
-      '[data-sticker-id]', '[data-action="add-emoji"]', '[data-action="choose-world"]', '[data-action="snap-context"]',
+      '[data-sticker-id]', '[data-action="add-emoji"]', '[data-action="snap-context"]',
       '[data-action="smaller"]', '[data-action="bigger"]', '[data-action="turn"]', '[data-action="flip"]', '[data-action="behind"]',
       '[data-action="in-front"]', '[data-action="copy"]', '[data-action="trash"]', '[data-action="surprise-sticker"]',
       '[data-action="export-recovery"]', '[data-action="clear-data"]'
@@ -458,7 +451,7 @@ export class BlockFolkImaginariumApp {
       ...(object.blockfolkSourceEmoji ? { sourceEmoji: object.blockfolkSourceEmoji } : {})
     }));
     this.current.connections = validConnections(this.current.connections || [], new Set(this.current.stickers.map((sticker) => sticker.layerId)));
-    if (!isBuiltInWorldBackgroundId(this.current.page.backgroundAssetId)) this.current.page.backgroundAssetId = WORLD_BACKGROUND_ID;
+    this.current.page.backgroundAssetId = normalizeWorldBackgroundId(this.current.page.backgroundAssetId) || WORLD_BACKGROUND_ID;
     this.current.page.camera = normalizeCamera(this.camera);
     this.current.ui = { category: migrateBuiltInCategory(this.category) };
     const usedIds = new Set([this.current.page.backgroundAssetId, ...this.current.stickers.map((sticker) => sticker.assetId)]);
@@ -487,7 +480,6 @@ export class BlockFolkImaginariumApp {
     this.canvas.requestRenderAll();
     this.rendering = false;
     this.updateSelection();
-    this.renderLocations();
     this.fitPage();
   }
 
@@ -597,51 +589,6 @@ export class BlockFolkImaginariumApp {
       const asset = { id: createStableId('blockfolk-native-emoji'), name: `Emoji ${glyph}`, alt: `Native emoji ${glyph}`, category: 'emoji', kind: 'emoji', glyph, builtIn: false, width: 560, height: 560 };
       const before = this.snapshot(); this.current.embeddedAssets.push(asset); await this.addSticker(asset.id, true, before); input.value = ''; status.textContent = `${glyph} added using this device’s emoji style.`; input.focus();
     } catch (error) { status.textContent = error.message; input?.focus(); }
-  }
-
-  renderLocations() {
-    this.controls.destroyWithin(this.elements.locations);
-    this.elements.locations.replaceChildren(...STARTING_LOCATIONS.map((location) => {
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'location-button'; button.dataset.locationId = location.id; button.setAttribute('aria-label', location.title);
-      const preview = document.createElement('span'); preview.className = 'location-preview'; preview.setAttribute('aria-hidden', 'true');
-      const thumbnail = document.createElement('canvas'); thumbnail.width = 240; thumbnail.height = 150; preview.appendChild(thumbnail);
-      const image = this.canvas.backgroundImage?._element; const context = thumbnail.getContext('2d');
-      if (image?.naturalWidth && context) {
-        const crop = Math.min(WORLD_SIZE, WORLD_SIZE / Math.max(1, location.zoom)); const worldX = Math.max(0, Math.min(WORLD_SIZE - crop, location.centerX - crop / 2)); const worldY = Math.max(0, Math.min(WORLD_SIZE - crop, location.centerY - crop / 2));
-        const background = this.canvas.backgroundImage; const scaleX = background?.scaleX || 1; const scaleY = background?.scaleY || 1; const left = background?.left || 0; const top = background?.top || 0;
-        const sourceX = (worldX - left) / scaleX; const sourceY = (worldY - top) / scaleY; const sourceWidth = crop / scaleX; const sourceHeight = crop / scaleY;
-        context.fillStyle = '#f1f0ed'; context.fillRect(0, 0, thumbnail.width, thumbnail.height);
-        const clippedX = Math.max(0, sourceX); const clippedY = Math.max(0, sourceY); const clippedRight = Math.min(image.naturalWidth, sourceX + sourceWidth); const clippedBottom = Math.min(image.naturalHeight, sourceY + sourceHeight);
-        if (clippedRight > clippedX && clippedBottom > clippedY) {
-          const targetX = ((clippedX - sourceX) / sourceWidth) * thumbnail.width; const targetY = ((clippedY - sourceY) / sourceHeight) * thumbnail.height;
-          const targetWidth = ((clippedRight - clippedX) / sourceWidth) * thumbnail.width; const targetHeight = ((clippedBottom - clippedY) / sourceHeight) * thumbnail.height;
-          context.drawImage(image, clippedX, clippedY, clippedRight - clippedX, clippedBottom - clippedY, targetX, targetY, targetWidth, targetHeight);
-        }
-      }
-      const label = document.createElement('strong'); label.textContent = location.title; button.append(preview, label);
-      return this.controls.upgradeButton(button, { family: 'choice', semantic: { kind: 'choice', groupId: 'blockfolk-imaginarium-world-location', value: location.id }, value: location.id, palette: 'mint' });
-    }));
-  }
-
-  renderWorldChoices() {
-    this.controls.destroyWithin(this.elements.backgrounds);
-    this.elements.backgrounds.replaceChildren(...BUILT_IN_BACKGROUNDS.map((asset) => {
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'background-button'; button.dataset.action = 'choose-world'; button.dataset.backgroundId = asset.id; button.setAttribute('aria-label', `Use ${asset.name}`);
-      const image = document.createElement('img'); image.alt = ''; image.src = asset.dataUrl;
-      const label = document.createElement('span'); label.className = 'background-label'; label.textContent = asset.name; button.append(image, label);
-      return this.controls.upgradeButton(button, { family: 'choice', semantic: { kind: 'choice', groupId: 'blockfolk-imaginarium-world-background', value: asset.id }, value: asset.id, palette: asset.id === this.current?.page?.backgroundAssetId ? 'mint' : 'cream' });
-    }));
-    if (this.legacySession) this.applyLegacyCapabilities();
-  }
-
-  async chooseWorld(backgroundId) {
-    if (!this.current || !isBuiltInWorldBackgroundId(backgroundId) || backgroundId === this.current.page.backgroundAssetId) return;
-    const before = this.snapshot(); this.current.page.backgroundAssetId = backgroundId; await this.applyBackground(); this.renderWorldChoices(); this.renderLocations(); this.commit(before, `${findBuiltInAsset(backgroundId)?.name || 'World'} opened.`); this.toast('World changed — your stickers stayed put');
-  }
-
-  openStartingLocation(locationId) {
-    const location = STARTING_LOCATIONS.find((item) => item.id === locationId); if (!location || !this.current) return;
-    const before = this.snapshot(); this.camera = normalizeCamera(location); this.applyCamera(); this.commit(before, `${location.title} opened.`); this.elements.worldSheet.hidden = true;
   }
 
   zoomCamera(factor) {
@@ -1082,7 +1029,7 @@ export class BlockFolkImaginariumApp {
     this.elements.importReport.replaceChildren(...pack.report.map((entry) => { const line = document.createElement('p'); line.textContent = `${entry.status.toUpperCase()} · ${entry.path} · ${entry.reason}`; return line; }));
     this.elements.importDetails.hidden = false; this.elements.packInput.value = '';
     this.category = defaultCategory || pack.assets.find((asset) => asset.kind === 'sticker')?.category || this.category;
-    this.renderPackList(); this.renderLibrary(); this.renderLocations(); await this.refreshStorageSummary(); this.toast('Sticker pack ready!');
+    this.renderPackList(); this.renderLibrary(); await this.refreshStorageSummary(); this.toast('Sticker pack ready!');
   }
 
   renderPackList() {
@@ -1101,7 +1048,7 @@ export class BlockFolkImaginariumApp {
     const pack = this.packs.find((item) => item.id === packId); if (!pack) return;
     if (!(await this.confirm(`Remove “${pack.title}”? Saved pictures keep their used stickers.`, 'Remove pack'))) return;
     if (this.current) this.syncCurrentFromCanvas();
-    await this.storage.deletePack(packId); this.packs = await this.storage.listPacks(); this.renderPackList(); this.renderLibrary(); this.renderLocations(); await this.refreshStorageSummary(); this.toast('Pack removed. Saved pictures are safe.');
+    await this.storage.deletePack(packId); this.packs = await this.storage.listPacks(); this.renderPackList(); this.renderLibrary(); await this.refreshStorageSummary(); this.toast('Pack removed. Saved pictures are safe.');
   }
 
   async refreshStorageSummary() {

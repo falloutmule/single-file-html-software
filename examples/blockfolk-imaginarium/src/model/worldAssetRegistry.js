@@ -2,8 +2,7 @@
 // descriptors without importing binary assets; registerWorldAsset replaces both
 // values before the app renders.
 const urls = new Map([
-  ['blockfolk-valley', 'data:image/webp;base64,'],
-  ['blockfolk-valley-classic', 'data:image/png;base64,']
+  ['blockfolk-valley', 'data:image/png;base64,']
 ]);
 
 export function registerWorldAsset(id, dataUrl) {

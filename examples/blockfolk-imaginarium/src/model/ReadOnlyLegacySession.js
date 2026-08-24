@@ -1,5 +1,5 @@
 /* global TextEncoder, structuredClone */
-import { WORLD_SIZE, isBuiltInWorldBackgroundId, normalizeCamera } from './worldModel.js';
+import { WORLD_SIZE, normalizeCamera, normalizeWorldBackgroundId } from './worldModel.js';
 
 export const READ_ONLY_LEGACY_SCHEMA = 'blockfolk-imaginarium.page@4';
 export const READ_ONLY_LEGACY_NOTICE = 'This older picture is open read-only. Your stickers are safe, but its snap links are inactive.';
@@ -7,7 +7,6 @@ export const READ_ONLY_LEGACY_NOTICE = 'This older picture is open read-only. Yo
 const READ_ONLY_CAPABILITIES = Object.freeze({
   camera: true,
   fit: true,
-  bookmarks: true,
   orientation: true,
   pngExport: true,
   close: true,
@@ -33,7 +32,7 @@ function assertSticker(sticker, layerIds) {
 function assertPage4Record(record) {
   if (!record || typeof record !== 'object' || record.schema !== READ_ONLY_LEGACY_SCHEMA) throw new Error(`Picture version ${record?.schema || 'unknown'} is not supported.`);
   if (typeof record.id !== 'string' || !record.id || typeof record.title !== 'string') throw new Error('Picture identity is invalid.');
-  if (record.page?.width !== WORLD_SIZE || record.page?.height !== WORLD_SIZE || !isBuiltInWorldBackgroundId(record.page?.backgroundAssetId) || !record.page?.camera) throw new Error('Picture page settings are invalid.');
+  if (record.page?.width !== WORLD_SIZE || record.page?.height !== WORLD_SIZE || !normalizeWorldBackgroundId(record.page?.backgroundAssetId) || !record.page?.camera) throw new Error('Picture page settings are invalid.');
   normalizeCamera(record.page.camera);
   if (!Array.isArray(record.stickers) || !Array.isArray(record.connections) || !Array.isArray(record.embeddedAssets || [])) throw new Error('Picture content is invalid.');
   const layerIds = new Set();

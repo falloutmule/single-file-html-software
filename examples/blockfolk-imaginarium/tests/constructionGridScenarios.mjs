@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {
-  CONSTRUCTION_PROFILES, GRID_DIRECTIONS, PORT_DIRECTION, SNAP_AMBIGUITY_SCREEN_PX,
+  CANONICAL_BLOCK_EXTENT_WORLD, CANONICAL_Z_TIER_WORLD, CONSTRUCTION_PROFILES, GRID_DIRECTIONS, PORT_DIRECTION, SNAP_AMBIGUITY_SCREEN_PX, Z_TIER_EXTENT_RATIO,
   boundaryPortsFor, buildComponentGrid, constructionOrientation, duplicateConnections,
   findGridSnapCandidate, gridCellKey, profileForAsset, removeMemberConnections
 } from '../src/model/constructionModel.js';
@@ -26,6 +26,51 @@ assert.deepEqual(Object.fromEntries(Object.entries(GRID_DIRECTIONS).map(([id, va
 assert.equal(profileForAsset(LOG), profileForAsset(BRICK), 'representative materials share one logical profile object');
 assert.deepEqual(Object.keys(CONSTRUCTION_PROFILES), [LOG, BRICK], 'Stage 1 registry must contain only its representative assets');
 assert.equal(new Set(profileForAsset(BRICK).directions.map((direction) => GRID_DIRECTIONS[direction].portId)).size, 6, 'one-cell block ports must be unique');
+assert.equal(CANONICAL_BLOCK_EXTENT_WORLD, 420 / (1.1 ** 10));
+assert.equal(CANONICAL_Z_TIER_WORLD, 73.1);
+assert.equal(Z_TIER_EXTENT_RATIO, CANONICAL_Z_TIER_WORLD / CANONICAL_BLOCK_EXTENT_WORLD);
+assert.deepEqual(Object.fromEntries(['northWest', 'northEast', 'southWest', 'southEast'].map((id) => [id, { x: profileForAsset(BRICK).anchors[id].x, y: profileForAsset(BRICK).anchors[id].y }])), {
+  northWest: { x: -.4, y: -.2 }, northEast: { x: .4, y: -.2 }, southWest: { x: -.4, y: .2 }, southEast: { x: .4, y: .2 }
+}, 'the physically accepted A/B calibration must remain exact');
+
+const canonicalObject = (layerId, left, top, assetId = BRICK, extent = CANONICAL_BLOCK_EXTENT_WORLD) => object(layerId, left, top, assetId, {
+  getScaledWidth: () => extent * .84,
+  getScaledHeight: () => extent
+});
+const upward = findGridSnapCandidate({
+  movingObjects: [canonicalObject('z-up-log', 0, -CANONICAL_Z_TIER_WORLD, LOG)],
+  stationaryObjects: [canonicalObject('z-up-brick', 0, 0, BRICK)],
+  screenTolerance: .01, ambiguityScreen: 0
+});
+assert.equal(upward.status, 'ok'); assert.equal(upward.canonicalContact.sourceAnchor.id, 'stackBase'); assert.equal(upward.canonicalContact.targetAnchor.id, 'stackTop'); assert.ok(Math.abs(upward.dx) < 1e-9 && Math.abs(upward.dy) < 1e-9, 'mixed-material +Z must use the exact 73.1-world-unit tier');
+const downward = findGridSnapCandidate({
+  movingObjects: [canonicalObject('z-down-brick', 0, CANONICAL_Z_TIER_WORLD, BRICK)],
+  stationaryObjects: [canonicalObject('z-down-log', 0, 0, LOG)],
+  screenTolerance: .01, ambiguityScreen: 0
+});
+assert.equal(downward.status, 'ok'); assert.equal(downward.canonicalContact.sourceAnchor.id, 'stackTop'); assert.equal(downward.canonicalContact.targetAnchor.id, 'stackBase'); assert.ok(Math.abs(downward.dy) < 1e-9, 'mixed-material -Z must use the same canonical tier');
+const resizedUpward = findGridSnapCandidate({
+  movingObjects: [canonicalObject('z-resized-moving', 0, -CANONICAL_Z_TIER_WORLD * 2, LOG, CANONICAL_BLOCK_EXTENT_WORLD * 2)],
+  stationaryObjects: [canonicalObject('z-resized-target', 0, 0, BRICK, CANONICAL_BLOCK_EXTENT_WORLD * 2)],
+  screenTolerance: .01, ambiguityScreen: 0
+});
+assert.equal(resizedUpward.status, 'ok'); assert.ok(Math.abs(resizedUpward.dy) < 1e-9, 'Z separation must scale proportionally with the block extent');
+const twoTierConnections = [edge('z-tier-01', 'z-tier-0', 'z-tier-1', 'stackTop', BRICK, LOG)];
+const thirdTier = findGridSnapCandidate({
+  movingObjects: [canonicalObject('z-tier-2', 0, -CANONICAL_Z_TIER_WORLD * 2, BRICK)],
+  stationaryObjects: [canonicalObject('z-tier-0', 0, 0, BRICK), canonicalObject('z-tier-1', 0, -CANONICAL_Z_TIER_WORLD, LOG)],
+  connections: twoTierConnections, screenTolerance: .01, ambiguityScreen: 0
+});
+assert.equal(thirdTier.status, 'ok'); assert.equal(thirdTier.canonicalContact.target.blockfolkLayerId, 'z-tier-1'); assert.ok(Math.abs(thirdTier.dy) < 1e-9, 'a third tier must extend the same Z basis without accumulated drift');
+const threeTierGrid = buildComponentGrid([...twoTierConnections, edge('z-tier-12', 'z-tier-1', 'z-tier-2', 'stackTop', LOG, BRICK)], ['z-tier-0', 'z-tier-1', 'z-tier-2'].map((id, index) => member(id, index === 1 ? LOG : BRICK)), 'z-tier-2');
+assert.equal(threeTierGrid.consistent, true); assert.deepEqual(threeTierGrid.origins.get('z-tier-2'), { a: 0, b: 0, z: 2 });
+const occupiedZ = findGridSnapCandidate({
+  movingObjects: [canonicalObject('z-occupied-moving', 0, -CANONICAL_Z_TIER_WORLD, BRICK)],
+  stationaryObjects: [canonicalObject('z-occupied-root', 0, 0, BRICK), canonicalObject('z-occupied-tier', 0, -CANONICAL_Z_TIER_WORLD, LOG)],
+  connections: [edge('z-occupied-edge', 'z-occupied-root', 'z-occupied-tier', 'stackTop', BRICK, LOG)],
+  screenTolerance: .01, ambiguityScreen: 0
+});
+assert.equal(occupiedZ.status, 'occupied', 'an already occupied Z cell must reject a visually coincident loose block');
 
 const rowEdges = [edge('e01', 'm0', 'm1', 'southEast'), edge('e12', 'm1', 'm2', 'southEast'), edge('e23', 'm2', 'm3', 'southEast')];
 const rowMembers = ['m0', 'm1', 'm2', 'm3'].map((id, index) => member(id, index % 2 ? LOG : BRICK));

@@ -5,6 +5,9 @@
 
 ## Grid-snap completion decisions — 2026-08-24
 
+- `REPORTED`: the Samsung Stage 1 verdict accepts horizontal Snap and rejects vertical Snap. Automated success does not override the physical Z failure.
+- `VERIFIED`: the user-approved Classic-only authority change supersedes the former 4096 Valley and Locations requirements. Canonical ID and the 4096 page@3 coordinate plane remain; only the background bytes/presentation and active UI surface change.
+- `VERIFIED`: canonical Z calibration is a named 73.1-world-unit tier at `420 / 1.1^10` extent and scales proportionally. A/B values remain byte-for-byte unchanged, and no fallback or material-specific stacking path is allowed.
 - `VERIFIED`: page@3 already persists both endpoint port identities needed to derive A/B/Z coordinates, so Stage 1 adds no redundant global grid, absolute cell coordinate, component ID, or schema version.
 - `VERIFIED`: the construction model owns the single direction map, one-cell profile, deterministic component grid, occupancy, pose consensus, ambiguity, and candidate ranking. The app owns only atomic render/persistence integration and feedback.
 - `VERIFIED`: Stage 1 registers Log Block and Brick Block to the shared profile. The remaining eight historic block assets remain readable and available, but cannot create new grid edges until the registry-only Stage 2 card after physical Gate 1.

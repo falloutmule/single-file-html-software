@@ -1,19 +1,20 @@
 ---
-{"schema":"sfhs.one-shot-issue-log@1","status":"REPORTED","facts":{"issues":["BFS-008"]}}
+{"schema":"sfhs.one-shot-issue-log@1","status":"REPORTED","facts":{"issues":["BFS-008","BFS-009"]}}
 ---
 # Issues Encountered
 
 ## BFS-009 — Stage 1 multi-block grid requires representative Samsung acceptance
 
 - Phase: grid-snap completion Stage 1
-- Status: `AWAITING SAMSUNG`
+- Status: `PHYSICAL FAIL — REPAIR AUTOMATED PASS / SAMSUNG RETEST PENDING`
 - Severity: release gate for Stage 2
 - Observed: the accepted Phase 0 engine was a nearest painted-anchor pair matcher with no authoritative cell occupancy or later-member topology.
 - Expected: one component-local A/B/Z grid supports third/fourth/later blocks, corners/stacks, atomic occupied/ambiguous rejection, exact persistence, and one activation/edge.
-- Resolution: implemented one profile-driven direction/grid/candidate engine and an atomic app transaction; registered only Log and Brick for the Stage 1 representative gate.
-- Verification: 64-member model assembly; deterministic/reversed traversal; A/B/Z, corner, stack, 2+2 merge, occupancy, ambiguity and consensus; visible-catalog/real-touch four-member browser scenario; exact gallery reopen; permanent controller; accepted regression suite; packed/offline audit; two-build identity; protected hashes.
+- Physical verdict: the user reported that horizontal snaps work but vertical snaps do not. This supersedes the original automated Z PASS.
+- Repair: preserve A/B, replace the generic Z fraction with the named physically accepted 73.1-world-unit tier, add independent mixed-pair/three-tier/occupied-Z proof, and remove the superseded large-world/Locations product path under the explicit Classic-only authority change.
+- Verification: focused and browser lanes now prove both Z directions, all Log/Brick pairings, three tiers without accumulated drift, existing-component attachment, atomic occupied-Z rejection, A/B preservation, Classic alias no-write-on-load, exact contained transform, persistence, controller behavior, and zero runtime requests. Canonical release gates and the repaired Samsung verdict remain required.
 - Environment note: the first isolated offline determinism attempt lacked an `@eslint/js` tarball, and the first elevated retry hit Windows dubious-ownership protection. The passing retry used registry access plus a process-local `safe.directory`; it did not change global Git configuration or repository content.
-- Remaining risk: physical Samsung feel and visible registration can supersede automation. Run only Gate 1; do not ask the user to test the other eight materials.
+- Remaining risk: physical Samsung feel and visible registration can supersede automation. Run only horizontal regression → mixed vertical stack → component drag → save/reload → Unsnap; do not test the other eight materials.
 
 ## BFS-008 — Typed formation release failed physical geometry and persistence authority
 
