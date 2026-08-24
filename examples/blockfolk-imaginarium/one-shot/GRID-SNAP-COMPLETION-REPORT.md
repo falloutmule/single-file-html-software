@@ -10,6 +10,7 @@ Status: **REPAIR AUTOMATED PASS — SAMSUNG RETEST PENDING**
 - Retained `blockfolk-valley-classic` as a load-boundary alias that normalizes in memory without a load-only storage write.
 - Deleted the active large-world/Locations product path and the runtime 4096 WebP; retained historical art/evidence outside the shipping path.
 - Preserved A/B calibration exactly and replaced only Z with the named 73.1-world-unit canonical tier, scaled proportionally through the existing grid candidate/occupancy/transaction engine.
+- Published the exact already-verified artifact at the established BlockFolk GitHub Pages path without rebuilding or changing product bytes.
 
 ## WHAT WAS VERIFIED
 
@@ -18,6 +19,7 @@ Status: **REPAIR AUTOMATED PASS — SAMSUNG RETEST PENDING**
 - Classic compatibility: canonical and alias IDs render the exact 1448×1086 PNG with the deterministic contained transform; alias load leaves stored bytes unchanged; sticker and camera coordinates remain exact.
 - Product/browser: one background plus 30 stickers, no Locations/world-choice UI, portrait/landscape, page@4 zero-write view, puzzle/export, native emoji, zero errors, and zero runtime requests.
 - `test:source`, `test:browser`, lint, typecheck, SFHS inspect/validate/check/pack/verify, packed audit, and deterministic double build all exit 0.
+- The live Pages response is exactly `10,380,890` bytes with SHA-256 `6cad1237f735fa7ee54d40b6d48e47876613862f653a3c2337b041f93871260b`; live Chromium passes at 400×844 and 844×400 with zero unexpected requests, console errors, or page errors.
 - Failure modes guarded: A, B, C, D, F, Q, R, S, and T. H/I/K/N/P retain their browser regression proof; E/G/L/M/O are unaffected by this bounded card.
 
 ## WHAT FAILED
@@ -30,7 +32,8 @@ Status: **REPAIR AUTOMATED PASS — SAMSUNG RETEST PENDING**
 - Worktree: `.worktrees/blockfolk-grid-snap-completion-001`.
 - Branch: `feature/blockfolk-grid-snap-completion-001`.
 - Repair parent: `0d9e7f2cf8f52a52cf2e8572e12660f50a24f036`.
-- Upstream/PR/publication: none; no push, publication, merge, tag, or release performed.
+- Implementation commits: `7de361ac1134bfaece16dce4878fe708638c9777` and `16e6775c2351979255206248c128522c4ed344d6`, pushed to `origin/feature/blockfolk-grid-snap-completion-001`.
+- Pages commit: `42b3f60f6aa38503bc1353cf35f2a60a08420eac`, changing only `blockfolk-imaginarium/index.html`; no merge, tag, GitHub Release, or unrelated Pages/configuration change was performed.
 - Build ID: `blockfolk-imaginarium-056a48777aa5`.
 - Artifact bytes: `10,380,890`.
 - Artifact SHA-256: `6cad1237f735fa7ee54d40b6d48e47876613862f653a3c2337b041f93871260b`.
@@ -56,7 +59,7 @@ PUBLICATION: NOT AUTHORIZED
 
 ## NEXT ACTIONABLE STEP
 
-On the exact local artifact, run only: horizontal regression → mixed vertical stack → drag assembly → save/reload → Unsnap.
+On the exact live artifact below, run only: horizontal regression → mixed vertical stack → drag assembly → save/reload → Unsnap.
 
 ## EVIDENCE
 
@@ -64,10 +67,14 @@ On the exact local artifact, run only: horizontal regression → mixed vertical 
 - Determinism report: `test-results/blockfolk-classic-z-repair-001/determinism-report.json`.
 - Vertical/corner evidence: `test-results/blockfolk-grid-snap-completion-001/browser/`.
 - Classic product evidence: `test-results/production-catalog-001/local/`.
+- Live Pages download and browser evidence: `test-results/blockfolk-classic-z-repair-001/live-pages-index.html` and `test-results/blockfolk-classic-z-repair-001/live-pages/`.
 
 ## GITHUB PAGES URL
 
-- N/A — publication was not authorized.
+- `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=42b3f60-16e6775-056a48777aa5-2`
+- Live bytes: `10,380,890`.
+- Live SHA-256: `6cad1237f735fa7ee54d40b6d48e47876613862f653a3c2337b041f93871260b`.
+- Live smoke: **PASS** in portrait and landscape; Classic-only world, catalog, offline request guard, and zero-error checks pass.
 
 ## RESULT
 
