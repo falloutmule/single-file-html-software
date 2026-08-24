@@ -1,6 +1,14 @@
 ---
 {"schema":"sfhs.one-shot-brief@1","project":{"id":"blockfolk-imaginarium","title":"BlockFolk Imaginarium"},"lane":{"id":"dom-canvas-fabric"},"target":{"device":"Samsung Android phone","orientation":"portrait-and-landscape"},"status":"REPORTED"}
 ---
+# BlockFolk Grid-Snap Completion — Active Brief
+
+Status: `IMPLEMENT` / `STAGE_1_MULTI_BLOCK_GRID: IN PROGRESS`.
+
+Starting from accepted commit `a3dd766e2245d6a585b264e9503677d6e238c620`, replace the painted two-piece anchor matcher with one derived component-local A/B/Z cell grid. Stage 1 proves Log Block and Brick Block as representatives, including third/fourth/later attachment, occupancy, ambiguity, component merging, one-edge atomic Snap, assembly edits, save/reload, and the permanent exact-once Snap/Unsnap controller. Stop at the representative Samsung multi-block gate with an exact local single-file artifact; do not push or publish.
+
+The August 24, 2026 product specification and `BLOCKFOLK-SNAP-COMPLETION-HANDOFF.md` supersede stale Phase 0 wording below. Historical records remain evidence only.
+
 # BlockFolk Grid-Snap Recovery — Phase 0 Brief
 
 Status: `PHASE_0_RECOVERY: FAIL` (Samsung verdict pending) / `GRID_CONSTRUCTION_ROADMAP: PENDING`.

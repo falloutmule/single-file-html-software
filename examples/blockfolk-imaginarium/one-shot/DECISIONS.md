@@ -3,6 +3,16 @@
 ---
 # Decisions
 
+## Grid-snap completion decisions — 2026-08-24
+
+- `VERIFIED`: page@3 already persists both endpoint port identities needed to derive A/B/Z coordinates, so Stage 1 adds no redundant global grid, absolute cell coordinate, component ID, or schema version.
+- `VERIFIED`: the construction model owns the single direction map, one-cell profile, deterministic component grid, occupancy, pose consensus, ambiguity, and candidate ranking. The app owns only atomic render/persistence integration and feedback.
+- `VERIFIED`: Stage 1 registers Log Block and Brick Block to the shared profile. The remaining eight historic block assets remain readable and available, but cannot create new grid edges until the registry-only Stage 2 card after physical Gate 1.
+- `VERIFIED`: existing painted anchor fractions remain visible-origin calibration only. They no longer determine topology or assembly size.
+- `VERIFIED`: page@3 cardinal and historical face edges remain readable/movable, but an unsupported or contradictory component fails closed for new grid extension without moving or rewriting the picture.
+- `VERIFIED`: exact feedback is `Pieces connected.`, `Move closer to connect.`, `Move closer to the spot you want.`, `That spot is full.`, and `Sticker detached.`. Connected Turn is disabled in UI and handler.
+- `VERIFIED`: publication, push, PR, merge, and Pages mutation remain unauthorized. The exact local deterministic artifact is the sole Gate 1 candidate.
+
 ## Grid-snap recovery Phase 0 — 2026-08-23
 
 - `VERIFIED`: `b639f72` is behavioral authority, not file-restore authority. Current controller/DOM/application code remains unless a focused comparison proves accepted behavior is missing or altered.

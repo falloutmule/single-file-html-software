@@ -1,6 +1,16 @@
 ---
 {"schema":"sfhs.one-shot-intake@1","status":"VERIFIED","facts":{"adapterIntegration":{"status":"VERIFIED","evidence":["test-results/production-catalog-001/local","test-results/grid-snap-recovery-phase0/page4-read-only"]},"physicalDevice":"UNTESTED"}}
 ---
+# Active Intake — Grid-Snap Completion
+
+- Classification: `IMPLEMENT`.
+- Accepted source authority: `a3dd766e2245d6a585b264e9503677d6e238c620` (`PHASE_0_RECOVERY: PASS` by current user-approved specification).
+- Accepted Pages authority: `f7e15856d76009f1783d4b7b922b9d5b3da183a5`.
+- Accepted artifact: 12,279,999 bytes; SHA-256 `5ab0f8eee0098b89759718fc10b24ab65a30d856ee26362d39b8c0012acb4b14`.
+- Remote main after fetch: `391ed3afe75fa47794e7e1e9f3477e3ec53ecb12`; it is intentionally not mixed into this accepted baseline.
+- Existing BlockFolk PRs: none. Completion branch has no upstream. Remote mutation is not authorized.
+- Physical gates: multi-block, one window, one door; all pending for their exact future candidates.
+
 # Intake Status
 
 - Active classification: `REPAIR`

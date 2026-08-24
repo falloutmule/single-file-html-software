@@ -260,12 +260,12 @@ assert.equal(clamped.y, PAGE_HEIGHT + 120, 'at least 10% of sticker height must 
 
 assert.equal(SNAP_TOLERANCE_SCREEN_PX, 80, 'construction snap tolerance must remain a forgiving screen-space value');
 assert.deepEqual(SNAPPABLE_ASSET_IDS, [
-  'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block', 'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block', 'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block', 'sticker-blockfolk-brick-stone-block'
-], 'Phase 0 candidate search must expose Blocks only');
+  'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-brick-stone-block'
+], 'Stage 1 candidate search must expose the Log/Brick representative profiles only');
 assert.equal(isSnappableAsset('sticker-blockfolk-wolf'), false, 'animals must remain freely placed');
 for (const assetId of ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window']) assert.equal(isSnappableAsset(assetId), false, `${assetId} must remain an ordinary sticker in Phase 0`);
 const constructionObject = (layerId, assetId, left, top = 700) => ({ blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top, angle: 0, getScaledWidth: () => 273, getScaledHeight: () => 320 });
-const constructionA = constructionObject('block-a', 'sticker-blockfolk-stone-block', 400);
+const constructionA = constructionObject('block-a', 'sticker-blockfolk-wood-log-block', 400);
 const constructionB = constructionObject('block-b', 'sticker-blockfolk-brick-stone-block', 510, 764);
 const constructionCandidate = findSnapCandidate({ movingObjects: [constructionA], stationaryObjects: [constructionB], worldTolerance: 4 });
 assert.ok(constructionCandidate, 'compatible isometric terrain sockets must propose a snap');
@@ -278,7 +278,7 @@ const constructionConnections = validConnections([constructionConnection], new S
 assert.equal(constructionConnections.length, 1, 'a valid connection must survive normalization');
 const legacyConstructionConnection = { ...constructionConnection, id: 'legacy-connection', aAnchorId: 'right', bAnchorId: 'left' };
 assert.equal(validConnections([legacyConstructionConnection], new Set(['block-a', 'block-b'])).length, 1, 'saved cardinal connections from the earlier build must remain valid without becoming new snap candidates');
-const legacyFaceConnection = { id: 'legacy-face-edge', aLayerId: 'door-a', bLayerId: 'block-a', aAssetId: 'sticker-blockfolk-wood-door', bAssetId: 'sticker-blockfolk-stone-block', aAnchorId: 'backFace', bAnchorId: 'frontFace' };
+const legacyFaceConnection = { id: 'legacy-face-edge', aLayerId: 'door-a', bLayerId: 'block-a', aAssetId: 'sticker-blockfolk-wood-door', bAssetId: 'sticker-blockfolk-wood-log-block', aAnchorId: 'backFace', bAnchorId: 'frontFace' };
 assert.equal(validConnections([legacyFaceConnection], new Set(['door-a', 'block-a'])).length, 1, 'historical page@3 face edges remain readable without enabling new face snapping');
 assert.deepEqual([...connectedLayerIds(constructionConnections, 'block-a')].sort(), ['block-a', 'block-b']);
 assert.equal(hasAssembly(constructionConnections, 'block-a'), true, 'a two-member connection is an assembly');

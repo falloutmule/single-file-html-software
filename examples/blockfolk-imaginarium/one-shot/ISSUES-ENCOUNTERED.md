@@ -3,6 +3,18 @@
 ---
 # Issues Encountered
 
+## BFS-009 — Stage 1 multi-block grid requires representative Samsung acceptance
+
+- Phase: grid-snap completion Stage 1
+- Status: `AWAITING SAMSUNG`
+- Severity: release gate for Stage 2
+- Observed: the accepted Phase 0 engine was a nearest painted-anchor pair matcher with no authoritative cell occupancy or later-member topology.
+- Expected: one component-local A/B/Z grid supports third/fourth/later blocks, corners/stacks, atomic occupied/ambiguous rejection, exact persistence, and one activation/edge.
+- Resolution: implemented one profile-driven direction/grid/candidate engine and an atomic app transaction; registered only Log and Brick for the Stage 1 representative gate.
+- Verification: 64-member model assembly; deterministic/reversed traversal; A/B/Z, corner, stack, 2+2 merge, occupancy, ambiguity and consensus; visible-catalog/real-touch four-member browser scenario; exact gallery reopen; permanent controller; accepted regression suite; packed/offline audit; two-build identity; protected hashes.
+- Environment note: the first isolated offline determinism attempt lacked an `@eslint/js` tarball, and the first elevated retry hit Windows dubious-ownership protection. The passing retry used registry access plus a process-local `safe.directory`; it did not change global Git configuration or repository content.
+- Remaining risk: physical Samsung feel and visible registration can supersede automation. Run only Gate 1; do not ask the user to test the other eight materials.
+
 ## BFS-008 — Typed formation release failed physical geometry and persistence authority
 
 - Phase: grid-snap recovery Phase 0

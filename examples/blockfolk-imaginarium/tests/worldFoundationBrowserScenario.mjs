@@ -373,7 +373,7 @@ await page.locator('[data-action="undo"]').click(); assert.equal((await stickerS
 const emojiPictureState = await page.evaluate(async () => { const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); return { id: app.current.id, stickers: app.current.stickers.length }; });
 await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
-  await app.addSticker('sticker-blockfolk-stone-block'); await app.addSticker('sticker-blockfolk-brick-stone-block');
+  await app.addSticker('sticker-blockfolk-wood-log-block'); await app.addSticker('sticker-blockfolk-brick-stone-block');
   const [stone, brick] = app.canvas.getObjects(); stone.set({ left: 1800, top: 2050 }); brick.set({ left: 1998, top: 2050 }); stone.setCoords(); brick.setCoords(); app.canvas.setActiveObject(stone); app.canvas.requestRenderAll(); app.syncCurrentFromCanvas(); app.updateSelection();
   const transform = app.canvas.viewportTransform; return { x: stone.left * transform[0] + transform[4], y: stone.top * transform[3] + transform[5] };
 });
@@ -385,8 +385,8 @@ const forgivingCatchDistance = await page.evaluate(() => {
   // Find a real painted-anchor proposal 60–75 CSS pixels away: this proves
   // the phone catch area is forgiving rather than requiring a perfect drop.
   for (let offset = -560; offset <= 560; offset += 2) {
-    brick.set({ left: 1998 + offset, top: 2050 }); brick.setCoords();
-    const candidate = app.proposeSnap([stone]); const screenDistance = candidate ? candidate.distance * app.canvas.viewportTransform[0] : Infinity;
+    brick.set({ left: 1998 + offset, top: 2114 }); brick.setCoords();
+    const candidate = app.proposeSnap([stone]); const screenDistance = candidate.status === 'ok' ? candidate.pose.screenDistance : Infinity;
     if (screenDistance >= 60 && screenDistance <= 75) { app.canvas.requestRenderAll(); return screenDistance; }
   }
   return null;
@@ -437,7 +437,7 @@ assert.equal(assemblyProof.label, 'Detach selected sticker from its assembly', '
 assert.equal(assemblyProof.sourceMembers.length, 2, 'Snap must immediately lock the selected piece into a two-member assembly');
 assert.equal(assemblyProof.targetMembers.length, 2, 'the opposite piece must immediately resolve to the same locked assembly');
 assert.deepEqual(new Set(assemblyProof.sourceMembers), new Set(assemblyProof.targetMembers), 'both sides of a snap must resolve to the identical assembly');
-assert.equal(assemblyProof.toast, 'Snapped and locked', 'success must only be reported after the connection is stored and locked');
+assert.equal(assemblyProof.toast, 'Pieces connected.', 'success must only be reported after the connection is stored and locked');
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => object.selectable === false && object.lockMovementX === true && object.lockMovementY === true)), true, 'Fabric native transforms must be disabled so the BlockFolk gesture path exclusively owns sticker movement');
 const terrainSnapMovement = Math.hypot(assemblyProof.stickers[0].x - freeDragProof.worldX, assemblyProof.stickers[0].y - freeDragProof.worldY) * constructionStart.scale;
 assert.ok(terrainSnapMovement >= 50, `Snap must create an unmistakable visible terrain landing, not only a logical connection: ${terrainSnapMovement}`);

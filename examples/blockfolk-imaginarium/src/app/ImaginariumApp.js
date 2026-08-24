@@ -14,8 +14,9 @@ import {
 import { createStableId } from '../model/ids.js';
 import { READ_ONLY_LEGACY_NOTICE, ReadOnlyLegacySession } from '../model/ReadOnlyLegacySession.js';
 import {
-  SNAP_TOLERANCE_SCREEN_PX, connectedLayerIds, duplicateConnections, findSnapCandidate,
-  hasAssembly, isSnappableAsset, makeConnection, removeMemberConnections, validConnections
+  SNAP_AMBIGUITY_SCREEN_PX, SNAP_TOLERANCE_SCREEN_PX, buildComponentGrid, connectedLayerIds,
+  duplicateConnections, findGridSnapCandidate, hasAssembly, isSnappableAsset, makeConnection,
+  removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
@@ -693,55 +694,52 @@ export class BlockFolkImaginariumApp {
   }
 
   proposeSnap(movingObjects) {
-    if (!movingObjects.some((object) => isSnappableAsset(object.blockfolkAssetId))) return null;
+    if (!movingObjects.length || movingObjects.some((object) => !isSnappableAsset(object.blockfolkAssetId))) return { status: 'none' };
     const movingIds = new Set(movingObjects.map((object) => object.blockfolkLayerId));
     const stationary = this.canvas.getObjects().filter((object) => !movingIds.has(object.blockfolkLayerId) && isSnappableAsset(object.blockfolkAssetId));
     const { scale } = cameraMetrics(this.camera, this.canvas.width, this.canvas.height);
-    return findSnapCandidate({ movingObjects, stationaryObjects: stationary, worldTolerance: SNAP_TOLERANCE_SCREEN_PX / Math.max(scale, .0001) });
-  }
-
-  addSnapConnection(candidate) {
-    if (!candidate || !this.current) return null;
-    const connections = this.current.connections || [];
-    const existing = connections.find((connection) => (connection.aLayerId === candidate.source.blockfolkLayerId && connection.bLayerId === candidate.target.blockfolkLayerId) || (connection.bLayerId === candidate.source.blockfolkLayerId && connection.aLayerId === candidate.target.blockfolkLayerId));
-    if (existing) return existing;
-    const connection = makeConnection(candidate);
-    const layerIds = new Set(this.canvas.getObjects().map((object) => object.blockfolkLayerId));
-    const nextConnections = validConnections([...connections, connection], layerIds);
-    const stored = nextConnections.find((item) => item.id === connection.id);
-    if (!stored) return null;
-    this.current.connections = nextConnections;
-    const lockedIds = connectedLayerIds(nextConnections, candidate.source.blockfolkLayerId);
-    if (!lockedIds.has(candidate.target.blockfolkLayerId)) return null;
-    this.ensureAssemblyContiguous(lockedIds);
-    return stored;
+    return findGridSnapCandidate({
+      movingObjects, stationaryObjects: stationary, connections: this.current?.connections || [],
+      screenScale: Math.max(scale, .0001), screenTolerance: SNAP_TOLERANCE_SCREEN_PX,
+      ambiguityScreen: SNAP_AMBIGUITY_SCREEN_PX
+    });
   }
 
   async snapSelected() {
     const active = this.activeSticker(); if (!active || !this.current) return;
-    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const candidate = this.proposeSnap(members);
-    if (!candidate) { this.toast('Move closer to snap'); this.announce('Move closer to a compatible construction piece, then press Snap.'); return; }
-    this.translateObjects(members, candidate.dx, candidate.dy);
-    const connection = this.addSnapConnection(candidate);
+    const activeLayerId = active.blockfolkLayerId; const before = this.snapshot();
+    const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const result = this.proposeSnap(members);
+    const failureMessage = {
+      none: 'Move closer to connect.',
+      ambiguous: 'Move closer to the spot you want.',
+      occupied: 'That spot is full.'
+    }[result.status];
+    if (failureMessage) { this.toast(failureMessage); this.announce(failureMessage); return; }
+    if (result.status !== 'ok') { this.toast('Move closer to connect.'); this.announce('Move closer to connect.'); return; }
+
+    const connection = makeConnection(result); const connectionsBefore = this.current.connections || [];
+    const rollback = async () => {
+      this.current = before;
+      await this.renderCurrentPicture(activeLayerId);
+      this.toast('Move closer to connect.'); this.announce('Move closer to connect.');
+    };
+    if (!connection) return rollback();
+
+    this.translateObjects(members, result.dx, result.dy);
+    const layerIds = new Set(this.canvas.getObjects().map((object) => object.blockfolkLayerId));
+    const nextConnections = validConnections([...connectionsBefore, connection], layerIds);
+    if (nextConnections.length !== connectionsBefore.length + 1 || !nextConnections.some((item) => item.id === connection.id)) return rollback();
+    this.current.connections = nextConnections;
     this.syncCurrentFromCanvas();
-    const lockedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
-    const locked = !!connection && lockedIds.has(candidate.target.blockfolkLayerId);
-    if (!locked) {
-      this.current = before;
-      await this.renderCurrentPicture(activeLayerId);
-      this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
-      return;
-    }
-    this.ensureAssemblyContiguous(lockedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
-    this.commit(before, 'Pieces snapped and locked.');
-    const persistedIds = connectedLayerIds(this.current.connections || [], candidate.source.blockfolkLayerId);
-    if (!persistedIds.has(candidate.target.blockfolkLayerId)) {
-      this.current = before;
-      await this.renderCurrentPicture(activeLayerId);
-      this.toast('Could not lock pieces'); this.announce('The pieces could not be locked. Move them closer and try Snap again.');
-      return;
-    }
-    this.toast('Snapped and locked'); this.announce('Snapped and locked. Move either piece to move the whole assembly.'); this.feedback('pop');
+
+    const joinedIds = connectedLayerIds(this.current.connections, connection.aLayerId);
+    const joinedObjects = this.objectsForMemberIds(joinedIds);
+    const joinedGrid = buildComponentGrid(this.current.connections, joinedObjects, connection.aLayerId);
+    if (!joinedIds.has(connection.bLayerId) || !joinedGrid.consistent || joinedGrid.memberIds.size !== joinedObjects.length) return rollback();
+
+    this.ensureAssemblyContiguous(joinedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.commit(before, 'Pieces connected.');
+    this.toast('Pieces connected.'); this.feedback('pop');
   }
 
   async snapContextSelected() {
@@ -773,7 +771,8 @@ export class BlockFolkImaginariumApp {
     const others = groups.filter((group) => group !== selected).flat(); const original = this.canvas.getObjects();
     const insertAt = Math.min(...selected.map((object) => original.indexOf(object)));
     const before = others.slice(0, insertAt); const after = others.slice(insertAt);
-    this.reorderObjects([...before, ...selected, ...after]);
+    const ordered = [...selected].sort((left, right) => Number(left.top || 0) - Number(right.top || 0) || Number(left.left || 0) - Number(right.left || 0) || left.blockfolkLayerId.localeCompare(right.blockfolkLayerId));
+    this.reorderObjects([...before, ...ordered, ...after]);
   }
 
   moveMembersToEdge(memberIds, direction) {
@@ -797,6 +796,7 @@ export class BlockFolkImaginariumApp {
 
   async turnSelected() {
     const active = this.activeSticker(); if (!active) return;
+    if (hasAssembly(this.current?.connections || [], active.blockfolkLayerId)) return;
     const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const center = this.assemblyCenter(members);
     for (const member of members) { const turned = rotateSticker({ angle: member.angle || 0 }, 15); const dx = Number(member.left || 0) - center.x; const dy = Number(member.top || 0) - center.y; const radians = Math.PI / 12; member.set({ left: center.x + dx * Math.cos(radians) - dy * Math.sin(radians), top: center.y + dx * Math.sin(radians) + dy * Math.cos(radians), angle: turned.angle }); member.setCoords(); }
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? 'Assembly turned.' : 'Sticker turned.'); this.feedback('turn');
@@ -907,7 +907,7 @@ export class BlockFolkImaginariumApp {
     if (copy) this.controls.setEnabled(copy, !!active);
     if (trash) this.controls.setEnabled(trash, !!active);
     if (showMore) this.controls.setEnabled(showMore, !!active);
-    if (turn) this.controls.setEnabled(turn, !!active);
+    if (turn) this.controls.setEnabled(turn, !!active && !assembled);
     if (behind) this.controls.setEnabled(behind, !!active && activeIndex > 0);
     if (inFront) this.controls.setEnabled(inFront, !!active && activeIndex >= 0 && activeIndex < groups.length - 1);
   }

@@ -1,6 +1,14 @@
 ---
 {"schema":"sfhs.one-shot-scope@1","status":"REPORTED","facts":{"sfhsRevision":"5c2a13184f46da9ab9c408c8bd6e5f76ae45711d","lane":"dom-canvas-fabric","remoteMutationAuthorized":true}}
 ---
+# Authorized Scope — Grid-Snap Completion
+
+- Active branch/worktree: `feature/blockfolk-grid-snap-completion-001` in `.worktrees/blockfolk-grid-snap-completion-001`, created directly from accepted commit `a3dd766e2245d6a585b264e9503677d6e238c620`.
+- Authorized: bounded BlockFolk construction source, focused/public browser tests, canonical packing/verification, ignored evidence, coherent local commits, and exact local phone-test HTML.
+- Not authorized: push, PR, merge, publication, Pages changes, tags, releases, branch deletion, or unrelated routes/products.
+- Stage 1 stops at the one representative physical multi-block gate. Later stages continue only after that verdict.
+- Protected: accepted artwork/background bytes, Original Imaginarium, storage namespace, catalog/categories/native emoji, world/camera, puzzle/export behavior, permanent controller identity, offline deterministic packaging, and unrelated products.
+
 # Authorized Scope — Grid-Snap Recovery Phase 0
 
 - Active card: archive the failed typed formation engine, restore the honest page@3/block-only baseline, add one isolated read-only page@4 session adapter, verify, push, and publish only the BlockFolk Pages subpath.

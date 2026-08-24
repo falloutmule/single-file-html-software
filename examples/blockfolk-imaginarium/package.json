@@ -11,8 +11,10 @@
   "scripts": {
     "test:recovery-core": "node tests/historicalRecovery.mjs",
     "test:page4-readonly-browser": "node tests/page4ReadOnlyBrowser.mjs",
-    "test:source": "node tests/focusedScenarios.mjs && node tests/historicalRecovery.mjs && node tools/static-audit.mjs",
-    "test:browser": "node tests/worldFoundationBrowserScenario.mjs && node tests/page4ReadOnlyBrowser.mjs",
+    "test:grid-model": "node tests/constructionGridScenarios.mjs",
+    "test:grid-browser": "node tests/gridBrowserScenario.mjs",
+    "test:source": "node tests/constructionGridScenarios.mjs && node tests/focusedScenarios.mjs && node tests/historicalRecovery.mjs && node tools/static-audit.mjs",
+    "test:browser": "node tests/gridBrowserScenario.mjs && node tests/worldFoundationBrowserScenario.mjs && node tests/page4ReadOnlyBrowser.mjs",
     "test:background": "node tests/backgroundSharpnessDiagnosis.mjs",
     "test:packed": "node tools/packed-audit.mjs"
   },

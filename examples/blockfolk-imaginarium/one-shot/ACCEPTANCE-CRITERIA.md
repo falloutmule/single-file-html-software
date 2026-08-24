@@ -1,6 +1,15 @@
 ---
 {"schema":"sfhs.one-shot-acceptance@1","status":"UNTESTED","facts":{"physicalDevice":"UNTESTED"}}
 ---
+# Grid-Snap Completion — ACTIVE
+
+- Stage 1 derives deterministic integer A/B/Z component grids from page@3 edge identities; there is no persisted global grid or component ID.
+- Third, fourth, later, and generated 64-member assemblies work; A/B rows, corners, Z stacks, 2+2 component merge, cycles, contradictions, used faces, occupancy, pose consensus, ambiguity, and deterministic ordering have model proof.
+- One successful Snap moves the complete component once, persists one edge, creates one history entry, and says `Pieces connected.`. None/ambiguous/occupied failures are atomic with the exact required messages.
+- Drag/resize/Flip/depth/Copy/Trash/Unsnap/save/reload remain coherent. Connected Turn is disabled. One physical-style touch yields one controller activation and one feedback sequence.
+- Browser success uses visible Building controls, visible stickers, real pointer/touch movement, and the public permanent Snap/Unsnap control; it does not inject final coordinates or connections.
+- Canonical source/packed/offline/deterministic/protected-integrity lanes pass before the exact local candidate is offered for the Samsung Gate 1 protocol.
+
 # Acceptance Criteria
 
 ## Grid-snap recovery Phase 0 — ACTIVE

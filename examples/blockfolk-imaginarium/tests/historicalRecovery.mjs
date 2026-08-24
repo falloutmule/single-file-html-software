@@ -39,7 +39,7 @@ for (const capability of ['camera', 'fit', 'bookmarks', 'orientation', 'pngExpor
 assert.equal(READ_ONLY_LEGACY_NOTICE, 'This older picture is open read-only. Your stickers are safe, but its snap links are inactive.');
 await assert.rejects(() => ReadOnlyLegacySession.open({ ...rawPage4, stickers: [{ ...rawPage4.stickers[0], x: 'bad' }] }), /invalid sticker settings/i);
 
-assert.equal(SNAPPABLE_ASSET_IDS.length, 10); assert.equal(SNAPPABLE_ASSET_IDS.every((id) => id.endsWith('-block')), true);
+assert.deepEqual(SNAPPABLE_ASSET_IDS, ['sticker-blockfolk-wood-log-block', 'sticker-blockfolk-brick-stone-block']);
 for (const id of ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window']) assert.equal(isSnappableAsset(id), false);
 
 console.log('BLOCKFOLK_HISTORICAL_RECOVERY PASS', JSON.stringify({ fixtures: manifest.fixtures.length, pageWriter: PAGE_SCHEMA, page4Hash: session.canonicalHash, blockSnapAssets: SNAPPABLE_ASSET_IDS.length }));
