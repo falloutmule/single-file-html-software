@@ -476,6 +476,7 @@ export class BlockFolkImaginariumApp {
       if (!asset) continue;
       await this.addFabricSticker(asset, sticker);
     }
+    this.canonicalizeConstructionAssemblies();
     const selected = selectedLayerId && this.canvas.getObjects().find((object) => object.blockfolkLayerId === selectedLayerId);
     if (selected) this.canvas.setActiveObject(selected); else this.canvas.discardActiveObject();
     this.canvas.requestRenderAll();
@@ -708,7 +709,7 @@ export class BlockFolkImaginariumApp {
     const joinedGrid = buildComponentGrid(this.current.connections, joinedObjects, connection.aLayerId);
     if (!joinedIds.has(connection.bLayerId) || !joinedGrid.consistent || joinedGrid.memberIds.size !== joinedObjects.length) return rollback();
 
-    this.ensureAssemblyContiguous(joinedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.ensureAssemblyContiguous(joinedIds); this.canonicalizeConstructionAssembly(joinedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
     this.commit(before, 'Pieces connected.');
     this.toast('Pieces connected.'); this.feedback('pop');
   }
@@ -741,14 +742,44 @@ export class BlockFolkImaginariumApp {
     this.canvas.requestRenderAll();
   }
 
+  constructionGridFor(memberIds) {
+    const ids = memberIds instanceof Set ? memberIds : new Set(memberIds || []);
+    const members = this.objectsForMemberIds(ids); const rootLayerId = [...ids].sort()[0] || null;
+    return buildComponentGrid(this.current?.connections || [], members, rootLayerId);
+  }
+
+  canonicalizeConstructionAssembly(memberIds) {
+    const ids = memberIds instanceof Set ? memberIds : new Set(memberIds || []);
+    if (ids.size < 2) return false;
+    const original = this.canvas.getObjects(); const members = original.filter((object) => ids.has(object.blockfolkLayerId));
+    if (members.length !== ids.size || members.some((object) => !isSnappableAsset(object.blockfolkAssetId))) return false;
+    const indices = members.map((object) => original.indexOf(object)).sort((left, right) => left - right); const slotStart = indices[0];
+    if (!indices.every((index, offset) => index === slotStart + offset)) return false;
+    const grid = this.constructionGridFor(ids);
+    if (!grid.consistent || grid.memberIds.size !== members.length || members.some((object) => !grid.origins.has(object.blockfolkLayerId))) return false;
+    const ordered = [...members].sort((left, right) => {
+      const leftZ = grid.origins.get(left.blockfolkLayerId).z; const rightZ = grid.origins.get(right.blockfolkLayerId).z;
+      return leftZ - rightZ
+        || Number(left.top || 0) - Number(right.top || 0)
+        || Number(left.left || 0) - Number(right.left || 0)
+        || left.blockfolkLayerId.localeCompare(right.blockfolkLayerId);
+    });
+    if (ordered.every((object, offset) => original[slotStart + offset] === object)) return true;
+    const next = [...original]; next.splice(slotStart, members.length, ...ordered); this.reorderObjects(next);
+    return true;
+  }
+
+  canonicalizeConstructionAssemblies() {
+    const components = this.objectGroups().filter((group) => group.length > 1).map((group) => new Set(group.map((object) => object.blockfolkLayerId)));
+    for (const memberIds of components) this.canonicalizeConstructionAssembly(memberIds);
+  }
+
   ensureAssemblyContiguous(memberIds) {
-    const groups = this.objectGroups(); const selected = groups.find((group) => group.some((object) => memberIds.has(object.blockfolkLayerId)));
-    if (!selected || selected.length < 2) return;
-    const others = groups.filter((group) => group !== selected).flat(); const original = this.canvas.getObjects();
-    const insertAt = Math.min(...selected.map((object) => original.indexOf(object)));
-    const before = others.slice(0, insertAt); const after = others.slice(insertAt);
-    const ordered = [...selected].sort((left, right) => Number(left.top || 0) - Number(right.top || 0) || Number(left.left || 0) - Number(right.left || 0) || left.blockfolkLayerId.localeCompare(right.blockfolkLayerId));
-    this.reorderObjects([...before, ...ordered, ...after]);
+    const original = this.canvas.getObjects(); const selected = original.filter((object) => memberIds.has(object.blockfolkLayerId));
+    if (selected.length !== memberIds.size || selected.length < 2) return;
+    const indices = selected.map((object) => original.indexOf(object)).sort((left, right) => left - right); const insertAt = indices[0];
+    if (indices.every((index, offset) => index === insertAt + offset)) return;
+    const remaining = original.filter((object) => !memberIds.has(object.blockfolkLayerId)); remaining.splice(insertAt, 0, ...selected); this.reorderObjects(remaining);
   }
 
   moveMembersToEdge(memberIds, direction) {
@@ -782,6 +813,7 @@ export class BlockFolkImaginariumApp {
     const active = this.activeSticker(); if (!active) return;
     const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const center = this.assemblyCenter(members);
     for (const member of members) { const flipped = flipSticker({ flipX: !!member.flipX }); member.set({ left: center.x - (Number(member.left || 0) - center.x), flipX: flipped.flipX, angle: (180 - Number(member.angle || 0) + 360) % 360 }); member.setCoords(); }
+    this.canonicalizeConstructionAssembly(new Set(members.map((member) => member.blockfolkLayerId)));
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? 'Assembly flipped.' : 'Sticker flipped.'); this.feedback('turn');
   }
 
@@ -802,6 +834,7 @@ export class BlockFolkImaginariumApp {
       this.clampFabricObject(clone); this.canvas.add(clone); if (member === active) selectedClone = clone;
     }
     this.current.connections = [...(this.current.connections || []), ...duplicateConnections(this.current.connections || [], idMap)]; this.canvas.setActiveObject(selectedClone); this.canvas.requestRenderAll();
+    this.canonicalizeConstructionAssembly(new Set(idMap.values()));
     this.commit(before, members.length > 1 ? 'Assembly copied.' : 'Sticker copied.'); this.feedback('pop');
   }
 

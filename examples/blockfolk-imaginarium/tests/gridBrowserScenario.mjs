@@ -1,5 +1,6 @@
 /* global document, indexedDB, MouseEvent, PointerEvent, setTimeout, structuredClone, window */
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -127,6 +128,27 @@ function normalizedPictureState() {
   });
 }
 
+async function constructionOrderProof(layerIds) {
+  return page.evaluate((ids) => {
+    const app = window.BlockFolkImaginarium.app; const memberIds = new Set(ids); const grid = app.constructionGridFor(memberIds); const objects = app.canvas.getObjects();
+    return {
+      consistent: grid.consistent,
+      rows: objects.filter((object) => memberIds.has(object.blockfolkLayerId)).map((object) => ({
+        id: object.blockfolkLayerId, index: objects.indexOf(object), z: grid.origins.get(object.blockfolkLayerId)?.z,
+        top: Number(object.top || 0), left: Number(object.left || 0)
+      }))
+    };
+  }, layerIds);
+}
+
+function assertCanonicalConstructionOrder(proof, label) {
+  assert.equal(proof.consistent, true, `${label}: construction grid must be valid`);
+  assert.ok(proof.rows.every((row) => Number.isFinite(row.z)), `${label}: every member must have a logical Z coordinate`);
+  const expected = [...proof.rows].sort((left, right) => left.z - right.z || left.top - right.top || left.left - right.left || left.id.localeCompare(right.id));
+  assert.deepEqual([...proof.rows].sort((left, right) => left.index - right.index).map((row) => row.id), expected.map((row) => row.id), `${label}: canvas indices must follow logical Z then the accepted A/B painter order`);
+  for (const lower of proof.rows) for (const upper of proof.rows) if (lower.z < upper.z) assert.ok(lower.index < upper.index, `${label}: logical Z${lower.z} must paint before logical Z${upper.z}`);
+}
+
 await page.goto(artifactUrl, { waitUntil: 'load' }); await page.locator('#app[data-boot="ready"]').waitFor();
 await page.evaluate(() => new Promise((resolvePromise, reject) => {
   const request = indexedDB.deleteDatabase('blockfolk-imaginarium-library-v1'); request.onsuccess = () => resolvePromise(); request.onerror = () => reject(request.error); request.onblocked = () => resolvePromise();
@@ -154,6 +176,7 @@ for (const zoomSteps of [0, 2]) for (const release of publicZReleases) {
   assert.equal(result.activationDelta, 1); assert.equal(result.edges, 1); assert.equal(result.toast, 'Pieces connected.');
   assert.equal(['stackTop', 'stackBase'].includes(result.aAnchorId), true, `public ${release.direction} release at zoom step ${zoomSteps} must choose Z`);
   assert.equal(['stackTop', 'stackBase'].includes(result.bAnchorId), true, 'a Z edge must serialize reciprocal stack anchors');
+  assertCanonicalConstructionOrder(await constructionOrderProof([source.id, target.id]), `public ${release.direction} release at zoom step ${zoomSteps}`);
 }
 
 for (const zoomSteps of [0, 2]) {
@@ -173,6 +196,7 @@ const isolatedLog = await addVisible(LOG); const isolatedBrick = await addVisibl
 await connectByVisibleInteraction(isolatedBrick.id, isolatedLog.id, 'Z', true);
 const verticalPair = await metrics(); const firstVertical = verticalPair.find((entry) => entry.id === isolatedLog.id); const secondVertical = verticalPair.find((entry) => entry.id === isolatedBrick.id);
 assert.ok(Math.abs(Math.abs(secondVertical.y - firstVertical.y) - ACCEPTED_Z_RATIO * ((secondVertical.height + firstVertical.height) / 2)) < .1, 'the visible mixed-material pair must use the independent accepted Z calibration');
+assertCanonicalConstructionOrder(await constructionOrderProof([isolatedLog.id, isolatedBrick.id]), 'mixed-material vertical pair');
 await page.screenshot({ path: resolve(evidence, 'blocks-vertical-pair-400x844.png'), fullPage: true });
 
 await newBuildingPicture();
@@ -201,7 +225,19 @@ const pairMergeAfter = await page.evaluate((before) => {
 assert.equal(pairMergeAfter.activationDelta, 1); assert.equal(pairMergeAfter.edges, 3); assert.equal(pairMergeAfter.added.length, 1); assert.equal(pairMergeAfter.members, 4);
 assert.equal(['stackTop', 'stackBase'].includes(pairMergeAfter.added[0].aAnchorId), true, 'the sole 2+2 bridge edge must be vertical');
 assert.equal(pairMergeAfter.state, 'unsnap'); assert.equal(pairMergeAfter.toast, 'Pieces connected.');
+const fourIds = [lowerRoot.id, lowerMate.id, upperRoot.id, upperMate.id];
+const pairOrderBeforeFlip = await constructionOrderProof(fourIds); assertCanonicalConstructionOrder(pairOrderBeforeFlip, '2+2 wall');
 await page.screenshot({ path: resolve(evidence, 'blocks-two-pairs-vertical-merge-400x844.png'), fullPage: true });
+
+const pairConnectionsBeforeFlip = await page.evaluate(() => structuredClone(window.BlockFolkImaginarium.app.current.connections).sort((left, right) => left.id.localeCompare(right.id)));
+await touchControl('#selection-toolbar [data-action="flip"]');
+const pairOrderAfterFlip = await constructionOrderProof(fourIds); assertCanonicalConstructionOrder(pairOrderAfterFlip, 'flipped 2+2 wall');
+assert.deepEqual(pairOrderAfterFlip.rows.map(({ id, z }) => ({ id, z })).sort((left, right) => left.id.localeCompare(right.id)), pairOrderBeforeFlip.rows.map(({ id, z }) => ({ id, z })).sort((left, right) => left.id.localeCompare(right.id)), 'Flip must preserve every logical Z tier');
+assert.deepEqual(await page.evaluate(() => structuredClone(window.BlockFolkImaginarium.app.current.connections).sort((left, right) => left.id.localeCompare(right.id))), pairConnectionsBeforeFlip, 'Flip must preserve the complete construction graph');
+await page.screenshot({ path: resolve(evidence, 'blocks-two-pairs-flipped-400x844.png'), fullPage: true });
+
+await touchControl('[data-action="undo"]'); assertCanonicalConstructionOrder(await constructionOrderProof(fourIds), 'undo-restored 2+2 wall');
+await touchControl('[data-action="redo"]'); assertCanonicalConstructionOrder(await constructionOrderProof(fourIds), 'redo-restored flipped 2+2 wall');
 
 const fourBeforeMove = await normalizedPictureState(); const fourMoveMetric = (await metrics()).find((entry) => entry.id === lowerMate.id);
 await nativeTouch(fourMoveMetric.x, fourMoveMetric.y, 'drag', { x: fourMoveMetric.x + 30, y: fourMoveMetric.y + 15 }); await page.waitForTimeout(80);
@@ -214,6 +250,31 @@ assert.ok(fourDeltas.every((delta) => Math.abs(delta.x - fourDeltas[0].x) < .01 
 const fourPersisted = await normalizedPictureState(); await page.locator('[data-action="done-picture"]').click(); await page.locator('#gallery-screen:not([hidden])').waitFor();
 await page.locator('[data-gallery-action="edit"]').first().click(); await page.locator('#editor-screen:not([hidden])').waitFor();
 assert.deepEqual(await normalizedPictureState(), fourPersisted, 'the exact 2+2 merge and movement survive save/reload');
+assertCanonicalConstructionOrder(await constructionOrderProof(fourIds), 'saved and reloaded 2+2 wall');
+
+const recoveryFixture = await page.evaluate(() => {
+  const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const fixture = structuredClone(app.current); const highest = fixture.stickers.length - 1;
+  fixture.stickers = fixture.stickers.map((sticker) => ({ ...sticker, zIndex: highest - sticker.zIndex }));
+  return { json: JSON.stringify(fixture), savedOrder: fixture.stickers.map(({ layerId, zIndex }) => ({ layerId, zIndex })).sort((left, right) => left.layerId.localeCompare(right.layerId)) };
+});
+await page.locator('#recovery-input').setInputFiles({ name: 'blockfolk-logical-z-recovery.json', mimeType: 'application/json', buffer: Buffer.from(recoveryFixture.json) });
+await page.waitForFunction(() => document.querySelector('#toast').textContent === 'Picture recovery opened.');
+assert.deepEqual(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.map(({ layerId, zIndex }) => ({ layerId, zIndex })).sort((left, right) => left.layerId.localeCompare(right.layerId))), recoveryFixture.savedOrder, 'recovery rendering must not force a save-state rewrite');
+assertCanonicalConstructionOrder(await constructionOrderProof(fourIds), 'recovery-rendered 2+2 wall with reversed saved order');
+assert.deepEqual(await normalizedPictureState(), fourPersisted, 'the next normal canvas sync may persist the corrected recovery order without changing geometry or topology');
+
+const selectedForCopy = (await metrics()).find((entry) => entry.id === upperMate.id); await nativeTouch(selectedForCopy.x, selectedForCopy.y); await page.waitForTimeout(50);
+await touchControl('#selection-toolbar [data-action="copy"]');
+const copiedIds = await page.evaluate(() => [...window.BlockFolkImaginarium.app.selectedMemberIds(window.BlockFolkImaginarium.app.activeSticker())]);
+assert.equal(copiedIds.length, 4, 'Copy must duplicate the complete 2+2 assembly'); assertCanonicalConstructionOrder(await constructionOrderProof(copiedIds), 'copied 2+2 wall');
+const copiedSlotBeforeFlip = await constructionOrderProof(copiedIds); const originalSlotBeforeFlip = await constructionOrderProof(fourIds);
+await touchControl('#selection-toolbar [data-action="behind"]'); assertCanonicalConstructionOrder(await constructionOrderProof(copiedIds), 'copied wall moved behind');
+await touchControl('#selection-toolbar [data-action="flip"]');
+const copiedSlotAfterFlip = await constructionOrderProof(copiedIds); const originalSlotAfterFlip = await constructionOrderProof(fourIds); assertCanonicalConstructionOrder(copiedSlotAfterFlip, 'copied wall flipped in its slot');
+assert.deepEqual(copiedSlotAfterFlip.rows.map((row) => row.index).sort((a, b) => a - b), [0, 1, 2, 3], 'Flip must leave the copied assembly in its existing contiguous slot');
+assert.deepEqual(originalSlotAfterFlip.rows.map((row) => row.index).sort((a, b) => a - b), [4, 5, 6, 7], 'Flip must not move the unrelated original assembly');
+assert.notDeepEqual(copiedSlotBeforeFlip.rows.map((row) => row.index).sort((a, b) => a - b), copiedSlotAfterFlip.rows.map((row) => row.index).sort((a, b) => a - b), 'Behind must move only the complete selected assembly');
+assert.deepEqual(originalSlotBeforeFlip.rows.map((row) => row.index).sort((a, b) => a - b), [0, 1, 2, 3], 'the original wall begins in its own contiguous slot');
 const fourLeaf = (await metrics()).find((entry) => entry.id === upperMate.id); await nativeTouch(fourLeaf.x, fourLeaf.y); await page.waitForTimeout(50);
 assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Detach selected sticker from its assembly');
 const fourUnsnapBefore = await normalizedPictureState(); const fourUnsnapActivation = await page.evaluate(() => window.BlockFolkImaginarium.app.controls.activationCount); await touchControl();
@@ -243,6 +304,7 @@ assert.equal(construction.edges, 4); assert.equal(construction.members, 5); asse
 assert.equal(construction.directions.some((id) => ['northWest', 'southEast'].includes(id)), true, 'public lane creates an A connection');
 assert.equal(construction.directions.some((id) => ['northEast', 'southWest'].includes(id)), true, 'public lane creates a B connection/corner');
 assert.equal(construction.directions.filter((id) => ['stackTop', 'stackBase'].includes(id)).length, 2, 'public lane creates a three-tier Z stack');
+assertCanonicalConstructionOrder(await constructionOrderProof([first.id, second.id, third.id, fourth.id, fifth.id]), 'three-tier A/B/Z construction');
 const threeTierMetrics = await metrics(); const threeTier = [second.id, fourth.id, fifth.id].map((id) => threeTierMetrics.find((entry) => entry.id === id));
 assert.ok(Math.abs(Math.abs(threeTier[1].y - threeTier[0].y) - ACCEPTED_Z_RATIO * ((threeTier[1].height + threeTier[0].height) / 2)) < .1);
 assert.ok(Math.abs(Math.abs(threeTier[2].y - threeTier[1].y) - ACCEPTED_Z_RATIO * ((threeTier[2].height + threeTier[1].height) / 2)) < .1, 'the third tier must not accumulate Z drift');
