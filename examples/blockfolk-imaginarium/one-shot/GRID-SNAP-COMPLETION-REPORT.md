@@ -1,63 +1,59 @@
-# BlockFolk Stage 1 Component/Z Intent Repair Report
+# BlockFolk Stage 1 Logical-Z Draw-Order Repair Report
 
-Status: **AUTOMATED PASS — SAMSUNG RETEST PENDING**
+Status: **AUTOMATED PASS — EXACT PAGES ARTIFACT PUBLISHED / SAMSUNG RETEST PENDING**
 
 ## WHAT WAS DONE
 
-- Recorded the published Samsung verdict honestly: Pages, Classic-only world, Locations removal, and basic horizontal construction passed; reliable vertical and natural assembly-to-assembly construction failed.
-- Replaced the controller's direct connected-member → Unsnap branch with one shared resolved context. Connected components near external ok, ambiguous, or occupied intent remain Snap; connected components with no external intent remain Unsnap.
-- Made `A Snap-labelled activation can never detach` an enforced controller invariant. Activation resolves once, verifies the visible state, and passes that same candidate and member set into the transaction.
-- Changed grouped candidate scoring from the nearest lucky anchor to the displacement of one final component transform. Contact RMS remains separate fit evidence and supporting contacts reinforce one pose.
-- Preserved the 80 px catch radius, 2 px same-axis ambiguity, exact A/B calibration, and named 73.1-world-unit Z tier. Added a 12 px cross-axis ambiguity margin, 20×12 px clear-Z correction corridor, and 4 px exact-pose lock that protects accurate A/B landings at real phone scale.
-- Kept the current page@3 save schema, two representative construction assets, Classic artwork, controller DOM identity, and all unrelated BlockFolk behavior unchanged.
+- Recorded the Samsung result as authoritative: the prior build created a real Z connection but painted the lower tier after the upper tier, producing staggered cubes instead of a continuous wall.
+- Kept the accepted 73.1-world-unit Z tier, A/B/Z candidate engine, Snap/Unsnap controller, page@3 schema, transforms, connections, Classic world, and assets unchanged.
+- Added one construction-grid-aware internal ordering routine. Valid contiguous assemblies now paint by logical Z ascending, then the accepted same-tier `top → left → stable layer ID` rule.
+- Kept each assembly inside its existing contiguous Fabric canvas slot. Unrelated sticker order, whole-assembly Behind/In Front, inconsistent/legacy/non-construction groups, and Unsnap behavior are unchanged.
+- Reapplied canonical ordering after Snap, full/recovery rendering, Flip, Copy, and undo/redo restoration. Render-time correction does not itself rewrite stored `zIndex`; the next normal save may persist the corrected order.
 
 ## WHAT WAS VERIFIED
 
-- Model: exact A/B constants and canonical outputs; +Z and -Z; Log/Brick directions; three tiers; resizing; occupied cells; 64-member traversal; deterministic ordering; complete-pose displacement; contact-fit residual; and an adversarial supported-Z-versus-lucky-single-A/B case.
-- Multi-zoom intent: realistic Z release offsets pass at the default camera and after two public Zoom In steps; cross-axis uncertainty rejects without creating a wrong-axis edge.
-- Public native-touch controller: loose vertical construction, delayed compatibility-click suppression, two horizontal pairs → vertical merge → one bridge edge → four-member assembly, whole-assembly drag, exact save/reload, and one Unsnap.
-- Connected ambiguous and occupied attempts keep the controller in Snap and preserve the complete connection set plus every member transform.
-- Browser/product: Classic-only world, six catalog categories, all 30 accepted stickers, native Unicode emoji, portrait/landscape, puzzle/export, page@4 zero-write protection, zero runtime requests, and zero console/page errors.
-- `test:source`, `test:browser`, lint, typecheck, SFHS inspect/validate/check/pack/verify, packed purity, and deterministic double build pass.
-- Packed inventory explains all `10,383,528` bytes: `9,702,970` packed media bytes, `628,297` JavaScript bytes, `31,584` CSS bytes, and `20,677` HTML/tag bytes; no unclaimed media exists.
-- Live Pages retrieval is exactly `10,383,528` bytes with SHA-256 `b1cf13cce4f5740ce8b04d3ea533bf855bd74707aed6527ba732b1d53fea6b9f`.
-- Live repair-specific Chromium passes the multi-zoom native-touch Z sweep, connected 2+2 vertical merge, component drag, persistence, Unsnap, and atomic ambiguous/occupied checks with zero unexpected requests.
-- Live product Chromium passes at 400×844 and 844×400 with the Classic world, no Locations UI, working catalog, zero runtime requests, and zero console/page errors.
-- Failure modes guarded: A, B, C, D, F, K, P, Q, R, S, and T. H/I/N retain their orientation/layout regression proof; E/G/L/M/O are unaffected by this bounded card.
+- Directly proved for every comparable member pair that lower logical Z has a lower Fabric canvas index than higher logical Z.
+- Proved creation order, selected member, +Z/−Z edge direction, and mixed Log/Brick materials cannot determine vertical paint order.
+- Proved three tiers render `Z0 → Z1 → Z2`; a 2×2 wall paints both bottom members before both top members while retaining the same-tier A/B rule.
+- Proved Flip recomputes same-tier ordering without changing logical Z or connections; Copy, Behind/In Front, and Flip preserve each component's contiguous slot relative to unrelated assemblies.
+- Proved save/reload, undo/redo, and a deliberately reversed recovery payload render canonically. Recovery rendering leaves the stored payload untouched until a normal canvas sync.
+- Proved whole-component drag and non-destructive Unsnap retain exact member transforms and expected topology changes.
+- Preserved exact 73.1 Z separation, existing A/B geometry, multi-zoom touch arbitration, ambiguity/occupancy atomicity, one activation/one edge, and permanent controller identity.
+- `test:source`, `test:browser`, lint, typecheck, SFHS inspect/validate/check/pack/verify, packed purity, and deterministic isolated double-build pass. The SFHS path-map review warning was manually covered by the complete source and browser suites.
+- Packed inventory explains all `10,384,790` bytes: `9,702,970` media bytes, `629,559` JavaScript bytes, `31,584` CSS bytes, and `20,677` HTML/tag bytes; no unclaimed media exists.
+- Exact local candidate and both isolated builds are byte-identical. The exact candidate passes the focused construction browser and full portrait/landscape product browser lanes with zero unexpected requests or console/page errors.
+- Live Pages retrieval is exactly `10,384,790` bytes with SHA-256 `9909e92fb7072e78e820195146ac49b857184f3d8df8f20caf23d227a42530bb`.
+- Live Chromium passes logical-Z ordering, 2×2 merge, Flip, assembly drag, save/reload, reversed recovery rendering, Copy, Behind, Unsnap, Classic world, six categories, all 30 accepted stickers, native Unicode emoji, and page@4 zero-write protection.
 
 ## WHAT FAILED
 
-- The first implementation of the Z corridor overlapped exact A/B positions at the real phone scale. The focused public browser lane caught the regression before publication; the 4 px exact-pose lock repaired it and the complete A/B/Z browser suite now passes.
-- The first offline determinism attempt could not find the cached `@eslint/js` tarball. The authorized retry used registry access and a process-local Git safe-directory setting; both isolated builds were byte-identical and no global Git configuration or tracked dependency state changed.
-- Physical Samsung Stage 1 acceptance remains failed until the replacement is published and passes the bounded retest.
+- Physical Samsung Stage 1 acceptance remains failed from the prior candidate until this published replacement passes the single bounded retest.
+- The first isolated determinism attempt lacked one offline ESLint tarball. The authorized retry used the existing package store plus a process-local Git safe-directory setting; no global Git configuration or tracked dependency state changed.
 
 ## CURRENT EXACT STATE
 
 - Worktree: `.worktrees/blockfolk-grid-snap-completion-001`.
 - Branch: `feature/blockfolk-grid-snap-completion-001`.
-- Repair baseline: `accd2364f933ebd080c4b78a32409f430a7ef5c1`.
-- Build ID: `blockfolk-imaginarium-3ed935c429b9`.
-- Artifact bytes: `10,383,528`.
-- Artifact SHA-256: `b1cf13cce4f5740ce8b04d3ea533bf855bd74707aed6527ba732b1d53fea6b9f`.
-- Source SHA-256: `3ed935c429b9bf6022a081b58dae91f9d7ed211a903a8ef0b21cb2c609a449bd`.
-- Exact local phone file: `test-results/blockfolk-component-z-arbitration-002/blockfolk-component-z-arbitration-002.html`.
-- Implementation commit: `dbedabac917a97a3bc09c45ef21206a9643aabd8`, pushed to `origin/feature/blockfolk-grid-snap-completion-001`.
-- Pages commit: `4f6e0f152d501874b6340ecb7f9c1c5fa12ebdfd`, changing only `blockfolk-imaginarium/index.html` and pushed to `origin/gh-pages`.
-- Pages deployment: workflow run `32803052296` passed.
+- Implementation commit: `00dca0f8c3f09b0dfdc645f6881428614af7a4aa`, pushed to origin.
+- Build ID: `blockfolk-imaginarium-d565ed2db9cc`.
+- Artifact bytes: `10,384,790`.
+- Artifact SHA-256: `9909e92fb7072e78e820195146ac49b857184f3d8df8f20caf23d227a42530bb`.
+- Source SHA-256: `d565ed2db9cc72ee74eaa0f26009020be0a71f8f8e12a21a6e998a7e7aaa56e3`.
+- Exact local phone file: `test-results/blockfolk-logical-z-order-001/blockfolk-logical-z-order-001.html`.
+- Pages commit: `e25c245670d1e8b96ad74140997d2a78129fff85`, changing only `blockfolk-imaginarium/index.html` and pushed to `origin/gh-pages`.
+- Pages deployment workflow: `32909695420`, passed.
 
 ```text
 CLASSIC_ONLY_WORLD: PASS
 PAGE3_COORDINATE_PRESERVATION: PASS
 HORIZONTAL_A_B: REGRESSION PASS
-VERTICAL_Z_INTENT: LOCAL AUTOMATED PASS
-COMPONENT_2_PLUS_2_MERGE: LOCAL AUTOMATED PASS
-NONDESTRUCTIVE_AMBIGUOUS_OCCUPIED: LOCAL AUTOMATED PASS
-ALL_BLOCK_PROFILES: PENDING STAGE 2
-WINDOWS: PENDING STAGE 3
-DOORS: PENDING STAGE 4
-FINAL_HARDENING: PENDING STAGE 5
+VERTICAL_Z_GEOMETRY: REGRESSION PASS
+LOGICAL_Z_DRAW_ORDER: AUTOMATED PASS
+COMPONENT_2_PLUS_2_WALL: AUTOMATED PASS
+FLIP_REORDERING: AUTOMATED PASS
 PUBLICATION: PASS / LIVE BYTES IDENTICAL
-PHYSICAL_SAMSUNG: FAIL / RETEST PENDING
+PHYSICAL_SAMSUNG: FAIL / REPLACEMENT RETEST PENDING
+STAGE_2_PLUS: NOT STARTED
 ```
 
 ## REMAINING BLOCKERS
@@ -66,24 +62,24 @@ PHYSICAL_SAMSUNG: FAIL / RETEST PENDING
 
 ## NEXT ACTIONABLE STEP
 
-On the exact live candidate below, run only: make two horizontal pairs → place one above the other → Snap → drag the four-block assembly → save/reload → Unsnap once.
+On the exact live candidate below, run only: create two horizontal Brick pairs → merge vertically into a coherent 2×2 wall → Flip → drag → save/reload → Unsnap once.
 
 ## EVIDENCE
 
-- Ignored backup: `test-results/blockfolk-component-z-arbitration-002/index.before-component-z-arbitration.html`, SHA-256 `6cad1237f735fa7ee54d40b6d48e47876613862f653a3c2337b041f93871260b`.
-- Determinism report and artifact: `test-results/blockfolk-component-z-arbitration-002/determinism-report.json` and `deterministic-index.html`.
-- Exact candidate: `test-results/blockfolk-component-z-arbitration-002/blockfolk-component-z-arbitration-002.html`.
-- Model/public grid evidence: `test-results/blockfolk-grid-snap-completion-001/browser/`.
-- Full product evidence: `test-results/production-catalog-001/local/`.
-- Live response and browser evidence: `test-results/blockfolk-component-z-arbitration-002/live-pages-index.html`, `live-grid/`, and `live-product/`.
+- Ignored backup: `test-results/blockfolk-logical-z-order-001/index.before-logical-z-order.html`, SHA-256 `b1cf13cce4f5740ce8b04d3ea533bf855bd74707aed6527ba732b1d53fea6b9f`.
+- Determinism: `test-results/blockfolk-logical-z-order-001/determinism-report.json` and `deterministic-index.html`.
+- Exact candidate: `test-results/blockfolk-logical-z-order-001/blockfolk-logical-z-order-001.html`.
+- Local and exact construction proofs: `test-results/blockfolk-logical-z-order-001/browser/` and `exact-grid/`.
+- Exact product proofs: `test-results/blockfolk-logical-z-order-001/exact-product/` and `exact-page4/`.
+- Live response and proofs: `test-results/blockfolk-logical-z-order-001/live-pages-index.html`, `live-grid/`, `live-product/`, and `live-page4/`.
 
 ## GITHUB PAGES URL
 
-- `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=4f6e0f1-dbedaba-3ed935c429b9-1`
-- Live bytes: `10,383,528`.
-- Live SHA-256: `b1cf13cce4f5740ce8b04d3ea533bf855bd74707aed6527ba732b1d53fea6b9f`.
-- Live smoke: **PASS** in portrait and landscape; repair-specific native touch, Classic-only world, catalog, offline request guard, and zero-error checks pass.
+- `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=e25c245-00dca0f-d565ed2db9cc-1`
+- Live bytes: `10,384,790`.
+- Live SHA-256: `9909e92fb7072e78e820195146ac49b857184f3d8df8f20caf23d227a42530bb`.
+- Live smoke: **PASS** in portrait and landscape with zero runtime requests and zero console/page errors.
 
 ## RESULT
 
-**AUTOMATED PASS / PHYSICAL SAMSUNG RETEST PENDING**
+**AUTOMATED PASS / EXACT PAGES ARTIFACT PUBLISHED / PHYSICAL SAMSUNG RETEST PENDING**
