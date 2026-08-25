@@ -3,7 +3,7 @@
 ---
 # BlockFolk Grid-Snap Completion — Active Brief
 
-Status: `IMPLEMENT` / `STAGE_1_PHYSICAL_FAIL` / `COMPONENT_Z_INTENT_REPAIR: IN PROGRESS`.
+Status: `COMPONENT_Z_INTENT_REPAIR: AUTOMATED PASS` / `STAGE_1_PHYSICAL_FAIL` / `SAMSUNG RETEST PENDING`.
 
 Repair current branch baseline `accd2364f933ebd080c4b78a32409f430a7ef5c1` after the published Samsung verdict proved horizontal Snap but rejected reliable vertical and natural assembly-to-assembly construction. Preserve A/B and 73.1 exactly, let a connected component remain Snap near external ok/ambiguous/occupied intent, score final component poses instead of lucky anchors, prove multi-zoom touch arbitration and a public 2+2 vertical merge, then stop at one lean Samsung sequence.
 

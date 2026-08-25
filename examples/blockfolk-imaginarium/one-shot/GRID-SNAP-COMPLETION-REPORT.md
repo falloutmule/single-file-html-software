@@ -1,6 +1,6 @@
 # BlockFolk Stage 1 Component/Z Intent Repair Report
 
-Status: **LOCAL AUTOMATED PASS — PUBLICATION AND SAMSUNG RETEST PENDING**
+Status: **AUTOMATED PASS — SAMSUNG RETEST PENDING**
 
 ## WHAT WAS DONE
 
@@ -20,6 +20,9 @@ Status: **LOCAL AUTOMATED PASS — PUBLICATION AND SAMSUNG RETEST PENDING**
 - Browser/product: Classic-only world, six catalog categories, all 30 accepted stickers, native Unicode emoji, portrait/landscape, puzzle/export, page@4 zero-write protection, zero runtime requests, and zero console/page errors.
 - `test:source`, `test:browser`, lint, typecheck, SFHS inspect/validate/check/pack/verify, packed purity, and deterministic double build pass.
 - Packed inventory explains all `10,383,528` bytes: `9,702,970` packed media bytes, `628,297` JavaScript bytes, `31,584` CSS bytes, and `20,677` HTML/tag bytes; no unclaimed media exists.
+- Live Pages retrieval is exactly `10,383,528` bytes with SHA-256 `b1cf13cce4f5740ce8b04d3ea533bf855bd74707aed6527ba732b1d53fea6b9f`.
+- Live repair-specific Chromium passes the multi-zoom native-touch Z sweep, connected 2+2 vertical merge, component drag, persistence, Unsnap, and atomic ambiguous/occupied checks with zero unexpected requests.
+- Live product Chromium passes at 400×844 and 844×400 with the Classic world, no Locations UI, working catalog, zero runtime requests, and zero console/page errors.
 - Failure modes guarded: A, B, C, D, F, K, P, Q, R, S, and T. H/I/N retain their orientation/layout regression proof; E/G/L/M/O are unaffected by this bounded card.
 
 ## WHAT FAILED
@@ -38,7 +41,9 @@ Status: **LOCAL AUTOMATED PASS — PUBLICATION AND SAMSUNG RETEST PENDING**
 - Artifact SHA-256: `b1cf13cce4f5740ce8b04d3ea533bf855bd74707aed6527ba732b1d53fea6b9f`.
 - Source SHA-256: `3ed935c429b9bf6022a081b58dae91f9d7ed211a903a8ef0b21cb2c609a449bd`.
 - Exact local phone file: `test-results/blockfolk-component-z-arbitration-002/blockfolk-component-z-arbitration-002.html`.
-- Implementation commit, Pages commit, and live byte-identity proof are pending.
+- Implementation commit: `dbedabac917a97a3bc09c45ef21206a9643aabd8`, pushed to `origin/feature/blockfolk-grid-snap-completion-001`.
+- Pages commit: `4f6e0f152d501874b6340ecb7f9c1c5fa12ebdfd`, changing only `blockfolk-imaginarium/index.html` and pushed to `origin/gh-pages`.
+- Pages deployment: workflow run `32803052296` passed.
 
 ```text
 CLASSIC_ONLY_WORLD: PASS
@@ -51,18 +56,17 @@ ALL_BLOCK_PROFILES: PENDING STAGE 2
 WINDOWS: PENDING STAGE 3
 DOORS: PENDING STAGE 4
 FINAL_HARDENING: PENDING STAGE 5
-PUBLICATION: PENDING
+PUBLICATION: PASS / LIVE BYTES IDENTICAL
 PHYSICAL_SAMSUNG: FAIL / RETEST PENDING
 ```
 
 ## REMAINING BLOCKERS
 
-- Commit and push the bounded branch, publish the exact frozen candidate to the existing BlockFolk Pages path, and verify live byte identity plus portrait/landscape smoke.
 - The exact live replacement must pass one Samsung sequence before Stage 1 can complete.
 
 ## NEXT ACTIONABLE STEP
 
-Publish the exact verified candidate without rebuilding. Then run only: make two horizontal pairs → place one above the other → Snap → drag the four-block assembly → save/reload → Unsnap once.
+On the exact live candidate below, run only: make two horizontal pairs → place one above the other → Snap → drag the four-block assembly → save/reload → Unsnap once.
 
 ## EVIDENCE
 
@@ -71,11 +75,15 @@ Publish the exact verified candidate without rebuilding. Then run only: make two
 - Exact candidate: `test-results/blockfolk-component-z-arbitration-002/blockfolk-component-z-arbitration-002.html`.
 - Model/public grid evidence: `test-results/blockfolk-grid-snap-completion-001/browser/`.
 - Full product evidence: `test-results/production-catalog-001/local/`.
+- Live response and browser evidence: `test-results/blockfolk-component-z-arbitration-002/live-pages-index.html`, `live-grid/`, and `live-product/`.
 
 ## GITHUB PAGES URL
 
-- Replacement publication pending. The existing route remains `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html`.
+- `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=4f6e0f1-dbedaba-3ed935c429b9-1`
+- Live bytes: `10,383,528`.
+- Live SHA-256: `b1cf13cce4f5740ce8b04d3ea533bf855bd74707aed6527ba732b1d53fea6b9f`.
+- Live smoke: **PASS** in portrait and landscape; repair-specific native touch, Classic-only world, catalog, offline request guard, and zero-error checks pass.
 
 ## RESULT
 
-**LOCAL AUTOMATED PASS / PUBLICATION AND PHYSICAL RETEST PENDING**
+**AUTOMATED PASS / PHYSICAL SAMSUNG RETEST PENDING**
