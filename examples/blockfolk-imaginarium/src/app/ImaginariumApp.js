@@ -14,9 +14,10 @@ import {
 import { createStableId } from '../model/ids.js';
 import { READ_ONLY_LEGACY_NOTICE, ReadOnlyLegacySession } from '../model/ReadOnlyLegacySession.js';
 import {
-  SNAP_AMBIGUITY_SCREEN_PX, SNAP_TOLERANCE_SCREEN_PX, buildComponentGrid, connectedLayerIds,
-  duplicateConnections, findGridSnapCandidate, hasAssembly, isSnappableAsset, makeConnection,
-  removeMemberConnections, validConnections
+  SNAP_AMBIGUITY_SCREEN_PX, SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX, SNAP_EXACT_POSE_SCREEN_PX, SNAP_TOLERANCE_SCREEN_PX,
+  SNAP_Z_INTENT_LATERAL_SCREEN_PX, SNAP_Z_INTENT_VERTICAL_SCREEN_PX, buildComponentGrid,
+  connectedLayerIds, duplicateConnections, findGridSnapCandidate, hasAssembly, isSnappableAsset,
+  makeConnection, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
@@ -648,14 +649,37 @@ export class BlockFolkImaginariumApp {
     return findGridSnapCandidate({
       movingObjects, stationaryObjects: stationary, connections: this.current?.connections || [],
       screenScale: Math.max(scale, .0001), screenTolerance: SNAP_TOLERANCE_SCREEN_PX,
-      ambiguityScreen: SNAP_AMBIGUITY_SCREEN_PX
+      ambiguityScreen: SNAP_AMBIGUITY_SCREEN_PX,
+      crossAxisAmbiguityScreen: SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX,
+      exactPoseScreen: SNAP_EXACT_POSE_SCREEN_PX,
+      zIntentLateralScreen: SNAP_Z_INTENT_LATERAL_SCREEN_PX,
+      zIntentVerticalScreen: SNAP_Z_INTENT_VERTICAL_SCREEN_PX
     });
   }
 
-  async snapSelected() {
+  resolveSnapContext(active = this.activeSticker()) {
+    if (!active || this.legacySession) return { action: 'disabled', candidate: { status: 'none' }, members: [] };
+    const members = this.objectsForMemberIds(this.selectedMemberIds(active));
+    const assembled = hasAssembly(this.current?.connections || [], active.blockfolkLayerId);
+    const supported = members.length > 0 && members.every((object) => isSnappableAsset(object.blockfolkAssetId));
+    if (!supported) return { action: assembled ? 'unsnap' : 'disabled', candidate: { status: 'none' }, members };
+    const candidate = this.proposeSnap(members);
+    return { action: candidate.status !== 'none' || !assembled ? 'snap' : 'unsnap', candidate, members };
+  }
+
+  applySnapContextControl(control, resolution) {
+    if (!control) return;
+    const unsnap = resolution.action === 'unsnap';
+    this.controls.setContextState(control, unsnap
+      ? { state: 'unsnap', icon: '⤨', label: 'Unsnap', ariaLabel: 'Detach selected sticker from its assembly', title: 'Detach selected sticker from its assembly' }
+      : { state: 'snap', icon: '⌘', label: 'Snap', ariaLabel: 'Snap selected construction pieces', title: 'Snap selected construction pieces' });
+    this.controls.setEnabled(control, resolution.action !== 'disabled');
+  }
+
+  async snapSelected(resolution = this.resolveSnapContext()) {
     const active = this.activeSticker(); if (!active || !this.current) return;
     const activeLayerId = active.blockfolkLayerId; const before = this.snapshot();
-    const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const result = this.proposeSnap(members);
+    const { members, candidate: result } = resolution;
     const failureMessage = {
       none: 'Move closer to connect.',
       ambiguous: 'Move closer to the spot you want.',
@@ -692,8 +716,13 @@ export class BlockFolkImaginariumApp {
   async snapContextSelected() {
     const active = this.activeSticker();
     if (!active) return;
-    if (hasAssembly(this.current?.connections || [], active.blockfolkLayerId)) await this.unsnapSelected();
-    else await this.snapSelected();
+    const control = this.elements.selection.querySelector('[data-action="snap-context"]');
+    const displayed = control?.closest('.sfhs-cf-root')?.dataset.contextState || null;
+    const resolution = this.resolveSnapContext(active);
+    if (resolution.action === 'disabled') return;
+    if (displayed !== resolution.action) { this.applySnapContextControl(control, resolution); return; }
+    if (resolution.action === 'snap') await this.snapSelected(resolution);
+    else await this.unsnapSelected();
   }
 
   objectGroups() {
@@ -836,7 +865,7 @@ export class BlockFolkImaginariumApp {
     const trash = this.elements.selection.querySelector('[data-action="trash"]');
     const showMore = this.elements.selection.querySelector('[data-action="show-selection-more"]');
     const turn = this.elements.selectionMore.querySelector('[data-action="turn"]');
-    const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds); const groups = this.objectGroups(); const activeIndex = groups.findIndex((group) => group.some((object) => memberIds.has(object.blockfolkLayerId)));
+    const memberIds = this.selectedMemberIds(active); const groups = this.objectGroups(); const activeIndex = groups.findIndex((group) => group.some((object) => memberIds.has(object.blockfolkLayerId)));
     const assembled = hasAssembly(this.current?.connections || [], active?.blockfolkLayerId);
     if (this.legacySession) {
       for (const control of [...this.elements.selection.querySelectorAll('[data-action]'), ...this.elements.selectionMore.querySelectorAll('[data-action]')]) this.controls.setEnabled(control, false);
@@ -844,12 +873,7 @@ export class BlockFolkImaginariumApp {
     }
     if (smaller) this.controls.setEnabled(smaller, !!active && active.scaleX > MIN_SCALE + .001);
     if (bigger) this.controls.setEnabled(bigger, !!active && active.scaleX < MAX_SCALE - .001);
-    if (snapContext) {
-      this.controls.setContextState(snapContext, assembled
-        ? { state: 'unsnap', icon: '⤨', label: 'Unsnap', ariaLabel: 'Detach selected sticker from its assembly', title: 'Detach selected sticker from its assembly' }
-        : { state: 'snap', icon: '⌘', label: 'Snap', ariaLabel: 'Snap selected construction pieces', title: 'Snap selected construction pieces' });
-      this.controls.setEnabled(snapContext, !!active && (assembled || members.some((object) => isSnappableAsset(object.blockfolkAssetId))));
-    }
+    if (snapContext) this.applySnapContextControl(snapContext, this.resolveSnapContext(active));
     if (flip) this.controls.setEnabled(flip, !!active);
     if (copy) this.controls.setEnabled(copy, !!active);
     if (trash) this.controls.setEnabled(trash, !!active);

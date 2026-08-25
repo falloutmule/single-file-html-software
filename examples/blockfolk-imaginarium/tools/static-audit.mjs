@@ -48,6 +48,9 @@ if (!/BUILT_IN_BACKGROUNDS\s*=\s*Object\.freeze\(\[BLOCKFOLK_VALLEY_ASSET\]\)/.t
 const worldSource = readFileSync(join(src, 'model', 'worldModel.js'), 'utf8');
 for (const marker of ['4096', 'worldAssetUrl', 'BLOCKFOLK_VALLEY_ASSET', 'production: true', 'debug: false']) if (!worldSource.includes(marker)) throw new Error(`Production world contract marker is missing: ${marker}`);
 for (const forbidden of ['DEBUG WORLD • NOT PRODUCTION', 'debugWorldSvg', 'OCEAN BAY']) if (worldSource.includes(forbidden)) throw new Error(`Debug world payload remains: ${forbidden}`);
+const appSource = readFileSync(join(src, 'app', 'ImaginariumApp.js'), 'utf8');
+if (!appSource.includes('findGridSnapCandidate') || appSource.includes('findSnapCandidate')) throw new Error('Production Snap must use the current grid candidate engine, never the zero-margin compatibility wrapper.');
+if (!appSource.includes('resolveSnapContext') || /hasAssembly\([^\n]+\)\s*await\s+this\.unsnapSelected/.test(appSource)) throw new Error('Production Snap/Unsnap activation must use the shared resolved context.');
 const htmlInputs = [...combined.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)].map((match) => match[1]);
 if (htmlInputs.some((value) => /^https?:/i.test(value))) throw new Error('Runtime source includes an external network dependency.');
 const manifest = JSON.parse(readFileSync(join(src, 'assets', 'manifest.json'), 'utf8'));

@@ -1,5 +1,5 @@
 ---
-{"schema":"sfhs.one-shot-acceptance@1","status":"UNTESTED","facts":{"physicalDevice":"UNTESTED"}}
+{"schema":"sfhs.one-shot-acceptance@1","status":"FAIL","facts":{"physicalDevice":"SAMSUNG_FAIL"}}
 ---
 # Grid-Snap Completion — ACTIVE
 
@@ -8,11 +8,14 @@
 - The page@3 scene remains 4096×4096. Classic renders aspect-preserving at 4096×3072 and `(0,512)`; no background change rewrites sticker, connection, or camera coordinates.
 - Locations and alternate-world product code are deleted. The packed artifact contains no 4096 WebP.
 - A/B geometry remains exact. Z uses one named 73.1-world-unit canonical tier, scales with the block extent, and passes both directions, all Log/Brick pairings, three tiers without drift, existing-component attachment, occupied/ambiguous rejection, resize, component movement, persistence, and Unsnap.
+- The permanent controller resolves external construction intent before detachment: connected ok/ambiguous/occupied proximity is Snap; connected none is Unsnap; a Snap-labelled activation never detaches.
+- Candidate ranking scores the displacement of one final grouped component transform. Contact fit remains separate evidence; a supported intended Z pose cannot lose to a lucky single-contact wrong-axis pose.
+- Exact A/B poses retain priority, clear Z intent accepts realistic screen error, and unresolved cross-axis competition uses a 12 px ambiguity margin without shrinking the 80 px catch radius. The behavior is proven at multiple production camera zooms.
 - Stage 1 derives deterministic integer A/B/Z component grids from page@3 edge identities; there is no persisted global grid or component ID.
 - Third, fourth, later, and generated 64-member assemblies work; A/B rows, corners, Z stacks, 2+2 component merge, cycles, contradictions, used faces, occupancy, pose consensus, ambiguity, and deterministic ordering have model proof.
 - One successful Snap moves the complete component once, persists one edge, creates one history entry, and says `Pieces connected.`. None/ambiguous/occupied failures are atomic with the exact required messages.
 - Drag/resize/Flip/depth/Copy/Trash/Unsnap/save/reload remain coherent. Connected Turn is disabled. One physical-style touch yields one controller activation and one feedback sequence.
-- Browser success uses visible Building controls, visible stickers, real pointer/touch movement, and the public permanent Snap/Unsnap control; it does not inject final coordinates or connections.
+- Browser success uses visible Building controls, visible stickers, public zoom controls, real pointer/touch movement, and the public permanent Snap/Unsnap control; it proves horizontal pair + horizontal pair → vertical merge → one bridge edge → four-member assembly without injecting final coordinates or connections.
 - Canonical source/packed/offline/deterministic/protected-integrity lanes pass before the exact local candidate is offered for the Samsung Gate 1 protocol.
 
 # Acceptance Criteria

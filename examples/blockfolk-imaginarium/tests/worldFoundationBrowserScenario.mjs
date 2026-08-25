@@ -399,6 +399,16 @@ await pointer('pointerdown', 1, constructionStart.x, constructionStart.y); await
 const freeDragProof = await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); return { connections: app.current.connections.length, worldX: app.canvas.getObjects()[0].left, worldY: app.canvas.getObjects()[0].top }; });
 assert.equal(freeDragProof.connections, 0, 'a nearby construction piece must not auto-snap on release');
 assert.ok(Math.abs(freeDragProof.worldX - constructionStart.worldX - 4 / constructionStart.scale) < .01, 'free drag must not magnetically reposition a piece');
+const stableCatchDistance = await page.evaluate(() => {
+  const app = window.BlockFolkImaginarium.app; const [stone, brick] = app.canvas.getObjects();
+  for (let offset = -560; offset <= 560; offset += 2) {
+    brick.set({ left: 1998 + offset, top: 2114 }); brick.setCoords();
+    const candidate = app.proposeSnap([stone]); const screenDistance = candidate.status === 'ok' ? candidate.pose.screenDistance : Infinity;
+    if (screenDistance >= 60 && screenDistance <= 75) { app.canvas.requestRenderAll(); app.syncCurrentFromCanvas(); app.updateSelection(); return screenDistance; }
+  }
+  return null;
+});
+assert.ok(stableCatchDistance >= 60 && stableCatchDistance <= 75, 'the post-drag Snap fixture must remain a valid forgiving candidate');
 const snapContextIdentity = await page.evaluate(() => {
   const control = document.querySelector('#selection-toolbar [data-action="snap-context"]');
   const root = control.closest('.sfhs-cf-root');
@@ -413,7 +423,7 @@ const failedSnap = await page.evaluate(() => {
 });
 await nativeTouchTap('#selection-toolbar [data-action="snap-context"]');
 assert.deepEqual(await page.evaluate((before) => ({ activationDelta: window.BlockFolkImaginarium.app.controls.activationCount - before, connections: window.BlockFolkImaginarium.app.current.connections.length }), failedSnap.activations), { activationDelta: 1, connections: 0 }, 'one failed Snap touch must activate exactly once and create zero edges');
-await page.evaluate((near) => { const app = window.BlockFolkImaginarium.app; const brick = app.canvas.getObjects()[1]; brick.set(near); brick.setCoords(); app.canvas.requestRenderAll(); app.syncCurrentFromCanvas(); }, failedSnap.near);
+await page.evaluate((near) => { const app = window.BlockFolkImaginarium.app; const brick = app.canvas.getObjects()[1]; brick.set(near); brick.setCoords(); app.canvas.requestRenderAll(); app.syncCurrentFromCanvas(); app.updateSelection(); }, failedSnap.near);
 const successfulSnapIdentity = { ...snapContextIdentity, activations: await page.evaluate(() => window.BlockFolkImaginarium.app.controls.activationCount) };
 const retargetProof = await retargetedCompatibilityTap('#selection-toolbar [data-action="snap-context"]');
 assert.equal(retargetProof.activations, 1, 'the successful Snap contact and its delayed compatibility click must produce exactly one activation');

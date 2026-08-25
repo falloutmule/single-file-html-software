@@ -87,6 +87,10 @@ const LEGACY_CONNECTION_ASSET_METADATA = Object.freeze(Object.fromEntries([
 
 export const SNAP_TOLERANCE_SCREEN_PX = 80;
 export const SNAP_AMBIGUITY_SCREEN_PX = 2;
+export const SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX = 12;
+export const SNAP_EXACT_POSE_SCREEN_PX = 4;
+export const SNAP_Z_INTENT_LATERAL_SCREEN_PX = 20;
+export const SNAP_Z_INTENT_VERTICAL_SCREEN_PX = 12;
 export const SNAP_SCALE_TOLERANCE = .02;
 
 export function profileForAsset(assetId) { return CONSTRUCTION_PROFILES[assetId] || null; }
@@ -277,9 +281,26 @@ function contactKey(contact) {
   return `${contact.source.blockfolkLayerId}:${contact.sourceAnchor.id}->${contact.target.blockfolkLayerId}:${contact.targetAnchor.id}`;
 }
 
+function contactAxisFamily(contact) {
+  return String(contact?.sourceAnchor?.direction || '').endsWith('Z') ? 'z' : 'horizontal';
+}
+
+function poseAxisFamily(contacts = []) {
+  const families = new Set(contacts.map(contactAxisFamily));
+  return families.size === 1 ? [...families][0] : 'mixed';
+}
+
+function crossAxisCompetitors(left, right) {
+  return left?.axisFamily !== 'mixed' && right?.axisFamily !== 'mixed' && left?.axisFamily !== right?.axisFamily;
+}
+
 export function findGridSnapCandidate({
   movingObjects = [], stationaryObjects = [], connections = [], screenScale = 1,
-  screenTolerance = SNAP_TOLERANCE_SCREEN_PX, ambiguityScreen = SNAP_AMBIGUITY_SCREEN_PX
+  screenTolerance = SNAP_TOLERANCE_SCREEN_PX, ambiguityScreen = SNAP_AMBIGUITY_SCREEN_PX,
+  crossAxisAmbiguityScreen = SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX,
+  exactPoseScreen = SNAP_EXACT_POSE_SCREEN_PX,
+  zIntentLateralScreen = SNAP_Z_INTENT_LATERAL_SCREEN_PX,
+  zIntentVerticalScreen = SNAP_Z_INTENT_VERTICAL_SCREEN_PX
 }) {
   if (!movingObjects.length || !stationaryObjects.length) return { status: 'none' };
   const movingRoot = [...movingObjects].sort((a, b) => a.blockfolkLayerId.localeCompare(b.blockfolkLayerId))[0];
@@ -295,7 +316,7 @@ export function findGridSnapCandidate({
     targetRoots.push({ root: object, members });
   }
 
-  const grouped = new Map(); const occupiedDistances = [];
+  const grouped = new Map(); const occupiedContacts = [];
   for (const targetComponent of targetRoots) {
     const targetGrid = buildComponentGrid(connections, objectProfiles(targetComponent.members), targetComponent.root.blockfolkLayerId);
     if (!targetGrid.consistent || targetGrid.memberIds.size !== targetComponent.members.length) continue;
@@ -318,7 +339,7 @@ export function findGridSnapCandidate({
         }
         const targetUsed = targetGrid.usedPorts.has(endpointKey(target.blockfolkLayerId, targetAnchor.id));
         const contact = { source, target, sourceAnchor, targetAnchor, dx, dy, screenDistance };
-        if (occupied || targetUsed) { occupiedDistances.push(screenDistance); continue; }
+        if (occupied || targetUsed) { occupiedContacts.push({ screenDistance, axisFamily: contactAxisFamily(contact) }); continue; }
         if (!grouped.has(poseKey)) grouped.set(poseKey, { poseKey, targetRoot: targetGrid.stableRoot, offset, contacts: [] });
         grouped.get(poseKey).contacts.push(contact);
       }
@@ -327,24 +348,61 @@ export function findGridSnapCandidate({
 
   const poses = [...grouped.values()].map((pose) => {
     pose.contacts.sort((left, right) => contactKey(left).localeCompare(contactKey(right)));
-    const bestDistance = Math.min(...pose.contacts.map((contact) => contact.screenDistance));
-    const canonicalContact = pose.contacts.filter((contact) => Math.abs(contact.screenDistance - bestDistance) < .000001)[0];
-    return { ...pose, canonicalContact, dx: canonicalContact.dx, dy: canonicalContact.dy, screenDistance: bestDistance, support: pose.contacts.length };
-  }).sort((left, right) => left.screenDistance - right.screenDistance || right.support - left.support || left.poseKey.localeCompare(right.poseKey) || contactKey(left.canonicalContact).localeCompare(contactKey(right.canonicalContact)));
+    const dx = pose.contacts.reduce((sum, contact) => sum + contact.dx, 0) / pose.contacts.length;
+    const dy = pose.contacts.reduce((sum, contact) => sum + contact.dy, 0) / pose.contacts.length;
+    const fitResidualScreen = Math.sqrt(pose.contacts.reduce((sum, contact) => sum + ((contact.dx - dx) ** 2) + ((contact.dy - dy) ** 2), 0) / pose.contacts.length) * Math.max(.0001, screenScale);
+    const canonicalContact = [...pose.contacts].sort((left, right) => {
+      const leftResidual = Math.hypot(left.dx - dx, left.dy - dy);
+      const rightResidual = Math.hypot(right.dx - dx, right.dy - dy);
+      return leftResidual - rightResidual || contactKey(left).localeCompare(contactKey(right));
+    })[0];
+    return {
+      ...pose, canonicalContact, dx, dy,
+      screenDistance: Math.hypot(dx, dy) * Math.max(.0001, screenScale),
+      fitResidualScreen, support: pose.contacts.length, axisFamily: poseAxisFamily(pose.contacts)
+    };
+  }).sort((left, right) => left.screenDistance - right.screenDistance || right.support - left.support || left.fitResidualScreen - right.fitResidualScreen || left.poseKey.localeCompare(right.poseKey) || contactKey(left.canonicalContact).localeCompare(contactKey(right.canonicalContact)));
 
-  const closestOccupied = occupiedDistances.length ? Math.min(...occupiedDistances) : Infinity;
-  if (!poses.length) return Number.isFinite(closestOccupied) ? { status: 'occupied' } : { status: 'none' };
-  if (closestOccupied <= poses[0].screenDistance + ambiguityScreen) return { status: 'occupied' };
-  if (poses.length > 1 && Math.abs(poses[1].screenDistance - poses[0].screenDistance) <= ambiguityScreen) {
-    return { status: 'ambiguous', poses: poses.slice(0, 2).map(({ poseKey, screenDistance, support }) => ({ poseKey, screenDistance, support })) };
+  occupiedContacts.sort((left, right) => left.screenDistance - right.screenDistance || left.axisFamily.localeCompare(right.axisFamily));
+  const closestOccupied = occupiedContacts[0] || null;
+  if (!poses.length) return closestOccupied ? { status: 'occupied' } : { status: 'none' };
+  const clearZ = zIntentLateralScreen > 0 && zIntentVerticalScreen > 0
+    ? poses.filter((pose) => pose.axisFamily === 'z' && Math.abs(pose.dx) * Math.max(.0001, screenScale) <= zIntentLateralScreen && Math.abs(pose.dy) * Math.max(.0001, screenScale) <= zIntentVerticalScreen)
+      .sort((left, right) => right.support - left.support || left.screenDistance - right.screenDistance || left.fitResidualScreen - right.fitResidualScreen || left.poseKey.localeCompare(right.poseKey))[0]
+    : null;
+  const exactPose = exactPoseScreen > 0 && poses[0].screenDistance <= exactPoseScreen ? poses[0] : null;
+  const axisLockedPose = exactPose || clearZ;
+  const winner = axisLockedPose || poses[0];
+  const occupiedContender = occupiedContacts.find((item) => {
+    if (axisLockedPose && item.axisFamily !== winner.axisFamily) return false;
+    const margin = item.axisFamily === winner.axisFamily || winner.axisFamily === 'mixed' ? ambiguityScreen : crossAxisAmbiguityScreen;
+    return item.screenDistance <= winner.screenDistance + margin;
+  });
+  if (occupiedContender) {
+    if (occupiedContender.axisFamily !== winner.axisFamily && winner.axisFamily !== 'mixed' && Math.abs(occupiedContender.screenDistance - winner.screenDistance) <= crossAxisAmbiguityScreen) {
+      return { status: 'ambiguous', poses: [{ poseKey: winner.poseKey, screenDistance: winner.screenDistance, fitResidualScreen: winner.fitResidualScreen, support: winner.support, axisFamily: winner.axisFamily }, { occupied: true, screenDistance: occupiedContender.screenDistance, axisFamily: occupiedContender.axisFamily }] };
+    }
+    return { status: 'occupied' };
   }
-  return { status: 'ok', pose: poses[0], canonicalContact: poses[0].canonicalContact, dx: poses[0].dx, dy: poses[0].dy };
+  const contender = poses.find((pose) => {
+    if (pose === winner) return false;
+    if (axisLockedPose && crossAxisCompetitors(winner, pose)) return false;
+    const margin = crossAxisCompetitors(winner, pose) ? crossAxisAmbiguityScreen : ambiguityScreen;
+    return Math.abs(pose.screenDistance - winner.screenDistance) <= margin;
+  });
+  if (contender) {
+    return { status: 'ambiguous', poses: [winner, contender].map(({ poseKey, screenDistance, fitResidualScreen, support, axisFamily }) => ({ poseKey, screenDistance, fitResidualScreen, support, axisFamily })) };
+  }
+  return { status: 'ok', pose: winner, canonicalContact: winner.canonicalContact, dx: winner.dx, dy: winner.dy };
 }
 
 // Compatibility wrapper for older source fixtures. It delegates to the grid
 // candidate engine and never owns an alternate candidate path.
 export function findSnapCandidate({ movingObjects = [], stationaryObjects = [], worldTolerance = Infinity }) {
-  const result = findGridSnapCandidate({ movingObjects, stationaryObjects, connections: [], screenScale: 1, screenTolerance: worldTolerance, ambiguityScreen: 0 });
+  const result = findGridSnapCandidate({
+    movingObjects, stationaryObjects, connections: [], screenScale: 1, screenTolerance: worldTolerance,
+    ambiguityScreen: 0, crossAxisAmbiguityScreen: 0, exactPoseScreen: 0, zIntentLateralScreen: 0, zIntentVerticalScreen: 0
+  });
   return result.status === 'ok' ? { ...result.canonicalContact, dx: result.dx, dy: result.dy, distance: result.pose.screenDistance } : null;
 }
 

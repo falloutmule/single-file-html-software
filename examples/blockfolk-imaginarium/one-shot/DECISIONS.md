@@ -6,6 +6,7 @@
 ## Grid-snap completion decisions — 2026-08-24
 
 - `REPORTED`: the Samsung Stage 1 verdict accepts horizontal Snap and rejects vertical Snap. Automated success does not override the physical Z failure.
+- `REPORTED`: the failed live interaction exposed two independent causes: connected selections were routed directly to Unsnap, and nearest-anchor arbitration allowed nearby A/B poses to steal Z intent.
 - `VERIFIED`: the user-approved Classic-only authority change supersedes the former 4096 Valley and Locations requirements. Canonical ID and the 4096 page@3 coordinate plane remain; only the background bytes/presentation and active UI surface change.
 - `VERIFIED`: canonical Z calibration is a named 73.1-world-unit tier at `420 / 1.1^10` extent and scales proportionally. A/B values remain byte-for-byte unchanged, and no fallback or material-specific stacking path is allowed.
 - `VERIFIED`: page@3 already persists both endpoint port identities needed to derive A/B/Z coordinates, so Stage 1 adds no redundant global grid, absolute cell coordinate, component ID, or schema version.
@@ -14,7 +15,10 @@
 - `VERIFIED`: existing painted anchor fractions remain visible-origin calibration only. They no longer determine topology or assembly size.
 - `VERIFIED`: page@3 cardinal and historical face edges remain readable/movable, but an unsupported or contradictory component fails closed for new grid extension without moving or rewriting the picture.
 - `VERIFIED`: exact feedback is `Pieces connected.`, `Move closer to connect.`, `Move closer to the spot you want.`, `That spot is full.`, and `Sticker detached.`. Connected Turn is disabled in UI and handler.
-- `VERIFIED`: publication, push, PR, merge, and Pages mutation remain unauthorized. The exact local deterministic artifact is the sole Gate 1 candidate.
+- `VERIFIED`: the repair uses one resolved controller context. Nearby external ok/ambiguous/occupied results remain Snap, connected none remains Unsnap, and a Snap-labelled activation can never detach.
+- `VERIFIED`: grouped poses are scored by final component-transform displacement; contact RMS is fit evidence only. Same-axis ambiguity remains 2 px, cross-axis ambiguity is 12 px, clear Z intent uses a 20×12 px correction corridor, and an exact pose within 4 px preserves physically working A/B landings.
+- `VERIFIED`: the production app calls `findGridSnapCandidate`; the zero-margin `findSnapCandidate` wrapper is historical compatibility only.
+- `VERIFIED`: push and exact verified publication to the existing BlockFolk Pages subpath are authorized. PR, merge, tags, releases, unrelated Pages/configuration changes, and later stages remain unauthorized.
 
 ## Grid-snap recovery Phase 0 — 2026-08-23
 

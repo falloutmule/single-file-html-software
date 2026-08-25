@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import {
-  CANONICAL_BLOCK_EXTENT_WORLD, CANONICAL_Z_TIER_WORLD, CONSTRUCTION_PROFILES, GRID_DIRECTIONS, PORT_DIRECTION, SNAP_AMBIGUITY_SCREEN_PX, Z_TIER_EXTENT_RATIO,
+  CANONICAL_BLOCK_EXTENT_WORLD, CANONICAL_Z_TIER_WORLD, CONSTRUCTION_PROFILES, GRID_DIRECTIONS, PORT_DIRECTION,
+  SNAP_AMBIGUITY_SCREEN_PX, SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX, SNAP_EXACT_POSE_SCREEN_PX, SNAP_Z_INTENT_LATERAL_SCREEN_PX,
+  SNAP_Z_INTENT_VERTICAL_SCREEN_PX, Z_TIER_EXTENT_RATIO,
   boundaryPortsFor, buildComponentGrid, constructionOrientation, duplicateConnections,
   findGridSnapCandidate, gridCellKey, profileForAsset, removeMemberConnections
 } from '../src/model/constructionModel.js';
@@ -29,6 +31,10 @@ assert.equal(new Set(profileForAsset(BRICK).directions.map((direction) => GRID_D
 assert.equal(CANONICAL_BLOCK_EXTENT_WORLD, 420 / (1.1 ** 10));
 assert.equal(CANONICAL_Z_TIER_WORLD, 73.1);
 assert.equal(Z_TIER_EXTENT_RATIO, CANONICAL_Z_TIER_WORLD / CANONICAL_BLOCK_EXTENT_WORLD);
+assert.equal(SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX, 12);
+assert.equal(SNAP_EXACT_POSE_SCREEN_PX, 4);
+assert.equal(SNAP_Z_INTENT_LATERAL_SCREEN_PX, 20);
+assert.equal(SNAP_Z_INTENT_VERTICAL_SCREEN_PX, 12);
 assert.deepEqual(Object.fromEntries(['northWest', 'northEast', 'southWest', 'southEast'].map((id) => [id, { x: profileForAsset(BRICK).anchors[id].x, y: profileForAsset(BRICK).anchors[id].y }])), {
   northWest: { x: -.4, y: -.2 }, northEast: { x: .4, y: -.2 }, southWest: { x: -.4, y: .2 }, southEast: { x: .4, y: .2 }
 }, 'the physically accepted A/B calibration must remain exact');
@@ -71,6 +77,31 @@ const occupiedZ = findGridSnapCandidate({
   screenTolerance: .01, ambiguityScreen: 0
 });
 assert.equal(occupiedZ.status, 'occupied', 'an already occupied Z cell must reject a visually coincident loose block');
+
+const phoneScales = [400 / 4096 * 2.15, 400 / 4096 * (2.15 * (1.25 ** 2))];
+const realisticZReleaseOffsets = [
+  { x: -20, y: 0 }, { x: -10, y: 0 }, { x: 0, y: 0 }, { x: 10, y: 0 }, { x: 20, y: 0 },
+  { x: 0, y: -10 }, { x: 0, y: 10 }
+];
+for (const screenScale of phoneScales) for (const verticalSign of [-1, 1]) for (const { x: screenX, y: screenY } of realisticZReleaseOffsets) {
+  const release = findGridSnapCandidate({
+    movingObjects: [canonicalObject(`screen-z-${screenScale}-${verticalSign}-${screenX}-${screenY}`, screenX / screenScale, verticalSign * CANONICAL_Z_TIER_WORLD + screenY / screenScale, LOG)],
+    stationaryObjects: [canonicalObject(`screen-target-${screenScale}-${verticalSign}-${screenX}-${screenY}`, 0, 0, BRICK)],
+    screenScale
+  });
+  assert.equal(release.status, 'ok', `realistic Z release must succeed at scale ${screenScale}, sign ${verticalSign}, offset ${screenX},${screenY}`);
+  assert.equal(release.pose.axisFamily, 'z', 'the vertical intent corridor must never serialize a wrong A/B edge');
+  assert.ok(Math.abs(Math.abs(release.dx * screenScale) - Math.abs(screenX)) < 1e-9);
+  assert.ok(Math.abs(Math.abs(release.dy * screenScale) - Math.abs(screenY)) < 1e-9);
+}
+for (const screenScale of phoneScales) for (const screenX of [-24, 24]) {
+  const uncertain = findGridSnapCandidate({
+    movingObjects: [canonicalObject(`uncertain-${screenScale}-${screenX}`, screenX / screenScale, -CANONICAL_Z_TIER_WORLD, LOG)],
+    stationaryObjects: [canonicalObject(`uncertain-target-${screenScale}-${screenX}`, 0, 0, BRICK)],
+    screenScale
+  });
+  assert.equal(uncertain.status, 'ambiguous', `the cross-axis uncertainty band must reject ${screenX}px at scale ${screenScale}`);
+}
 
 const rowEdges = [edge('e01', 'm0', 'm1', 'southEast'), edge('e12', 'm1', 'm2', 'southEast'), edge('e23', 'm2', 'm3', 'southEast')];
 const rowMembers = ['m0', 'm1', 'm2', 'm3'].map((id, index) => member(id, index % 2 ? LOG : BRICK));
@@ -131,6 +162,38 @@ const consensus = findGridSnapCandidate({
 });
 assert.equal(consensus.status, 'ok'); assert.equal(consensus.pose.support, 2, 'same-pose supporting contacts reinforce one pose');
 assert.ok(Math.abs(consensus.dx - 5) < .001 && Math.abs(consensus.dy - 2) < .001);
+assert.ok(Math.abs(consensus.pose.screenDistance - Math.hypot(5, 2)) < .001, 'pose score is the displacement of one final component transform');
+assert.ok(consensus.pose.fitResidualScreen < .001, 'contact fit remains separate from pose movement distance');
+
+const adversarialScale = phoneScales[0];
+const adversarialWidth = CANONICAL_BLOCK_EXTENT_WORLD * .84; const adversarialHeight = CANONICAL_BLOCK_EXTENT_WORLD;
+const adversarialA = { x: .4 * adversarialWidth, y: .2 * adversarialHeight };
+const adversarialMoving = canonicalObject('adversarial-m0', -6 / adversarialScale, -CANONICAL_Z_TIER_WORLD, LOG);
+const adversarialTarget = canonicalObject('adversarial-z-target', 0, 0, BRICK);
+const luckyHorizontal = canonicalObject('adversarial-lucky-a', adversarialMoving.left + adversarialA.x + 5 / adversarialScale, adversarialMoving.top + adversarialA.y, BRICK);
+const luckyWithoutIntentPolicy = findGridSnapCandidate({
+  movingObjects: [adversarialMoving], stationaryObjects: [adversarialTarget, luckyHorizontal], screenScale: adversarialScale,
+  ambiguityScreen: 0, crossAxisAmbiguityScreen: 0, exactPoseScreen: 0, zIntentLateralScreen: 0, zIntentVerticalScreen: 0
+});
+assert.equal(luckyWithoutIntentPolicy.pose.axisFamily, 'horizontal', 'the fixture must contain a genuinely luckier wrong-axis contact');
+const protectedSingleContactZ = findGridSnapCandidate({ movingObjects: [adversarialMoving], stationaryObjects: [adversarialTarget, luckyHorizontal], screenScale: adversarialScale });
+assert.equal(protectedSingleContactZ.status, 'ok'); assert.equal(protectedSingleContactZ.pose.axisFamily, 'z');
+
+const adversarialMovingPair = [
+  adversarialMoving,
+  canonicalObject('adversarial-m1', adversarialA.x - 12 / adversarialScale, adversarialA.y - CANONICAL_Z_TIER_WORLD, BRICK)
+];
+const adversarialTargetPair = [adversarialTarget, canonicalObject('adversarial-z-target-1', adversarialA.x, adversarialA.y, LOG), luckyHorizontal];
+const adversarialPair = findGridSnapCandidate({
+  movingObjects: adversarialMovingPair, stationaryObjects: adversarialTargetPair,
+  connections: [edge('adversarial-moving-edge', 'adversarial-m0', 'adversarial-m1', 'southEast', LOG, BRICK), edge('adversarial-target-edge', 'adversarial-z-target', 'adversarial-z-target-1', 'southEast', BRICK, LOG)],
+  screenScale: adversarialScale
+});
+assert.notEqual(adversarialPair.pose?.axisFamily, 'horizontal', 'adding valid Z support cannot make a lucky one-contact A/B pose win');
+const supportedZ = adversarialPair.status === 'ok' ? adversarialPair.pose : adversarialPair.poses.find((pose) => pose.axisFamily === 'z' && pose.support === 2);
+assert.ok(supportedZ, 'the adversarial result retains the intended two-contact Z pose');
+assert.ok(Math.abs(supportedZ.screenDistance - 9) < .001, 'the supported Z score is its mean final-transform displacement');
+assert.ok(Math.abs(supportedZ.fitResidualScreen - 3) < .001, 'unequal contact corrections are recorded only as pose-fit residual');
 
 const ambiguousMoving = [object('amb-moving', 0, 0)];
 const ambiguousTargets = [object('amb-a', 50, 40, LOG), object('amb-b', -50, 40)];
@@ -160,6 +223,14 @@ assert.equal(reversedConsensus.status, 'ok'); assert.equal(reversedConsensus.pos
 const twoPlusTwoConnection = edge('merge', 'ms0', 'ts0', 'southEast', BRICK, LOG);
 const merged = buildComponentGrid([...movingPairEdges, ...targetPairEdges, twoPlusTwoConnection], [...consensusObjects.moving, ...consensusObjects.target], 'ts1');
 assert.equal(merged.consistent, true); assert.equal(merged.memberIds.size, 4, 'a 2 + 2 merge must become one component');
+const canonicalA = { x: .4 * CANONICAL_BLOCK_EXTENT_WORLD * .84, y: .2 * CANONICAL_BLOCK_EXTENT_WORLD };
+const verticalPairMerge = findGridSnapCandidate({
+  movingObjects: [canonicalObject('merge-m0', 0, -CANONICAL_Z_TIER_WORLD, LOG), canonicalObject('merge-m1', canonicalA.x, canonicalA.y - CANONICAL_Z_TIER_WORLD, BRICK)],
+  stationaryObjects: [canonicalObject('merge-t0', 0, 0, BRICK), canonicalObject('merge-t1', canonicalA.x, canonicalA.y, LOG)],
+  connections: [edge('merge-moving-edge', 'merge-m0', 'merge-m1', 'southEast', LOG, BRICK), edge('merge-target-edge', 'merge-t0', 'merge-t1', 'southEast', BRICK, LOG)],
+  screenScale: phoneScales[0]
+});
+assert.equal(verticalPairMerge.status, 'ok'); assert.equal(verticalPairMerge.pose.axisFamily, 'z'); assert.equal(verticalPairMerge.pose.support, 2, 'two horizontal pairs must expose one supported vertical merge pose');
 assert.equal([...removeMemberConnections([...movingPairEdges, ...targetPairEdges, twoPlusTwoConnection], 'ms0')].length, 1, 'Unsnap removes all immediate selected-member links and leaves unrelated topology');
 
 const bridgeEdges = [edge('bridge-1', 'left', 'bridge', 'southEast'), edge('bridge-2', 'bridge', 'right', 'southEast')];

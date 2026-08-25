@@ -81,12 +81,24 @@ async function addVisible(assetId) {
   return (await metrics()).at(-1);
 }
 
+async function newBuildingPicture() {
+  if (await page.locator('#home-screen:not([hidden])').count() === 0) {
+    await page.locator('[data-action="go-home"]').first().click();
+    await page.locator('#home-screen:not([hidden])').waitFor();
+  }
+  await page.locator('[data-action="new-picture"]').first().click();
+  await page.locator('#editor-screen:not([hidden])').waitFor();
+  await page.locator('#category-tabs [data-category="building"]').click();
+  assert.equal(await page.locator('[data-sticker-id]').count(), 6, 'visible Building category retains its accepted six stickers');
+}
+
 function intendedOffset(source, target, direction, nudge = { x: 0, y: 0 }) {
   const width = (source.width + target.width) / 2; const height = (source.height + target.height) / 2;
   const vectors = {
     A: { x: -.4 * width, y: -.2 * height },
     B: { x: .4 * width, y: -.2 * height },
-    Z: { x: 0, y: -ACCEPTED_Z_RATIO * height }
+    Z: { x: 0, y: -ACCEPTED_Z_RATIO * height },
+    Z_DOWN: { x: 0, y: ACCEPTED_Z_RATIO * height }
   };
   return { x: target.x + vectors[direction].x + nudge.x, y: target.y + vectors[direction].y + nudge.y };
 }
@@ -120,15 +132,97 @@ await page.evaluate(() => new Promise((resolvePromise, reject) => {
   const request = indexedDB.deleteDatabase('blockfolk-imaginarium-library-v1'); request.onsuccess = () => resolvePromise(); request.onerror = () => reject(request.error); request.onblocked = () => resolvePromise();
 }));
 await page.reload({ waitUntil: 'load' }); await page.locator('#app[data-boot="ready"]').waitFor();
-await page.locator('[data-action="new-picture"]').first().click(); await page.locator('#editor-screen:not([hidden])').waitFor();
-await page.locator('#category-tabs [data-category="building"]').click();
-assert.equal(await page.locator('[data-sticker-id]').count(), 6, 'visible Building category retains its accepted six stickers');
+await newBuildingPicture();
+
+const publicZReleases = [
+  { sourceAsset: LOG, targetAsset: BRICK, direction: 'Z', nudge: { x: -20, y: 0 } },
+  { sourceAsset: LOG, targetAsset: BRICK, direction: 'Z', nudge: { x: 20, y: 0 } },
+  { sourceAsset: BRICK, targetAsset: LOG, direction: 'Z_DOWN', nudge: { x: 0, y: -10 } },
+  { sourceAsset: BRICK, targetAsset: LOG, direction: 'Z_DOWN', nudge: { x: 0, y: 10 } }
+];
+for (const zoomSteps of [0, 2]) for (const release of publicZReleases) {
+  await newBuildingPicture();
+  const target = await addVisible(release.targetAsset); const source = await addVisible(release.sourceAsset);
+  for (let step = 0; step < zoomSteps; step += 1) await page.locator('[data-action="camera-zoom-in"]').click();
+  const state = await metrics(); const sourceMetric = state.find((entry) => entry.id === source.id); const targetMetric = state.find((entry) => entry.id === target.id);
+  await dragLayerTo(source.id, intendedOffset(sourceMetric, targetMetric, release.direction, release.nudge));
+  const activationBefore = await page.evaluate(() => window.BlockFolkImaginarium.app.controls.activationCount); await touchControl();
+  const result = await page.evaluate((before) => {
+    const app = window.BlockFolkImaginarium.app; const edge = app.current.connections[0];
+    return { activationDelta: app.controls.activationCount - before, edges: app.current.connections.length, aAnchorId: edge?.aAnchorId, bAnchorId: edge?.bAnchorId, toast: document.querySelector('#toast').textContent };
+  }, activationBefore);
+  assert.equal(result.activationDelta, 1); assert.equal(result.edges, 1); assert.equal(result.toast, 'Pieces connected.');
+  assert.equal(['stackTop', 'stackBase'].includes(result.aAnchorId), true, `public ${release.direction} release at zoom step ${zoomSteps} must choose Z`);
+  assert.equal(['stackTop', 'stackBase'].includes(result.bAnchorId), true, 'a Z edge must serialize reciprocal stack anchors');
+}
+
+for (const zoomSteps of [0, 2]) {
+  await newBuildingPicture();
+  const target = await addVisible(BRICK); const source = await addVisible(LOG);
+  for (let step = 0; step < zoomSteps; step += 1) await page.locator('[data-action="camera-zoom-in"]').click();
+  const state = await metrics(); const sourceMetric = state.find((entry) => entry.id === source.id); const targetMetric = state.find((entry) => entry.id === target.id);
+  await dragLayerTo(source.id, intendedOffset(sourceMetric, targetMetric, 'Z', { x: 24, y: 0 }));
+  const before = await normalizedPictureState(); await touchControl();
+  assert.deepEqual(await normalizedPictureState(), before, 'cross-axis ambiguity must preserve every transform and connection');
+  assert.equal(await page.locator('#toast').textContent(), 'Move closer to the spot you want.');
+}
+
+await newBuildingPicture();
 
 const isolatedLog = await addVisible(LOG); const isolatedBrick = await addVisible(BRICK);
 await connectByVisibleInteraction(isolatedBrick.id, isolatedLog.id, 'Z', true);
 const verticalPair = await metrics(); const firstVertical = verticalPair.find((entry) => entry.id === isolatedLog.id); const secondVertical = verticalPair.find((entry) => entry.id === isolatedBrick.id);
 assert.ok(Math.abs(Math.abs(secondVertical.y - firstVertical.y) - ACCEPTED_Z_RATIO * ((secondVertical.height + firstVertical.height) / 2)) < .1, 'the visible mixed-material pair must use the independent accepted Z calibration');
 await page.screenshot({ path: resolve(evidence, 'blocks-vertical-pair-400x844.png'), fullPage: true });
+
+await newBuildingPicture();
+const lowerRoot = await addVisible(LOG); await dragLayerTo(lowerRoot.id, { x: 115, y: 420 });
+const lowerMate = await addVisible(BRICK); await connectByVisibleInteraction(lowerMate.id, lowerRoot.id, 'A');
+const upperRoot = await addVisible(BRICK); await dragLayerTo(upperRoot.id, { x: 285, y: 420 });
+const upperMate = await addVisible(LOG); await connectByVisibleInteraction(upperMate.id, upperRoot.id, 'A');
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 2, 'the natural workflow begins as two independent horizontal pairs');
+assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Detach selected sticker from its assembly', 'a connected pair with no external intent remains Unsnap');
+
+const separatedPairs = await metrics();
+await dragLayerTo(upperRoot.id, intendedOffset(separatedPairs.find((entry) => entry.id === upperRoot.id), separatedPairs.find((entry) => entry.id === lowerRoot.id), 'Z'));
+assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Snap selected construction pieces', 'a connected pair near another component must become Snap');
+const pairMergeBefore = await page.evaluate(() => ({ activations: window.BlockFolkImaginarium.app.controls.activationCount, edges: structuredClone(window.BlockFolkImaginarium.app.current.connections) }));
+await touchControl();
+const pairMergeAfter = await page.evaluate((before) => {
+  const app = window.BlockFolkImaginarium.app; const added = app.current.connections.filter((edge) => !before.edges.some((prior) => prior.id === edge.id));
+  return {
+    activationDelta: app.controls.activationCount - before.activations,
+    edges: app.current.connections.length, added,
+    members: app.selectedMemberIds(app.activeSticker()).size,
+    state: document.querySelector('#selection-toolbar [data-action="snap-context"]').closest('.sfhs-cf-root').dataset.contextState,
+    toast: document.querySelector('#toast').textContent
+  };
+}, pairMergeBefore);
+assert.equal(pairMergeAfter.activationDelta, 1); assert.equal(pairMergeAfter.edges, 3); assert.equal(pairMergeAfter.added.length, 1); assert.equal(pairMergeAfter.members, 4);
+assert.equal(['stackTop', 'stackBase'].includes(pairMergeAfter.added[0].aAnchorId), true, 'the sole 2+2 bridge edge must be vertical');
+assert.equal(pairMergeAfter.state, 'unsnap'); assert.equal(pairMergeAfter.toast, 'Pieces connected.');
+await page.screenshot({ path: resolve(evidence, 'blocks-two-pairs-vertical-merge-400x844.png'), fullPage: true });
+
+const fourBeforeMove = await normalizedPictureState(); const fourMoveMetric = (await metrics()).find((entry) => entry.id === lowerMate.id);
+await nativeTouch(fourMoveMetric.x, fourMoveMetric.y, 'drag', { x: fourMoveMetric.x + 30, y: fourMoveMetric.y + 15 }); await page.waitForTimeout(80);
+const fourAfterMove = await normalizedPictureState();
+const fourDeltas = fourAfterMove.stickers.map((sticker) => {
+  const prior = fourBeforeMove.stickers.find((entry) => entry.layerId === sticker.layerId); return { x: sticker.x - prior.x, y: sticker.y - prior.y };
+});
+assert.ok(fourDeltas.every((delta) => Math.abs(delta.x - fourDeltas[0].x) < .01 && Math.abs(delta.y - fourDeltas[0].y) < .01), 'dragging any member moves the merged four-block assembly once');
+
+const fourPersisted = await normalizedPictureState(); await page.locator('[data-action="done-picture"]').click(); await page.locator('#gallery-screen:not([hidden])').waitFor();
+await page.locator('[data-gallery-action="edit"]').first().click(); await page.locator('#editor-screen:not([hidden])').waitFor();
+assert.deepEqual(await normalizedPictureState(), fourPersisted, 'the exact 2+2 merge and movement survive save/reload');
+const fourLeaf = (await metrics()).find((entry) => entry.id === upperMate.id); await nativeTouch(fourLeaf.x, fourLeaf.y); await page.waitForTimeout(50);
+assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Detach selected sticker from its assembly');
+const fourUnsnapBefore = await normalizedPictureState(); const fourUnsnapActivation = await page.evaluate(() => window.BlockFolkImaginarium.app.controls.activationCount); await touchControl();
+const fourUnsnapAfter = await normalizedPictureState();
+assert.deepEqual(fourUnsnapAfter.stickers, fourUnsnapBefore.stickers, 'one Unsnap changes no member transform');
+assert.deepEqual(fourUnsnapAfter.camera, fourUnsnapBefore.camera);
+assert.ok(fourUnsnapAfter.connections.length < fourUnsnapBefore.connections.length, 'one Unsnap removes only the selected member links');
+assert.equal(await page.evaluate((before) => window.BlockFolkImaginarium.app.controls.activationCount - before, fourUnsnapActivation), 1);
+assert.equal(await page.locator('#toast').textContent(), 'Sticker detached.');
 
 await page.locator('[data-action="go-home"]').first().click(); await page.locator('[data-action="new-picture"]').first().click(); await page.locator('#category-tabs [data-category="building"]').click();
 const first = await addVisible(LOG); const second = await addVisible(BRICK);
@@ -193,20 +287,22 @@ await page.screenshot({ path: resolve(evidence, 'blocks-unsnapped-400x844.png'),
 // the public Snap control. The assertions inspect state but never inject poses.
 await page.locator('[data-action="go-home"]').first().click(); await page.locator('[data-action="new-picture"]').first().click(); await page.locator('#category-tabs [data-category="building"]').click();
 const occupiedTarget = await addVisible(LOG); const occupiedNeighbor = await addVisible(BRICK); await connectByVisibleInteraction(occupiedNeighbor.id, occupiedTarget.id, 'Z');
-const occupiedMoving = await addVisible(LOG); const occupiedNeighborPosition = (await metrics()).find((entry) => entry.id === occupiedNeighbor.id);
+await dragLayerTo(occupiedTarget.id, { x: 115, y: 420 });
+const occupiedMoving = await addVisible(LOG); await dragLayerTo(occupiedMoving.id, { x: 285, y: 420 });
+const occupiedMovingMate = await addVisible(BRICK); await connectByVisibleInteraction(occupiedMovingMate.id, occupiedMoving.id, 'A');
+const occupiedNeighborPosition = (await metrics()).find((entry) => entry.id === occupiedNeighbor.id);
 await dragLayerTo(occupiedMoving.id, { x: occupiedNeighborPosition.x, y: occupiedNeighborPosition.y });
+assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Snap selected construction pieces', 'an occupied external attempt must remain Snap for a connected component');
 const occupiedBefore = await normalizedPictureState(); await touchControl();
 assert.deepEqual(await normalizedPictureState(), occupiedBefore); assert.equal(await page.locator('#toast').textContent(), 'That spot is full.');
 
 await page.locator('[data-action="go-home"]').first().click(); await page.locator('[data-action="new-picture"]').first().click(); await page.locator('#category-tabs [data-category="building"]').click();
-const rightTarget = await addVisible(LOG); await dragLayerTo(rightTarget.id, { x: 120, y: 420 });
-const leftTarget = await addVisible(BRICK); await dragLayerTo(leftTarget.id, { x: 280, y: 420 });
-const tiedMoving = await addVisible(LOG); await dragLayerTo(tiedMoving.id, { x: 200, y: 360 });
-const tiedMetrics = await metrics(); const movingMetric = tiedMetrics.find((entry) => entry.id === tiedMoving.id); const rightMetric = tiedMetrics.find((entry) => entry.id === rightTarget.id);
-const horizontal = .4 * ((movingMetric.width + rightMetric.width) / 2); const vertical = .2 * ((movingMetric.height + rightMetric.height) / 2);
-await dragLayerTo(rightTarget.id, { x: movingMetric.x + horizontal + 10, y: movingMetric.y + vertical });
-await dragLayerTo(leftTarget.id, { x: movingMetric.x - horizontal - 10, y: movingMetric.y + vertical });
-await nativeTouch(movingMetric.x, movingMetric.y); await page.waitForTimeout(40);
+const tiedMoving = await addVisible(LOG); await dragLayerTo(tiedMoving.id, { x: 200, y: 250 });
+const tiedMovingMate = await addVisible(BRICK); await connectByVisibleInteraction(tiedMovingMate.id, tiedMoving.id, 'A');
+const ambiguousTarget = await addVisible(LOG); await dragLayerTo(ambiguousTarget.id, { x: 200, y: 420 });
+const tiedMetrics = await metrics(); const movingMetric = tiedMetrics.find((entry) => entry.id === tiedMoving.id); const targetMetric = tiedMetrics.find((entry) => entry.id === ambiguousTarget.id);
+await dragLayerTo(tiedMoving.id, intendedOffset(movingMetric, targetMetric, 'Z', { x: 48, y: 0 }));
+assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Snap selected construction pieces', 'an ambiguous external attempt must remain Snap for a connected component');
 const ambiguousBefore = await normalizedPictureState(); await touchControl();
 assert.deepEqual(await normalizedPictureState(), ambiguousBefore); assert.equal(await page.locator('#toast').textContent(), 'Move closer to the spot you want.');
 
