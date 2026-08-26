@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {
-  CANONICAL_BLOCK_EXTENT_WORLD, CANONICAL_Z_TIER_WORLD, CONSTRUCTION_PROFILES, GRID_DIRECTIONS, PORT_DIRECTION,
+  ALL_BLOCK_ASSET_IDS, CANONICAL_BLOCK_EXTENT_WORLD, CANONICAL_Z_TIER_WORLD, CONSTRUCTION_PROFILES, GRID_DIRECTIONS, PORT_DIRECTION,
   SNAP_AMBIGUITY_SCREEN_PX, SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX, SNAP_EXACT_POSE_SCREEN_PX, SNAP_Z_INTENT_LATERAL_SCREEN_PX,
   SNAP_Z_INTENT_VERTICAL_SCREEN_PX, Z_TIER_EXTENT_RATIO,
   boundaryPortsFor, buildComponentGrid, constructionOrientation, duplicateConnections,
@@ -9,6 +9,11 @@ import {
 
 const LOG = 'sticker-blockfolk-wood-log-block';
 const BRICK = 'sticker-blockfolk-brick-stone-block';
+const ALL_BLOCKS = [
+  'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block',
+  'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block',
+  'sticker-blockfolk-lava-block', LOG, 'sticker-blockfolk-leaf-block', BRICK
+];
 const mate = (portId) => GRID_DIRECTIONS[PORT_DIRECTION[portId]].opposite;
 const matePort = (portId) => GRID_DIRECTIONS[mate(portId)].portId;
 const member = (layerId, assetId = BRICK) => ({ layerId, assetId });
@@ -26,7 +31,16 @@ assert.deepEqual(Object.fromEntries(Object.entries(GRID_DIRECTIONS).map(([id, va
   '+A': [1, 0, 0, '-A'], '-A': [-1, 0, 0, '+A'], '+B': [0, 1, 0, '-B'], '-B': [0, -1, 0, '+B'], '+Z': [0, 0, 1, '-Z'], '-Z': [0, 0, -1, '+Z']
 }, 'direction opposites and integer A/B/Z deltas must be exact');
 assert.equal(profileForAsset(LOG), profileForAsset(BRICK), 'representative materials share one logical profile object');
-assert.deepEqual(Object.keys(CONSTRUCTION_PROFILES), [LOG, BRICK], 'Stage 1 registry must contain only its representative assets');
+assert.deepEqual(ALL_BLOCK_ASSET_IDS, ALL_BLOCKS, 'the canonical authored-material order must remain stable');
+assert.deepEqual(Object.keys(CONSTRUCTION_PROFILES), ALL_BLOCKS, 'Stage 2 registry must contain all ten authored materials');
+assert.equal(new Set(Object.values(CONSTRUCTION_PROFILES)).size, 1, 'all materials must reference the same frozen one-cell profile object');
+for (const assetId of ALL_BLOCKS) {
+  const profile = profileForAsset(assetId);
+  assert.equal(profile, profileForAsset(BRICK), `${assetId} must not introduce material-specific topology`);
+  assert.deepEqual(profile.footprint, [{ a: 0, b: 0, z: 0 }]);
+  assert.deepEqual(profile.directions, ['+A', '-A', '+B', '-B', '+Z', '-Z']);
+  assert.deepEqual(profile.visibleOrigin, { x: 0, y: 0 });
+}
 assert.equal(new Set(profileForAsset(BRICK).directions.map((direction) => GRID_DIRECTIONS[direction].portId)).size, 6, 'one-cell block ports must be unique');
 assert.equal(CANONICAL_BLOCK_EXTENT_WORLD, 420 / (1.1 ** 10));
 assert.equal(CANONICAL_Z_TIER_WORLD, 73.1);
@@ -55,6 +69,34 @@ const downward = findGridSnapCandidate({
   screenTolerance: .01, ambiguityScreen: 0
 });
 assert.equal(downward.status, 'ok'); assert.equal(downward.canonicalContact.sourceAnchor.id, 'stackTop'); assert.equal(downward.canonicalContact.targetAnchor.id, 'stackBase'); assert.ok(Math.abs(downward.dy) < 1e-9, 'mixed-material -Z must use the same canonical tier');
+
+const newMaterials = ALL_BLOCKS.filter((assetId) => assetId !== LOG && assetId !== BRICK);
+const directionFixture = {
+  A: { sourceAnchor: 'northWest', rootAnchor: 'southEast', x: .4 * CANONICAL_BLOCK_EXTENT_WORLD * .84, y: .2 * CANONICAL_BLOCK_EXTENT_WORLD, axis: 'horizontal' },
+  B: { sourceAnchor: 'northEast', rootAnchor: 'southWest', x: -.4 * CANONICAL_BLOCK_EXTENT_WORLD * .84, y: .2 * CANONICAL_BLOCK_EXTENT_WORLD, axis: 'horizontal' },
+  '+Z': { sourceAnchor: 'stackBase', rootAnchor: 'stackTop', x: 0, y: -CANONICAL_Z_TIER_WORLD, axis: 'z' },
+  '-Z': { sourceAnchor: 'stackTop', rootAnchor: 'stackBase', x: 0, y: CANONICAL_Z_TIER_WORLD, axis: 'z' }
+};
+for (const [materialIndex, assetId] of newMaterials.entries()) for (const [direction, fixture] of Object.entries(directionFixture)) {
+  const targetAssetId = ALL_BLOCKS[(materialIndex + 1) % ALL_BLOCKS.length];
+  const candidate = findGridSnapCandidate({
+    movingObjects: [canonicalObject(`${assetId}-${direction}-moving`, fixture.x, fixture.y, assetId)],
+    stationaryObjects: [canonicalObject(`${assetId}-${direction}-target`, 0, 0, targetAssetId)],
+    screenTolerance: .01, ambiguityScreen: 0
+  });
+  assert.equal(candidate.status, 'ok', `${assetId} ${direction} must use the shared candidate engine`);
+  assert.equal(candidate.pose.axisFamily, fixture.axis);
+  assert.equal(candidate.canonicalContact.sourceAnchor.id, fixture.sourceAnchor);
+  assert.ok(Math.abs(candidate.dx) < 1e-9 && Math.abs(candidate.dy) < 1e-9, `${assetId} ${direction} must retain exact shared geometry`);
+  const occupiedAsset = ALL_BLOCKS[(materialIndex + 2) % ALL_BLOCKS.length];
+  const occupiedCandidate = findGridSnapCandidate({
+    movingObjects: [canonicalObject(`${assetId}-${direction}-occupied-moving`, fixture.x, fixture.y, assetId)],
+    stationaryObjects: [canonicalObject(`${assetId}-${direction}-occupied-root`, 0, 0, targetAssetId), canonicalObject(`${assetId}-${direction}-occupied-cell`, fixture.x, fixture.y, occupiedAsset)],
+    connections: [edge(`${assetId}-${direction}-occupied-edge`, `${assetId}-${direction}-occupied-root`, `${assetId}-${direction}-occupied-cell`, fixture.rootAnchor, targetAssetId, occupiedAsset)],
+    screenTolerance: .01, ambiguityScreen: 0
+  });
+  assert.equal(occupiedCandidate.status, 'occupied', `${assetId} ${direction} must reject an occupied one-cell destination`);
+}
 const resizedUpward = findGridSnapCandidate({
   movingObjects: [canonicalObject('z-resized-moving', 0, -CANONICAL_Z_TIER_WORLD * 2, LOG, CANONICAL_BLOCK_EXTENT_WORLD * 2)],
   stationaryObjects: [canonicalObject('z-resized-target', 0, 0, BRICK, CANONICAL_BLOCK_EXTENT_WORLD * 2)],
@@ -245,7 +287,7 @@ assert.equal(constructionOrientation(object('turned', 0, 0, BRICK, { angle: 15 }
 assert.equal(gridCellKey({ a: -2, b: 4, z: 1 }), '-2,4,1');
 
 console.log('BLOCKFOLK_CONSTRUCTION_GRID_SCENARIOS PASS', JSON.stringify({
-  pilotProfiles: Object.keys(CONSTRUCTION_PROFILES).length,
+  materialProfiles: Object.keys(CONSTRUCTION_PROFILES).length,
   generatedMembers: sixtyFour.memberIds.size,
   consensusSupport: consensus.pose.support,
   ambiguity: ambiguous.status,

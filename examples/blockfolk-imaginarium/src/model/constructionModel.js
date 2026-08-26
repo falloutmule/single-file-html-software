@@ -7,10 +7,6 @@ const ALL_BLOCK_IDS = Object.freeze([
   'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block',
   'sticker-blockfolk-brick-stone-block'
 ]);
-const PILOT_BLOCK_IDS = Object.freeze([
-  'sticker-blockfolk-wood-log-block',
-  'sticker-blockfolk-brick-stone-block'
-]);
 const FACE_IDS = Object.freeze([
   'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door',
   'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
@@ -67,10 +63,11 @@ const ONE_CELL_BLOCK_PROFILE = Object.freeze({
   visibleOrigin: Object.freeze({ x: 0, y: 0 })
 });
 
-// Stage 1 registers only the two representative assets. Enabling another
-// material is a registry-only Stage 2 change; the engine has no asset-pair path.
+// Every authored BlockFolk material is the same logical one-cell construction
+// primitive. The engine has no material-pair path; visible art calibration is
+// verified independently without changing topology or grid geometry.
 export const CONSTRUCTION_PROFILES = Object.freeze(Object.fromEntries(
-  PILOT_BLOCK_IDS.map((assetId) => [assetId, ONE_CELL_BLOCK_PROFILE])
+  ALL_BLOCK_IDS.map((assetId) => [assetId, ONE_CELL_BLOCK_PROFILE])
 ));
 export const SNAPPABLE_ASSET_METADATA = Object.freeze(Object.fromEntries(
   Object.entries(CONSTRUCTION_PROFILES).map(([assetId, profile]) => [assetId, Object.freeze({ kind: profile.kind, anchors: profile.anchors, profile })])

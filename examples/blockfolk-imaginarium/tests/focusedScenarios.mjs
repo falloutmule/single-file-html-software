@@ -258,8 +258,11 @@ assert.equal(clamped.y, PAGE_HEIGHT + 120, 'at least 10% of sticker height must 
 
 assert.equal(SNAP_TOLERANCE_SCREEN_PX, 80, 'construction snap tolerance must remain a forgiving screen-space value');
 assert.deepEqual(SNAPPABLE_ASSET_IDS, [
-  'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-brick-stone-block'
-], 'Stage 1 candidate search must expose the Log/Brick representative profiles only');
+  'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block',
+  'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block',
+  'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block',
+  'sticker-blockfolk-brick-stone-block'
+], 'Stage 2 candidate search must expose all ten authored block materials');
 assert.equal(isSnappableAsset('sticker-blockfolk-wolf'), false, 'animals must remain freely placed');
 for (const assetId of ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window']) assert.equal(isSnappableAsset(assetId), false, `${assetId} must remain an ordinary sticker in Phase 0`);
 const constructionObject = (layerId, assetId, left, top = 700) => ({ blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top, angle: 0, getScaledWidth: () => 273, getScaledHeight: () => 320 });
