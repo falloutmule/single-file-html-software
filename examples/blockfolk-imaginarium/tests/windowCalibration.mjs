@@ -5,6 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '../../../packages/browser-runner/node_modules/playwright/index.mjs';
+import { CANONICAL_Z_TIER_WORLD, profileForAsset } from '../src/model/constructionModel.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const evidence = resolve(root, process.env.BLOCKFOLK_WINDOW_EVIDENCE_DIRECTORY || 'test-results/blockfolk-windows-001');
@@ -37,13 +38,25 @@ const measurements = await page.evaluate(async ({ entries, threshold }) => Promi
 await browser.close();
 
 for (const measurement of measurements) {
+  const profile = profileForAsset(measurement.assetId);
+  measurement.constructionCalibration = {
+    initialVisibleScaleRatio: profile.initialVisibleScaleRatio,
+    finalVisibleScaleRatio: profile.visibleScaleRatio,
+    defaultWorldExtent: profile.defaultWorldExtent,
+    paintedWorldWidth: measurement.bounds.width * profile.defaultWorldExtent / measurement.sourceHeight,
+    paintedWorldHeight: measurement.bounds.height * profile.defaultWorldExtent / measurement.sourceHeight
+  };
   assert.ok(measurement.paintedPixels > 0);
   assert.ok(Math.abs(measurement.centerOffset.x) <= 1 && Math.abs(measurement.centerOffset.y) <= 1, `${measurement.file} painted bounds must remain centered within one source pixel`);
   assert.ok(measurement.normalizedPaintedExtent.height >= .84 && measurement.normalizedPaintedExtent.height <= .88, `${measurement.file} must retain the reviewed one-cell wall height envelope`);
+  assert.ok(Math.abs(measurement.constructionCalibration.paintedWorldHeight - CANONICAL_Z_TIER_WORLD) < 1e-9, `${measurement.file} starting calibration must map painted height to one accepted logical tier`);
+  assert.ok(measurement.constructionCalibration.finalVisibleScaleRatio >= measurement.constructionCalibration.initialVisibleScaleRatio * .96
+    && measurement.constructionCalibration.finalVisibleScaleRatio <= measurement.constructionCalibration.initialVisibleScaleRatio * 1.04,
+  `${measurement.file} final calibration must remain inside the reviewed seam sweep`);
 }
 const report = {
   schema: 'blockfolk.window-calibration@1', paintedPixelCriterion: `decoded PNG alpha > ${alphaThreshold} on the 0-255 scale`,
-  releaseGuards: { maximumAbsoluteCenterOffsetSourcePx: 1, normalizedPaintedHeightRange: [.84, .88] }, assets: measurements
+  releaseGuards: { maximumAbsoluteCenterOffsetSourcePx: 1, normalizedPaintedHeightRange: [.84, .88], logicalZStepWorld: CANONICAL_Z_TIER_WORLD, visibleRatioSweep: [.96, 1.04] }, assets: measurements
 };
 await writeFile(resolve(evidence, 'window-calibration.json'), `${JSON.stringify(report, null, 2)}\n`);
 console.log('BLOCKFOLK_WINDOW_CALIBRATION PASS', JSON.stringify(report));

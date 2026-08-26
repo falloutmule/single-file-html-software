@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import {
   ALL_WINDOW_ASSET_IDS, CANONICAL_BLOCK_EXTENT_WORLD, CANONICAL_Z_TIER_WORLD, CONSTRUCTION_PROFILES,
-  GRID_DIRECTIONS, PORT_DIRECTION, boundaryPortsFor, buildComponentGrid, constructionOrientation,
-  findGridSnapCandidate, objectAnchor, profileForAsset, validConnections
+  GRID_DIRECTIONS, PORT_DIRECTION, boundaryPortsFor, buildComponentGrid, constructionOrientation, constructionScale,
+  creationExtentForAsset, findGridSnapCandidate, objectAnchor, profileForAsset, validConnections
 } from '../src/model/constructionModel.js';
 
 const BRICK = 'sticker-blockfolk-brick-stone-block';
@@ -20,7 +20,7 @@ const edge = (id, aLayerId, bLayerId, aAnchorId, aAssetId, bAssetId) => ({
 });
 const member = (layerId, assetId) => ({ layerId, assetId });
 const constructionObject = (layerId, assetId, left = 0, top = 0, extra = {}) => {
-  const source = sizes[assetId]; const extent = extra.extent || CANONICAL_BLOCK_EXTENT_WORLD;
+  const source = sizes[assetId]; const extent = extra.extent || creationExtentForAsset(assetId, CANONICAL_BLOCK_EXTENT_WORLD);
   return {
     blockfolkLayerId: layerId, blockfolkAssetId: assetId, left, top,
     angle: extra.angle || 0, flipX: !!extra.flipX,
@@ -45,12 +45,19 @@ for (const assetId of ALL_WINDOW_ASSET_IDS) {
   assert.deepEqual(profile.supportedOrientations, ['iso-a', 'iso-b']);
   assert.deepEqual(profile.wallPlanes, ['wall-iso-a', 'wall-iso-b']);
   assert.deepEqual(profile.visibleOrigin, { x: 0, y: 0 });
+  assert.ok(profile.visibleScaleRatio >= profile.initialVisibleScaleRatio * .96 && profile.visibleScaleRatio <= profile.initialVisibleScaleRatio * 1.04);
+  assert.equal(profile.defaultWorldExtent, CANONICAL_BLOCK_EXTENT_WORLD * profile.visibleScaleRatio);
+  assert.equal(profile.logicalAspect, 273 / 325);
+  assert.equal(profile.paintedBounds.height * profile.defaultWorldExtent / profile.sourceSize.height, CANONICAL_Z_TIER_WORLD);
+  assert.ok(profile.paintedBounds.width * profile.defaultWorldExtent / profile.sourceSize.height <= Math.hypot(55.6, 32.1));
   assert.equal(Object.isFrozen(profile), true); assert.equal(Object.isFrozen(profile.anchors), true);
   assert.equal(Number.isFinite(profile.anchors.northWest.x), true); assert.equal(Number.isFinite(profile.anchors.stackTop.y), true);
   assert.deepEqual(Object.keys(profile.anchors), ['northWest', 'southEast', 'stackTop', 'stackBase']);
   const ports = boundaryPortsFor(profile, { a: 0, b: 0, z: 0 }, new Map(), assetId);
   assert.equal(ports.length, 4); assert.deepEqual(ports.map((port) => port.direction).sort(), ['+A', '+Z', '-A', '-Z']);
   assert.equal(new Set(ports.map((port) => `${port.cell.a},${port.cell.b},${port.cell.z}:${port.direction}`)).size, 4);
+  const defaultObject = constructionObject(`${assetId}-default-scale`, assetId);
+  assert.ok(Math.abs(constructionScale(defaultObject) - CANONICAL_BLOCK_EXTENT_WORLD) < 1e-9, `${assetId} visible scale must normalize to one canonical logical cell`);
 }
 
 for (const assetId of ALL_WINDOW_ASSET_IDS) {
@@ -81,6 +88,9 @@ const squareProfile = profileForAsset(SQUARE); const roundProfile = profileForAs
 const squareHalf = objectAnchor(constructionObject('square-calibration', SQUARE), 'southEast');
 const roundHalf = objectAnchor(constructionObject('round-calibration', ROUND), 'southEast');
 assert.ok(Math.abs(squareHalf.x - roundHalf.x) < 1e-9 && Math.abs(squareHalf.y - roundHalf.y) < 1e-9, 'independent PNG aspect calibration must project both windows onto the same logical cell basis');
+const brickHalf = objectAnchor(constructionObject('brick-calibration', BRICK), 'southEast');
+assert.ok(Math.abs(squareHalf.x - brickHalf.x) < 1e-9 && Math.abs(squareHalf.y - brickHalf.y) < 1e-9, 'reduced Square art must retain the accepted block-cell A basis');
+assert.ok(Math.abs(roundHalf.x - brickHalf.x) < 1e-9 && Math.abs(roundHalf.y - brickHalf.y) < 1e-9, 'reduced Round art must retain the accepted block-cell A basis');
 assert.notEqual(squareProfile, roundProfile, 'each window retains independent visible calibration data');
 
 const wallEdges = [

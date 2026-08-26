@@ -16,7 +16,7 @@ import { READ_ONLY_LEGACY_NOTICE, ReadOnlyLegacySession } from '../model/ReadOnl
 import {
   SNAP_AMBIGUITY_SCREEN_PX, SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX, SNAP_EXACT_POSE_SCREEN_PX, SNAP_TOLERANCE_SCREEN_PX,
   SNAP_Z_INTENT_LATERAL_SCREEN_PX, SNAP_Z_INTENT_VERTICAL_SCREEN_PX, buildComponentGrid,
-  connectedLayerIds, duplicateConnections, findGridSnapCandidate, hasAssembly, isSnappableAsset,
+  connectedLayerIds, creationExtentForAsset, duplicateConnections, findGridSnapCandidate, hasAssembly, isSnappableAsset,
   makeConnection, profileForAsset, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
@@ -607,7 +607,8 @@ export class BlockFolkImaginariumApp {
     if (!asset || !['sticker', 'emoji'].includes(asset.kind)) throw new Error('That sticker could not be opened.');
     const before = preparedBefore || this.snapshot();
     const offset = (this.canvas.getObjects().length % 5) * 70;
-    const sticker = createSticker(assetId, { x: this.camera.centerX + offset, y: this.camera.centerY + offset, scale: Math.min(MAX_SCALE, (asset.defaultWorldExtent || 720) / Math.max(asset.width || 560, asset.height || 560)), sourceEmoji: asset.kind === 'emoji' ? asset.glyph : undefined });
+    const creationExtent = creationExtentForAsset(assetId, asset.defaultWorldExtent || 720);
+    const sticker = createSticker(assetId, { x: this.camera.centerX + offset, y: this.camera.centerY + offset, scale: Math.min(MAX_SCALE, creationExtent / Math.max(asset.width || 560, asset.height || 560)), sourceEmoji: asset.kind === 'emoji' ? asset.glyph : undefined });
     sticker.zIndex = this.canvas.getObjects().length;
     const image = await this.addFabricSticker(asset, sticker);
     this.canvas.setActiveObject(image); this.canvas.requestRenderAll();

@@ -103,6 +103,31 @@ async function connectBroad(sourceId, targetId, placement) {
   assert.fail(`public ${placement} window connection failed: ${await page.locator('#toast').textContent()}`);
 }
 
+async function connectExactComponentZ(sourceId, targetId) {
+  const before = await page.evaluate(({ sourceId: movingId, targetId: fixedId }) => {
+    const app = window.BlockFolkImaginarium.app;
+    const source = app.canvas.getObjects().find((object) => object.blockfolkLayerId === movingId);
+    const target = app.canvas.getObjects().find((object) => object.blockfolkLayerId === fixedId);
+    if (!source || !target) throw new Error('exact Z fixture members are required');
+    const members = app.objectsForMemberIds(app.selectedMemberIds(source));
+    app.translateObjects(members, Number(target.left) - Number(source.left), Number(target.top) - 73.1 - Number(source.top));
+    app.canvas.setActiveObject(source); source.setCoords(); app.canvas.requestRenderAll(); app.updateSelection();
+    return { edges: structuredClone(app.current.connections), activations: app.controls.activationCount };
+  }, { sourceId, targetId });
+  assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Snap selected construction pieces');
+  await touchControl(snapSelector);
+  const after = await page.evaluate((prior) => {
+    const app = window.BlockFolkImaginarium.app;
+    return {
+      added: app.current.connections.filter((edge) => !prior.edges.some((item) => item.id === edge.id)),
+      activationDelta: app.controls.activationCount - prior.activations,
+      toast: document.querySelector('#toast').textContent
+    };
+  }, before);
+  assert.equal(after.activationDelta, 1); assert.equal(after.added.length, 1); assert.equal(after.toast, 'Pieces connected.');
+  return after.added[0];
+}
+
 function normalizedState() {
   return page.evaluate(() => {
     const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas();
@@ -118,16 +143,18 @@ async function constructionProof(layerIds) {
     const app = window.BlockFolkImaginarium.app; const memberIds = new Set(ids); const grid = app.constructionGridFor(memberIds); const objects = app.canvas.getObjects();
     return {
       consistent: grid.consistent, occupiedCells: grid.occupiedCells.size,
+      connections: structuredClone(app.current.connections.filter((edge) => memberIds.has(edge.aLayerId) && memberIds.has(edge.bLayerId))),
       rows: objects.filter((object) => memberIds.has(object.blockfolkLayerId)).map((object) => ({
         id: object.blockfolkLayerId, assetId: object.blockfolkAssetId, index: objects.indexOf(object), origin: grid.origins.get(object.blockfolkLayerId),
-        top: Number(object.top || 0), left: Number(object.left || 0), angle: Number(object.angle || 0), flipX: !!object.flipX
+        top: Number(object.top || 0), left: Number(object.left || 0), angle: Number(object.angle || 0), flipX: !!object.flipX,
+        scaleX: Number(object.scaleX || 0), scaledWidth: object.getScaledWidth(), scaledHeight: object.getScaledHeight()
       }))
     };
   }, layerIds);
 }
 
 function assertCanonicalOrder(proof, label) {
-  assert.equal(proof.consistent, true); assert.equal(proof.occupiedCells, proof.rows.length, `${label} must have exactly one occupied cell per visible member`);
+  assert.equal(proof.consistent, true); assert.equal(proof.occupiedCells, proof.rows.length, `${label} must have exactly one occupied cell per visible member: ${JSON.stringify(proof)}`);
   const faceRank = (row) => [SQUARE, ROUND].includes(row.assetId) ? 1 : 0;
   const expected = [...proof.rows].sort((left, right) => left.origin.z - right.origin.z || faceRank(left) - faceRank(right) || left.top - right.top || left.left - right.left || left.id.localeCompare(right.id));
   assert.deepEqual([...proof.rows].sort((left, right) => left.index - right.index).map((row) => row.id), expected.map((row) => row.id), `${label} must use logical Z then same-tier window-face draw order`);
@@ -154,20 +181,50 @@ assert.deepEqual([squareEdgeB.aAnchorId, squareEdgeB.bAnchorId], ['northWest', '
 const squareIds = [squareLeft.id, square.id, squareRight.id]; const squareProof = await constructionProof(squareIds); assertCanonicalOrder(squareProof, 'Square Window wall');
 assert.equal(squareProof.rows.length, 3); assert.equal(squareProof.occupiedCells, 3); assert.equal(squareProof.rows.filter((row) => row.assetId === SQUARE).length, 1);
 assert.equal(squareProof.rows.find((row) => row.assetId === SQUARE).index, Math.max(...squareProof.rows.map((row) => row.index)), 'Square Window must paint in front of blocks on both its left and right contacts');
+const squareWindowRow = squareProof.rows.find((row) => row.assetId === SQUARE); const squareBlockRows = squareProof.rows.filter((row) => row.assetId === BRICK);
+assert.ok(Math.abs(squareWindowRow.scaledHeight * 313 / 363 - 73.1) < .001, 'Square Window painted height must begin at one logical tier');
+assert.ok(squareWindowRow.scaledHeight < Math.min(...squareBlockRows.map((row) => row.scaledHeight)) * .55, 'Square Window bitmap must be visibly smaller than a full cube while retaining its cell');
 const squareA = squareProof.rows.map((row) => row.origin.a).sort((a, b) => a - b);
 assert.deepEqual([squareA[1] - squareA[0], squareA[2] - squareA[1]], [1, 1]);
 assert.equal(squareProof.rows.find((row) => row.assetId === SQUARE).origin.a, squareA[1], 'Square Window must occupy the middle wall cell');
+const squareByA = [...squareProof.rows].sort((left, right) => left.origin.a - right.origin.a);
+const cellSteps = squareByA.slice(1).map((row, index) => ({ x: row.left - squareByA[index].left, y: row.top - squareByA[index].top }));
+assert.ok(cellSteps.every((step) => Math.abs(step.x - cellSteps[0].x) < .001 && Math.abs(step.y - cellSteps[0].y) < .001), 'Brick–Window–Brick centers must retain equal accepted A-cell steps');
 assert.equal(await page.locator(snapSelector).evaluate((element) => element.closest('.sfhs-cf-root').dataset.sfhsControlId), controllerId);
+
+// Add a complete adjacent Brick row so the decisive fixture exposes the
+// window's top, bottom, left, and right wall seams without a hidden host cell.
+const seamTopLeft = await addVisible(BRICK); await dragLayerTo(seamTopLeft.id, { x: 300, y: 500 });
+const seamTopMiddle = await addVisible(BRICK); await connectBroad(seamTopMiddle.id, seamTopLeft.id, 'A');
+const seamTopRight = await addVisible(BRICK); await connectBroad(seamTopRight.id, seamTopMiddle.id, 'A');
+const seamBridge = await connectExactComponentZ(seamTopRight.id, squareRight.id);
+assert.equal(['stackTop', 'stackBase'].includes(seamBridge.aAnchorId), true, `the two three-cell rows must merge through one vertical bridge edge: ${JSON.stringify(seamBridge)}`);
+const squareAssemblyIds = [...squareIds, seamTopLeft.id, seamTopMiddle.id, seamTopRight.id];
+const seamProof = await constructionProof(squareAssemblyIds); assertCanonicalOrder(seamProof, 'two-tier Square Window seam fixture');
+assert.equal(seamProof.rows.length, 6); assert.equal(seamProof.occupiedCells, 6);
+assert.equal(new Set(seamProof.rows.map((row) => `${row.origin.a},${row.origin.b},${row.origin.z}`)).size, 6, 'seam fixture must contain six visible occupants in six cells');
+assert.equal(seamProof.rows.filter((row) => row.assetId === SQUARE).length, 1, 'the middle window cell must contain only the visible window');
+for (let step = 0; step < 2; step += 1) await page.locator('[data-action="camera-zoom-in"]').click();
 await page.screenshot({ path: resolve(evidence, 'window-representative-400x844.png'), fullPage: true });
 
-const squareBeforeFlip = await normalizedState(); await touchControl('#selection-toolbar [data-action="flip"]'); const flippedSquareProof = await constructionProof(squareIds); assertCanonicalOrder(flippedSquareProof, 'flipped Square Window wall');
-assert.equal(flippedSquareProof.rows.find((row) => row.assetId === SQUARE).index, Math.max(...flippedSquareProof.rows.map((row) => row.index)), 'mirrored Square Window must remain in front of both same-tier blocks');
+const squareBeforeFlip = await normalizedState(); await touchControl('#selection-toolbar [data-action="flip"]'); const flippedSquareProof = await constructionProof(squareAssemblyIds); assertCanonicalOrder(flippedSquareProof, 'flipped Square Window wall');
 assert.ok(flippedSquareProof.rows.every((row) => row.flipX && row.angle === 180), 'whole Square Window assembly must switch to the mirrored authored plane');
 assert.deepEqual((await normalizedState()).connections, squareBeforeFlip.connections, 'Flip preserves window topology');
 const movingWindow = (await metrics()).find((entry) => entry.id === square.id); const beforeMove = await normalizedState();
 await nativeTouch(movingWindow.x, movingWindow.y, 'drag', { x: movingWindow.x + 28, y: movingWindow.y + 14 }); const afterMove = await normalizedState();
 const deltas = afterMove.stickers.map((sticker) => { const before = beforeMove.stickers.find((entry) => entry.layerId === sticker.layerId); return { x: sticker.x - before.x, y: sticker.y - before.y }; });
 assert.ok(deltas.every((delta) => Math.abs(delta.x - deltas[0].x) < .01 && Math.abs(delta.y - deltas[0].y) < .01), 'dragging the window moves the complete wall');
+const beforeResize = await normalizedState(); await touchControl('[data-action="show-selection-more"]'); await touchControl('#selection-more-sheet [data-action="bigger"]'); await touchControl('[data-action="close-selection-more"]');
+const afterResize = await normalizedState();
+assert.ok(afterResize.stickers.every((sticker) => {
+  const before = beforeResize.stickers.find((entry) => entry.layerId === sticker.layerId); return Math.abs(sticker.scaleX / before.scaleX - 1.1) < .001;
+}), 'one Bigger activation must preserve the calibrated member ratios across the complete wall');
+const beforeCopy = await page.evaluate(() => ({ stickers: window.BlockFolkImaginarium.app.current.stickers.length, connections: window.BlockFolkImaginarium.app.current.connections.length }));
+await touchControl('#selection-toolbar [data-action="copy"]');
+const copyDelta = await page.evaluate((before) => ({ stickers: window.BlockFolkImaginarium.app.current.stickers.length - before.stickers, connections: window.BlockFolkImaginarium.app.current.connections.length - before.connections }), beforeCopy);
+assert.deepEqual(copyDelta, { stickers: 6, connections: 5 }, 'Copy must duplicate the calibrated six-cell wall and its five edges');
+await touchControl('[data-action="undo"]');
+assert.deepEqual(await page.evaluate(() => ({ stickers: window.BlockFolkImaginarium.app.current.stickers.length, connections: window.BlockFolkImaginarium.app.current.connections.length })), beforeCopy, 'Undo after Copy must restore the original calibrated wall');
 const squarePersisted = await normalizedState(); const squarePictureId = await page.evaluate(() => window.BlockFolkImaginarium.app.current.id);
 await page.locator('[data-action="done-picture"]').click(); await page.locator('#gallery-screen:not([hidden])').waitFor();
 await page.locator(`[data-gallery-action="edit"][data-picture-id="${squarePictureId}"]`).click(); await page.locator('#editor-screen:not([hidden])').waitFor();
@@ -181,7 +238,8 @@ await selectVisibleLayer(square.id);
 assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.activeSticker()?.blockfolkLayerId), square.id, 'the visible Square Window must remain directly selectable between blocks');
 assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Detach selected sticker from its assembly');
 const squareBeforeUnsnap = await normalizedState(); await touchControl(snapSelector); const squareAfterUnsnap = await normalizedState();
-assert.equal(squareBeforeUnsnap.connections.length, 2); assert.equal(squareAfterUnsnap.connections.length, 0); assert.deepEqual(squareAfterUnsnap.stickers, squareBeforeUnsnap.stickers);
+const squareIncidentEdges = squareBeforeUnsnap.connections.filter((edge) => edge.aLayerId === square.id || edge.bLayerId === square.id).length;
+assert.equal(squareBeforeUnsnap.connections.length, 5); assert.equal(squareAfterUnsnap.connections.length, squareBeforeUnsnap.connections.length - squareIncidentEdges); assert.deepEqual(squareAfterUnsnap.stickers, squareBeforeUnsnap.stickers);
 
 // Round Window automatically proves the same middle-cell rule, vertical growth,
 // and mirrored plane without another physical-device matrix.
@@ -192,6 +250,7 @@ const roundRight = await addVisible(LOG); await connectBroad(roundRight.id, roun
 const roundRowProof = await constructionProof([roundLeft.id, round.id, roundRight.id]); assertCanonicalOrder(roundRowProof, 'Round Window wall');
 assert.equal(roundRowProof.rows.find((row) => row.assetId === ROUND).origin.a, [...roundRowProof.rows.map((row) => row.origin.a)].sort((a, b) => a - b)[1]);
 assert.equal(roundRowProof.rows.find((row) => row.assetId === ROUND).index, Math.max(...roundRowProof.rows.map((row) => row.index)), 'Round Window must paint in front of blocks on both horizontal contacts');
+assert.ok(Math.abs(roundRowProof.rows.find((row) => row.assetId === ROUND).scaledHeight * 309 / 359 - 73.1) < .001, 'Round Window painted height must begin at one logical tier');
 await page.screenshot({ path: resolve(evidence, 'window-profile-contact-sheet-400x844.png'), fullPage: true });
 const roundTop = await addVisible(BRICK); const roundZEdge = await connectBroad(roundTop.id, round.id, 'Z');
 assert.ok(['stackTop', 'stackBase'].includes(roundZEdge.aAnchorId)); assert.ok(['stackTop', 'stackBase'].includes(roundZEdge.bAnchorId));
@@ -201,6 +260,11 @@ await touchControl('#selection-toolbar [data-action="flip"]'); const flippedRoun
 assert.ok(flippedRoundProof.rows.every((row) => row.flipX && row.angle === 180));
 await page.screenshot({ path: resolve(evidence, 'window-mirrored-plane-400x844.png'), fullPage: true });
 await page.setViewportSize({ width: 844, height: 400 }); await page.waitForTimeout(120);
+await page.evaluate((ids) => {
+  const app = window.BlockFolkImaginarium.app; const members = app.objectsForMemberIds(new Set(ids)); const center = app.assemblyCenter(members);
+  app.translateObjects(members, app.camera.centerX - center.x, app.camera.centerY - center.y); app.canvas.requestRenderAll();
+}, roundIds);
+for (let step = 0; step < 2; step += 1) await page.locator('[data-action="camera-zoom-in"]').click();
 await page.screenshot({ path: resolve(evidence, 'window-profile-contact-sheet-844x400.png'), fullPage: true });
 await page.setViewportSize({ width: 400, height: 844 }); await page.waitForTimeout(120);
 

@@ -68,31 +68,46 @@ const ONE_CELL_BLOCK_PROFILE = Object.freeze({
 // Windows are real one-cell wall occupants, not decorations mounted over a
 // hidden block. Their authored iso-a plane exposes logical ±A and ±Z; the
 // accepted whole-assembly Flip projects those same logical edges onto iso-b.
-// X calibration compensates only for each PNG's aspect ratio so its ports use
-// the same cell-center basis as blocks. The construction rules remain shared.
+// Each PNG is visibly scaled to one painted Z tier while its anchors continue
+// to use the accepted projected block-cell basis. Art size and logical topology
+// are deliberately independent; the construction rules remain shared.
 const CANONICAL_BLOCK_ASPECT = 273 / 325;
-const WINDOW_SOURCE_SIZES = Object.freeze({
-  'sticker-blockfolk-square-window': Object.freeze({ width: 268, height: 363 }),
-  'sticker-blockfolk-round-window': Object.freeze({ width: 305, height: 359 })
+const WINDOW_CALIBRATIONS = Object.freeze({
+  'sticker-blockfolk-square-window': Object.freeze({
+    sourceSize: Object.freeze({ width: 268, height: 363 }),
+    paintedBounds: Object.freeze({ left: 25, top: 25, right: 242, bottom: 337, width: 218, height: 313 }),
+    visualRatioAdjustment: 1
+  }),
+  'sticker-blockfolk-round-window': Object.freeze({
+    sourceSize: Object.freeze({ width: 305, height: 359 }),
+    paintedBounds: Object.freeze({ left: 25, top: 25, right: 279, bottom: 333, width: 255, height: 309 }),
+    visualRatioAdjustment: 1
+  })
 });
-const windowAnchors = (sourceSize) => {
-  const horizontalFraction = .4 * CANONICAL_BLOCK_ASPECT / (sourceSize.width / sourceSize.height);
-  return Object.freeze({
-    northWest: Object.freeze({ x: -horizontalFraction, y: -.2, nx: -1, ny: -1, mate: 'southEast' }),
-    southEast: Object.freeze({ x: horizontalFraction, y: .2, nx: 1, ny: 1, mate: 'northWest' }),
-    stackTop: Object.freeze({ x: 0, y: -Z_TIER_EXTENT_RATIO, nx: 0, ny: -1, mate: 'stackBase' }),
-    stackBase: Object.freeze({ x: 0, y: Z_TIER_EXTENT_RATIO, nx: 0, ny: 1, mate: 'stackTop' })
-  });
-};
+const windowAnchors = Object.freeze({
+  northWest: blockAnchors.northWest, southEast: blockAnchors.southEast,
+  stackTop: blockAnchors.stackTop, stackBase: blockAnchors.stackBase
+});
 const oneCellWindowProfile = (assetId) => Object.freeze({
+  ...(() => {
+    const calibration = WINDOW_CALIBRATIONS[assetId];
+    const initialVisibleScaleRatio = CANONICAL_Z_TIER_WORLD * calibration.sourceSize.height
+      / (calibration.paintedBounds.height * CANONICAL_BLOCK_EXTENT_WORLD);
+    const visibleScaleRatio = initialVisibleScaleRatio * calibration.visualRatioAdjustment;
+    return {
+      sourceSize: calibration.sourceSize, paintedBounds: calibration.paintedBounds,
+      initialVisibleScaleRatio, visibleScaleRatio,
+      defaultWorldExtent: CANONICAL_BLOCK_EXTENT_WORLD * visibleScaleRatio,
+      logicalAspect: CANONICAL_BLOCK_ASPECT
+    };
+  })(),
   id: 'blockfolk-one-cell-window@1', kind: 'window', calibrationVersion: 1,
   footprint: Object.freeze([Object.freeze({ a: 0, b: 0, z: 0 })]),
   directions: Object.freeze(['+A', '-A', '+Z', '-Z']),
   supportedOrientations: Object.freeze(['iso-a', 'iso-b']),
   wallPlanes: Object.freeze(['wall-iso-a', 'wall-iso-b']),
-  anchors: windowAnchors(WINDOW_SOURCE_SIZES[assetId]),
-  visibleOrigin: Object.freeze({ x: 0, y: 0 }),
-  sourceSize: WINDOW_SOURCE_SIZES[assetId]
+  anchors: windowAnchors,
+  visibleOrigin: Object.freeze({ x: 0, y: 0 })
 });
 
 // Every authored BlockFolk material is the same logical one-cell construction
@@ -127,6 +142,9 @@ export const SNAP_SCALE_TOLERANCE = .02;
 export function profileForAsset(assetId) { return CONSTRUCTION_PROFILES[assetId] || null; }
 export function isSnappableAsset(assetId) { return !!profileForAsset(assetId); }
 export function anchorsForAsset(assetId) { return profileForAsset(assetId)?.anchors || null; }
+export function creationExtentForAsset(assetId, fallbackExtent) {
+  return Number(profileForAsset(assetId)?.defaultWorldExtent || fallbackExtent);
+}
 function anchorsForConnectionAsset(assetId) {
   const active = anchorsForAsset(assetId); const legacy = LEGACY_CONNECTION_ASSET_METADATA[assetId]?.anchors;
   return active && legacy ? { ...legacy, ...active } : active || legacy || null;
@@ -146,14 +164,17 @@ export function constructionOrientation(object) {
 }
 
 export function constructionScale(object) {
-  return Math.max(Math.abs(Number(object?.getScaledWidth?.() || 0)), Math.abs(Number(object?.getScaledHeight?.() || 0)));
+  const renderedExtent = Math.max(Math.abs(Number(object?.getScaledWidth?.() || 0)), Math.abs(Number(object?.getScaledHeight?.() || 0)));
+  const visibleScaleRatio = Number(profileForAsset(object?.blockfolkAssetId)?.visibleScaleRatio || 1);
+  return renderedExtent / Math.max(visibleScaleRatio, Number.EPSILON);
 }
 
 export function objectAnchor(object, anchorId) {
-  const anchor = anchorsForAsset(object?.blockfolkAssetId)?.[anchorId];
+  const profile = profileForAsset(object?.blockfolkAssetId); const anchor = profile?.anchors?.[anchorId];
   if (!anchor) return null;
-  const width = Math.abs(Number(object.getScaledWidth?.() || 0)) / 2;
-  const height = Math.abs(Number(object.getScaledHeight?.() || 0)) / 2;
+  const logicalExtent = constructionScale(object);
+  const width = profile.logicalAspect ? logicalExtent * profile.logicalAspect / 2 : Math.abs(Number(object.getScaledWidth?.() || 0)) / 2;
+  const height = profile.logicalAspect ? logicalExtent / 2 : Math.abs(Number(object.getScaledHeight?.() || 0)) / 2;
   const offset = rotate(anchor.x * width, anchor.y * height, Number(object.angle || 0));
   const normal = rotate(anchor.nx, anchor.ny, Number(object.angle || 0));
   return {
