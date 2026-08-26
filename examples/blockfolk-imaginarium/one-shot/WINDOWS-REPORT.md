@@ -1,108 +1,92 @@
 # BlockFolk Stage 3 One-Cell Windows Report
 
-Status: **PASS — EXACT PAGES ARTIFACT PUBLISHED — SAMSUNG ACCEPTED**
+Status: **AUTOMATED AND PUBLICATION PASS — REPRESENTATIVE SAMSUNG CHECK PENDING**
 
-## WHAT WAS DONE
+## AUTHORITY AND PRIOR PHYSICAL FAILURE
 
-- Enabled Square Window and Round Window as real one-cell construction occupants through the shared `blockfolk-one-cell-window@1` contract.
-- Gave each window only the four contacts appropriate to one wall plane: two horizontal neighbors and `+Z`/`-Z`.
-- Kept the existing whole-assembly Flip behavior as the route from the authored iso-a plane to the mirrored iso-b plane.
-- Used asset-local visible-anchor calibration only to place each differently proportioned PNG on the same logical cell basis as blocks.
-- Preserved the Stage 1/2 grid, exact `73.1` Z tier, occupancy, pose arbitration, Snap/Unsnap controller, logical-Z draw order, transforms, persistence, page@3 schema, Classic world, catalog, and assets.
-- Did not add hidden blocks, overlays, formation counters, typed ports, recipes, schema fields, pair rules, or door behavior.
-- After the first Samsung check exposed the rear/left window being painted behind its neighboring block, changed only equal-tier internal assembly ordering: blocks paint first and window faces paint afterward. Logical Z remains the first and controlling draw-order key.
+The preceding Stage 3 build (`blockfolk-imaginarium-6731182612c5`) physically failed. Its Square Window connected and painted in front, but remained approximately full-cube height and read as a decoration attached to a neighboring block rather than a wall-cell occupant. That Samsung result remains authoritative for the old build; it is not reclassified as a pass.
 
-## WHAT WAS VERIFIED
+This bounded repair changes only window creation scale and window construction calibration. Failed oversized Stage 3 prototype saves are unsupported and receive no migration or load-time rewrite. Ordinary accepted page@3 pictures continue to load with their stored transforms unchanged.
 
-- Both windows have one logical footprint cell, the same shared window profile ID, zero visible-origin offset, and only `+A`, `-A`, `+Z`, and `-Z` contacts in iso-a.
-- Flip exposes the equivalent iso-b wall plane without changing cell occupancy, connections, or Z geometry.
-- Exact A-wall and mirrored B-wall placement, `+Z`, `-Z`, mixed block/window contact, occupied-cell rejection, and legacy connection readability pass in the model lane.
-- Square Window connects between two Brick blocks as exactly three occupied cells with no hidden block.
-- Round Window connects between two Log blocks and accepts a vertical Brick neighbor; the resulting assembly contains four occupied cells and no hidden block.
-- Browser verification uses the visible Building catalog, native touch dragging, and the public Snap/Unsnap controller.
-- Flip, whole-assembly drag, exact save/reload, PNG export, puzzle export, and Unsnap pass through public product behavior.
-- Unsnap removes the selected window's incident edges without moving any member.
-- Portrait `400×844` and landscape `844×400` screenshots show both authored window shapes and the mirrored plane.
-- Stage 1 grid, Stage 2 all-material, full catalog/product, historical page@3, read-only page@4, lint, typecheck, repository, SFHS inspect/validate/check/build/pack/verify, packed purity, and deterministic double-pack lanes pass.
-- Local source, exact candidate, and live Pages Chromium lanes report zero unexpected requests and zero console/page errors.
-- Direct Fabric-index assertions prove Square and Round windows paint after same-tier blocks on both horizontal sides, before and after Flip. Creation order and selected member no longer decide whether the window frame is visible.
-- Replacement Samsung evidence shows the rear/left Square Window fully visible in front of its Brick neighbor. The permanent controller reads `Unsnap`, proving the photographed pieces are connected rather than merely overlaid.
+## IMPLEMENTATION
 
-## SAMSUNG FINDING AND BOUNDED REPAIR
+- Square and Round Windows remain genuine one-cell occupants with no hidden block, overlay, recipe, or alternate topology.
+- The immutable logical cell uses the accepted block projection: canonical extent `161.9281815604032`, projected aspect `273/325`, A anchors at `±0.4/±0.2`, and Z center step exactly `73.1` world units.
+- Window artwork is visibly smaller while its ports and occupancy continue to use that full virtual block-cell basis.
+- A profile-aware creation-extent lookup applies the calibrated extent only when a new window is added. All other assets retain their existing spawn extent.
+- The authored iso-a plane exposes only `+A`, `-A`, `+Z`, and `-Z`; whole-assembly Flip remains the route to iso-b. No literal B ports were added.
+- Stage 1/2 snapping, arbitration, controller behavior, connections, logical-Z order, persistence schema, background, catalog placement, and assets are unchanged.
 
-- Physical evidence from the first Stage 3 candidate showed a connected window on the rear/left contact behind its Log neighbor while the still-loose front/right window appeared correctly in front.
-- Root cause: canonical assembly order used logical Z and then generic screen `top → left`; that was valid for blocks but allowed one authored window face to paint before its adjacent block.
-- Repair: keep logical Z first, then paint blocks before window faces within the same tier, then retain the existing `top → left → stable ID` order inside each kind.
-- Unchanged: cell coordinates, `73.1`, candidate selection, connections, transforms, assets, persistence, controller behavior, whole-component layer movement, and block-only A/B ordering.
+## REPRODUCIBLE CALIBRATION
 
-## REPRODUCIBLE WINDOW CALIBRATION
+Painted pixels are decoded PNG pixels whose alpha is greater than `8` on the 0–255 scale. Bounds are inclusive. The starting visual ratio makes the painted frame exactly one accepted Z tier high; the decisive seam fixture required no additional adjustment.
 
-Painted pixels are decoded PNG pixels with alpha greater than `8` on the 0–255 scale. Bounds are inclusive. Center offsets compare the painted-bounds center with the source-image center.
+| Window | Source | Painted bounds | Painted size | Visual ratio | Creation extent | Painted world size |
+|---|---:|---:|---:|---:|---:|---:|
+| Square | 268×363 | 25,25–242,337 | 218×313 | 0.5235488689 | 84.7773162939 | 50.9130990415×73.1 |
+| Round | 305×359 | 25,25–279,333 | 255×309 | 0.5244823856 | 84.9284789644 | 60.3252427184×73.1 |
 
-| Window | Source | Painted bounds | Painted size | Center offset | Normalized size |
-|---|---:|---:|---:|---:|---:|
-| Square | 268×363 | 25,25–242,337 | 218×313 | 0, 0 | 0.813433×0.862259 |
-| Round | 305×359 | 25,25–279,333 | 255×309 | 0, 0 | 0.836066×0.860724 |
+The measured visual-ratio release sweep is ±4% around each initial ratio. It is a Stage 3 calibration guard, not a framework-level definition for future artwork.
 
-Both visible centers are exact. Their independent source aspect ratios are recorded in the construction profile solely to calibrate visible horizontal contacts to the canonical block-cell basis; topology remains shared.
+## VERIFICATION
 
-## WHAT FAILED DURING VERIFICATION
+- Model tests prove both windows retain one cell, four authorized contacts, the accepted full virtual cell, exact A geometry, exact `73.1` Z geometry, mixed block/window construction, occupied-cell rejection, and legacy connection readability.
+- The decisive browser fixture constructs Brick → Square Window → Brick with a complete adjacent Brick row. Six visible occupants produce six distinct cells, with no block behind the window.
+- The permanent public controller creates one vertical bridge between two three-cell rows. Direct logical-grid and Fabric-index assertions retain logical-Z ordering and the same-tier window-face order.
+- Round Window independently proves the same middle-cell calibration, vertical growth, occupancy, and mirrored plane.
+- Flip, whole-assembly drag, Bigger, assembly Copy, Undo, exact save/reload, recovery, PNG export, puzzle export, and non-moving Unsnap pass.
+- Portrait `400×844` and landscape `844×400` screenshots show the calibrated walls at phone scale. The Square seam fixture visually closes without requiring adjustment beyond the measured starting ratio.
+- Stage 1 grid, Stage 2 all-material, full catalog/product, historical page@3, read-only page@4, lint, typecheck, SFHS inspect/validate/check/build/pack/verify, packed purity, offline/no-request, and deterministic double-pack lanes pass.
+- The frozen local candidate and the exact live Pages URL both pass window and full-product Chromium lanes with zero unexpected requests and zero console/page errors.
 
-- The first published Stage 3 candidate physically failed the left/rear window-face ordering check. The screenshot-backed defect was repaired and the replacement subsequently passed the targeted Samsung check.
-- The broad product browser scenario originally expected windows to be ordinary, Snap-disabled stickers. That Stage 2 assertion was updated to the authorized Stage 3 contract while retaining the Door-disabled proof.
-- The first revised assertion looked for a non-existent nested label element. It was corrected to verify the real permanent controller's accessible label; the rerun and complete browser suite pass.
-- The SFHS changed-path selector retains its known review warning for project-specific paths. Explicit model, calibration, window browser, full product, exact-artifact, and live browser lanes cover every changed production and test path.
+## PACKED ARTIFACT INVENTORY
 
-## CURRENT EXACT STATE
+The exact 10,386,296-byte artifact is fully explained:
+
+- active BlockFolk media: 9,702,970 bytes;
+- production JavaScript: 631,065 bytes;
+- production CSS: 31,584 bytes;
+- HTML/tag bytes: 20,677 bytes;
+- 31 exact active BlockFolk PNGs;
+- six essential bundled Lucide category icons;
+- native Unicode emoji using the device font;
+- zero unclaimed media, alternate worlds, donor/demo assets, emoji fonts, or runtime network dependencies.
+
+## EXACT PUBLISHED STATE
 
 - Branch: `feature/blockfolk-grid-snap-completion-001`
-- Stage 3 registration commit: `9e87f07aca359f496c7e6a44d49fd2bea9bdcbe3`
-- Window-foreground repair commit: `a936f48f07f2ed7ce6cdb1b35c28dd2f03e30f58`, pushed to origin
-- Build ID: `blockfolk-imaginarium-6731182612c5`
-- Source SHA-256: `6731182612c5ef5a45c4a74ca5ab9693ce5807273e2c92c6f9d4e7a709ec328d`
-- Artifact bytes: `10,385,756`
-- Artifact SHA-256: `fee6b596b3202117daa86e859933e97d4c573902157adc2b87086e126bb20f6e`
-- Pages commit: `d93305f22fed5f2355aa5140c1d21f17b91cb5ff`
-- Pages workflow: `32976877807`, passed
-- Live retrieval: `10,385,756` bytes and exact SHA-256 match
-- Packed inventory: `9,702,970` media bytes, `630,525` JavaScript bytes, `31,584` CSS bytes, and `20,677` HTML/tag bytes; 31 active BlockFolk PNGs and zero unclaimed media
+- Implementation commit: `473b336a421b92ccc907e801c881b7abb4a576bf`
+- Build ID: `blockfolk-imaginarium-839cf9b08581`
+- Source SHA-256: `839cf9b08581a06035607ddba23accbbe949cc8feee5ca02a7e2993fd215fa20`
+- Artifact bytes: `10,386,296`
+- Artifact SHA-256: `f499d8f4b26f0a22642b3856cea5e43353751f94ff5d4a17f89a33d2bb83c61d`
+- Pages commit: `50221476c532df8bfd82212b6da7fb4e99e85d8b`
+- Pages workflow: `33024768209`, passed
+- Live retrieval: `10,386,296` bytes; SHA-256 exact match
+- Live Chromium: portrait and landscape PASS; zero unexpected requests; zero console/page errors
 
-## REPRESENTATIVE SAMSUNG CHECK — PASS
+## REPRESENTATIVE SAMSUNG CHECK — PENDING
 
-The replacement candidate was checked with the targeted sequence:
+Use only this sequence on the published candidate:
 
-> Put Square Window on the rear/left side of one Log → Snap → confirm the full window frame stays in front → Flip → confirm it remains in front
+> Make Brick → Square Window → Brick, add the adjacent Brick row, Flip once, drag the assembly, save/reload, then Unsnap once.
 
-The submitted Samsung screenshot confirms the connected rear/left window remains in front. `Unsnap` is visible, the complete frame is readable, and the adjacent Brick no longer paints over it.
-
-No Round Window matrix is required on the phone; the shared-contract automated proof owns that coverage.
-
-## REMAINING BLOCKERS
-
-- None for Stage 3.
-
-## NEXT ACTIONABLE STEP
-
-- Stop. Begin doors or any later stage only under a separate bounded request.
+Acceptance requires the Square Window itself to occupy the middle wall cell, with no hidden block behind it and clean seams to the neighboring cells. No Round Window matrix is required because both windows use the same verified logical-cell contract.
 
 ## EVIDENCE
 
-- Ignored pre-edit backup: `test-results/blockfolk-windows-001/index.before-windows.html`
-- Pre-repair backup: `test-results/blockfolk-window-foreground-001/index.before-window-foreground.html`
-- Exact replacement candidate: `test-results/blockfolk-window-foreground-001/blockfolk-window-foreground-001.html`
-- Window calibration JSON: `test-results/blockfolk-windows-001/window-calibration.json`
-- Replacement packed inventory: `test-results/blockfolk-window-foreground-001/packed-asset-inventory.json`
-- Local screenshots/proof: `test-results/blockfolk-windows-001/browser/`
-- Exact replacement proof: `test-results/blockfolk-window-foreground-001/exact-window/browser/`
-- Live replacement window proof: `test-results/blockfolk-window-foreground-001/live-window/browser/`
-- Live replacement product proof: `test-results/blockfolk-window-foreground-001/live-product/`
-- Samsung foreground PASS: `test-results/blockfolk-window-foreground-001/samsung/window-left-foreground-pass.jpg` (`189c239bdf0615765e855805eb7a0ec7e05aaeb0f865e4098081c5ccad214d9d`)
-- Pages workflow: `https://github.com/falloutmule/single-file-html-software/actions/runs/32976877807`
+- Pre-edit backup: `test-results/blockfolk-window-cell-calibration-001/index.before-window-cell-calibration.html`
+- Frozen exact candidate: `test-results/blockfolk-window-cell-calibration-001/blockfolk-window-cell-calibration-001.html`
+- Packed inventory: `test-results/blockfolk-window-cell-calibration-001/packed-asset-inventory.json`
+- Local calibration and screenshots: `test-results/blockfolk-windows-001/`
+- Exact-candidate Chromium: `test-results/blockfolk-window-cell-calibration-001/exact-window/` and `exact-product/`
+- Live Chromium: `test-results/blockfolk-window-cell-calibration-001/live-window/` and `live-product/`
+- Pages workflow: `https://github.com/falloutmule/single-file-html-software/actions/runs/33024768209`
 
 ## GITHUB PAGES URL
 
-- `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=d93305f-a936f48-6731182612c5`
+- `https://falloutmule.github.io/single-file-html-software/blockfolk-imaginarium/index.html?v=5022147-473b336-839cf9b08581`
 
 ## RESULT
 
-**STAGE 3: PASS / EXACT PAGES ARTIFACT PUBLISHED / SAMSUNG ACCEPTED**
+**STAGE 3 CALIBRATION AND PUBLICATION: PASS. STAGE 3 PHYSICAL ACCEPTANCE: PENDING ONE REPRESENTATIVE SAMSUNG CHECK.**
