@@ -44,8 +44,9 @@ assert.deepEqual(SNAPPABLE_ASSET_IDS, [
   'sticker-blockfolk-grass-dirt-block', 'sticker-blockfolk-dirt-block', 'sticker-blockfolk-stone-block',
   'sticker-blockfolk-sand-block', 'sticker-blockfolk-snow-block', 'sticker-blockfolk-water-block',
   'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block',
-  'sticker-blockfolk-brick-stone-block'
+  'sticker-blockfolk-brick-stone-block', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
 ]);
-for (const id of ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', 'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window']) assert.equal(isSnappableAsset(id), false);
+for (const id of ['sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door']) assert.equal(isSnappableAsset(id), false);
+for (const id of ['sticker-blockfolk-square-window', 'sticker-blockfolk-round-window']) assert.equal(isSnappableAsset(id), true);
 
 console.log('BLOCKFOLK_HISTORICAL_RECOVERY PASS', JSON.stringify({ fixtures: manifest.fixtures.length, pageWriter: PAGE_SCHEMA, page4Hash: session.canonicalHash, blockSnapAssets: SNAPPABLE_ASSET_IDS.length }));

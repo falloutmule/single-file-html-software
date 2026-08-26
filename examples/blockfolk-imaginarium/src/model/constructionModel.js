@@ -7,9 +7,11 @@ const ALL_BLOCK_IDS = Object.freeze([
   'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block',
   'sticker-blockfolk-brick-stone-block'
 ]);
-const FACE_IDS = Object.freeze([
-  'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door',
+const ALL_WINDOW_IDS = Object.freeze([
   'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
+]);
+const FACE_IDS = Object.freeze([
+  'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', ...ALL_WINDOW_IDS
 ]);
 
 export const GRID_DIRECTIONS = Object.freeze({
@@ -63,17 +65,49 @@ const ONE_CELL_BLOCK_PROFILE = Object.freeze({
   visibleOrigin: Object.freeze({ x: 0, y: 0 })
 });
 
+// Windows are real one-cell wall occupants, not decorations mounted over a
+// hidden block. Their authored iso-a plane exposes logical ±A and ±Z; the
+// accepted whole-assembly Flip projects those same logical edges onto iso-b.
+// X calibration compensates only for each PNG's aspect ratio so its ports use
+// the same cell-center basis as blocks. The construction rules remain shared.
+const CANONICAL_BLOCK_ASPECT = 273 / 325;
+const WINDOW_SOURCE_SIZES = Object.freeze({
+  'sticker-blockfolk-square-window': Object.freeze({ width: 268, height: 363 }),
+  'sticker-blockfolk-round-window': Object.freeze({ width: 305, height: 359 })
+});
+const windowAnchors = (sourceSize) => {
+  const horizontalFraction = .4 * CANONICAL_BLOCK_ASPECT / (sourceSize.width / sourceSize.height);
+  return Object.freeze({
+    northWest: Object.freeze({ x: -horizontalFraction, y: -.2, nx: -1, ny: -1, mate: 'southEast' }),
+    southEast: Object.freeze({ x: horizontalFraction, y: .2, nx: 1, ny: 1, mate: 'northWest' }),
+    stackTop: Object.freeze({ x: 0, y: -Z_TIER_EXTENT_RATIO, nx: 0, ny: -1, mate: 'stackBase' }),
+    stackBase: Object.freeze({ x: 0, y: Z_TIER_EXTENT_RATIO, nx: 0, ny: 1, mate: 'stackTop' })
+  });
+};
+const oneCellWindowProfile = (assetId) => Object.freeze({
+  id: 'blockfolk-one-cell-window@1', kind: 'window', calibrationVersion: 1,
+  footprint: Object.freeze([Object.freeze({ a: 0, b: 0, z: 0 })]),
+  directions: Object.freeze(['+A', '-A', '+Z', '-Z']),
+  supportedOrientations: Object.freeze(['iso-a', 'iso-b']),
+  wallPlanes: Object.freeze(['wall-iso-a', 'wall-iso-b']),
+  anchors: windowAnchors(WINDOW_SOURCE_SIZES[assetId]),
+  visibleOrigin: Object.freeze({ x: 0, y: 0 }),
+  sourceSize: WINDOW_SOURCE_SIZES[assetId]
+});
+
 // Every authored BlockFolk material is the same logical one-cell construction
 // primitive. The engine has no material-pair path; visible art calibration is
 // verified independently without changing topology or grid geometry.
 export const CONSTRUCTION_PROFILES = Object.freeze(Object.fromEntries(
-  ALL_BLOCK_IDS.map((assetId) => [assetId, ONE_CELL_BLOCK_PROFILE])
+  [...ALL_BLOCK_IDS.map((assetId) => [assetId, ONE_CELL_BLOCK_PROFILE]),
+    ...ALL_WINDOW_IDS.map((assetId) => [assetId, oneCellWindowProfile(assetId)])]
 ));
 export const SNAPPABLE_ASSET_METADATA = Object.freeze(Object.fromEntries(
   Object.entries(CONSTRUCTION_PROFILES).map(([assetId, profile]) => [assetId, Object.freeze({ kind: profile.kind, anchors: profile.anchors, profile })])
 ));
 export const SNAPPABLE_ASSET_IDS = Object.freeze(Object.keys(CONSTRUCTION_PROFILES));
 export const ALL_BLOCK_ASSET_IDS = ALL_BLOCK_IDS;
+export const ALL_WINDOW_ASSET_IDS = ALL_WINDOW_IDS;
 
 // Page@3 readers retain every historic block/face anchor. Reader compatibility
 // is not a second candidate engine: only CONSTRUCTION_PROFILES can extend a grid.
@@ -93,7 +127,10 @@ export const SNAP_SCALE_TOLERANCE = .02;
 export function profileForAsset(assetId) { return CONSTRUCTION_PROFILES[assetId] || null; }
 export function isSnappableAsset(assetId) { return !!profileForAsset(assetId); }
 export function anchorsForAsset(assetId) { return profileForAsset(assetId)?.anchors || null; }
-function anchorsForConnectionAsset(assetId) { return LEGACY_CONNECTION_ASSET_METADATA[assetId]?.anchors || null; }
+function anchorsForConnectionAsset(assetId) {
+  const active = anchorsForAsset(assetId); const legacy = LEGACY_CONNECTION_ASSET_METADATA[assetId]?.anchors;
+  return active && legacy ? { ...legacy, ...active } : active || legacy || null;
+}
 
 function rotate(x, y, degrees = 0) {
   const radians = degrees * Math.PI / 180;

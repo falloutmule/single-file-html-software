@@ -552,7 +552,8 @@ const ordinaryCount = await page.evaluate(() => window.BlockFolkImaginarium.app.
 await page.evaluate(() => window.BlockFolkImaginarium.app.copySelected()); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), ordinaryCount + 1, 'Door must remain copyable');
 await page.evaluate(() => window.BlockFolkImaginarium.app.trashSelected()); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), ordinaryCount, 'Door copy must remain deletable');
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects().find((object) => object.blockfolkAssetId === 'sticker-blockfolk-square-window')); app.updateSelection(); });
-assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').isDisabled(), true, 'Window Snap must also remain visibly disabled');
+assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').isDisabled(), false, 'Stage 3 Window Snap must remain visibly enabled');
+assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').getAttribute('aria-label'), 'Snap selected construction pieces', 'loose Stage 3 Window must expose Snap through the permanent controller');
 await page.screenshot({ path: resolve(evidenceDirectory, 'door-window-ordinary-stickers-400x844.png'), fullPage: true });
 
 // Behind/In Front must change both serialized order and the rendered overlap.
