@@ -17,7 +17,7 @@ import {
   SNAP_AMBIGUITY_SCREEN_PX, SNAP_CROSS_AXIS_AMBIGUITY_SCREEN_PX, SNAP_EXACT_POSE_SCREEN_PX, SNAP_TOLERANCE_SCREEN_PX,
   SNAP_Z_INTENT_LATERAL_SCREEN_PX, SNAP_Z_INTENT_VERTICAL_SCREEN_PX, buildComponentGrid,
   connectedLayerIds, duplicateConnections, findGridSnapCandidate, hasAssembly, isSnappableAsset,
-  makeConnection, removeMemberConnections, validConnections
+  makeConnection, profileForAsset, removeMemberConnections, validConnections
 } from '../model/constructionModel.js';
 import { BlockFolkImaginariumStorage, PREFERENCE_KEY, loadPreferences, savePreferences } from '../model/storage.js';
 import { processStickerPack, safeId } from '../model/stickerPacks.js';
@@ -759,7 +759,13 @@ export class BlockFolkImaginariumApp {
     if (!grid.consistent || grid.memberIds.size !== members.length || members.some((object) => !grid.origins.has(object.blockfolkLayerId))) return false;
     const ordered = [...members].sort((left, right) => {
       const leftZ = grid.origins.get(left.blockfolkLayerId).z; const rightZ = grid.origins.get(right.blockfolkLayerId).z;
+      // A window is the visible face of its occupied wall cell. Keep logical Z
+      // authoritative, then paint same-tier blocks before windows so either
+      // horizontal connection direction exposes the authored window frame.
+      const leftFace = profileForAsset(left.blockfolkAssetId)?.kind === 'window' ? 1 : 0;
+      const rightFace = profileForAsset(right.blockfolkAssetId)?.kind === 'window' ? 1 : 0;
       return leftZ - rightZ
+        || leftFace - rightFace
         || Number(left.top || 0) - Number(right.top || 0)
         || Number(left.left || 0) - Number(right.left || 0)
         || left.blockfolkLayerId.localeCompare(right.blockfolkLayerId);

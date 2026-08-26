@@ -128,8 +128,12 @@ async function constructionProof(layerIds) {
 
 function assertCanonicalOrder(proof, label) {
   assert.equal(proof.consistent, true); assert.equal(proof.occupiedCells, proof.rows.length, `${label} must have exactly one occupied cell per visible member`);
-  const expected = [...proof.rows].sort((left, right) => left.origin.z - right.origin.z || left.top - right.top || left.left - right.left || left.id.localeCompare(right.id));
-  assert.deepEqual([...proof.rows].sort((left, right) => left.index - right.index).map((row) => row.id), expected.map((row) => row.id), `${label} must use generic logical-Z/A-B draw order`);
+  const faceRank = (row) => [SQUARE, ROUND].includes(row.assetId) ? 1 : 0;
+  const expected = [...proof.rows].sort((left, right) => left.origin.z - right.origin.z || faceRank(left) - faceRank(right) || left.top - right.top || left.left - right.left || left.id.localeCompare(right.id));
+  assert.deepEqual([...proof.rows].sort((left, right) => left.index - right.index).map((row) => row.id), expected.map((row) => row.id), `${label} must use logical Z then same-tier window-face draw order`);
+  for (const windowRow of proof.rows.filter((row) => faceRank(row))) for (const blockRow of proof.rows.filter((row) => !faceRank(row) && row.origin.z === windowRow.origin.z)) {
+    assert.ok(blockRow.index < windowRow.index, `${label}: the visible window must paint in front of a same-tier block on either horizontal side`);
+  }
 }
 
 await page.goto(artifactUrl, { waitUntil: 'load' }); await page.locator('#app[data-boot="ready"]').waitFor();
@@ -149,6 +153,7 @@ const squareRight = await addVisible(BRICK); const squareEdgeB = await connectBr
 assert.deepEqual([squareEdgeB.aAnchorId, squareEdgeB.bAnchorId], ['northWest', 'southEast']);
 const squareIds = [squareLeft.id, square.id, squareRight.id]; const squareProof = await constructionProof(squareIds); assertCanonicalOrder(squareProof, 'Square Window wall');
 assert.equal(squareProof.rows.length, 3); assert.equal(squareProof.occupiedCells, 3); assert.equal(squareProof.rows.filter((row) => row.assetId === SQUARE).length, 1);
+assert.equal(squareProof.rows.find((row) => row.assetId === SQUARE).index, Math.max(...squareProof.rows.map((row) => row.index)), 'Square Window must paint in front of blocks on both its left and right contacts');
 const squareA = squareProof.rows.map((row) => row.origin.a).sort((a, b) => a - b);
 assert.deepEqual([squareA[1] - squareA[0], squareA[2] - squareA[1]], [1, 1]);
 assert.equal(squareProof.rows.find((row) => row.assetId === SQUARE).origin.a, squareA[1], 'Square Window must occupy the middle wall cell');
@@ -156,6 +161,7 @@ assert.equal(await page.locator(snapSelector).evaluate((element) => element.clos
 await page.screenshot({ path: resolve(evidence, 'window-representative-400x844.png'), fullPage: true });
 
 const squareBeforeFlip = await normalizedState(); await touchControl('#selection-toolbar [data-action="flip"]'); const flippedSquareProof = await constructionProof(squareIds); assertCanonicalOrder(flippedSquareProof, 'flipped Square Window wall');
+assert.equal(flippedSquareProof.rows.find((row) => row.assetId === SQUARE).index, Math.max(...flippedSquareProof.rows.map((row) => row.index)), 'mirrored Square Window must remain in front of both same-tier blocks');
 assert.ok(flippedSquareProof.rows.every((row) => row.flipX && row.angle === 180), 'whole Square Window assembly must switch to the mirrored authored plane');
 assert.deepEqual((await normalizedState()).connections, squareBeforeFlip.connections, 'Flip preserves window topology');
 const movingWindow = (await metrics()).find((entry) => entry.id === square.id); const beforeMove = await normalizedState();
@@ -185,6 +191,7 @@ const round = await addVisible(ROUND); await connectBroad(round.id, roundLeft.id
 const roundRight = await addVisible(LOG); await connectBroad(roundRight.id, round.id, 'A');
 const roundRowProof = await constructionProof([roundLeft.id, round.id, roundRight.id]); assertCanonicalOrder(roundRowProof, 'Round Window wall');
 assert.equal(roundRowProof.rows.find((row) => row.assetId === ROUND).origin.a, [...roundRowProof.rows.map((row) => row.origin.a)].sort((a, b) => a - b)[1]);
+assert.equal(roundRowProof.rows.find((row) => row.assetId === ROUND).index, Math.max(...roundRowProof.rows.map((row) => row.index)), 'Round Window must paint in front of blocks on both horizontal contacts');
 await page.screenshot({ path: resolve(evidence, 'window-profile-contact-sheet-400x844.png'), fullPage: true });
 const roundTop = await addVisible(BRICK); const roundZEdge = await connectBroad(roundTop.id, round.id, 'Z');
 assert.ok(['stackTop', 'stackBase'].includes(roundZEdge.aAnchorId)); assert.ok(['stackTop', 'stackBase'].includes(roundZEdge.bAnchorId));
