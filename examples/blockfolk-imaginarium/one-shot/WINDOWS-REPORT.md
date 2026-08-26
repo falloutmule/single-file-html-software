@@ -1,6 +1,6 @@
 # BlockFolk Stage 3 One-Cell Windows Report
 
-Status: **AUTOMATED PASS — EXACT PAGES ARTIFACT PUBLISHED — SAMSUNG CHECK PENDING**
+Status: **PASS — EXACT PAGES ARTIFACT PUBLISHED — SAMSUNG ACCEPTED**
 
 ## WHAT WAS DONE
 
@@ -26,6 +26,7 @@ Status: **AUTOMATED PASS — EXACT PAGES ARTIFACT PUBLISHED — SAMSUNG CHECK PE
 - Stage 1 grid, Stage 2 all-material, full catalog/product, historical page@3, read-only page@4, lint, typecheck, repository, SFHS inspect/validate/check/build/pack/verify, packed purity, and deterministic double-pack lanes pass.
 - Local source, exact candidate, and live Pages Chromium lanes report zero unexpected requests and zero console/page errors.
 - Direct Fabric-index assertions prove Square and Round windows paint after same-tier blocks on both horizontal sides, before and after Flip. Creation order and selected member no longer decide whether the window frame is visible.
+- Replacement Samsung evidence shows the rear/left Square Window fully visible in front of its Brick neighbor. The permanent controller reads `Unsnap`, proving the photographed pieces are connected rather than merely overlaid.
 
 ## SAMSUNG FINDING AND BOUNDED REPAIR
 
@@ -47,7 +48,7 @@ Both visible centers are exact. Their independent source aspect ratios are recor
 
 ## WHAT FAILED DURING VERIFICATION
 
-- The first published Stage 3 candidate physically failed the left/rear window-face ordering check. The screenshot-backed defect is repaired in the replacement candidate below; physical re-acceptance remains pending.
+- The first published Stage 3 candidate physically failed the left/rear window-face ordering check. The screenshot-backed defect was repaired and the replacement subsequently passed the targeted Samsung check.
 - The broad product browser scenario originally expected windows to be ordinary, Snap-disabled stickers. That Stage 2 assertion was updated to the authorized Stage 3 contract while retaining the Door-disabled proof.
 - The first revised assertion looked for a non-existent nested label element. It was corrected to verify the real permanent controller's accessible label; the rerun and complete browser suite pass.
 - The SFHS changed-path selector retains its known review warning for project-specific paths. Explicit model, calibration, window browser, full product, exact-artifact, and live browser lanes cover every changed production and test path.
@@ -66,19 +67,23 @@ Both visible centers are exact. Their independent source aspect ratios are recor
 - Live retrieval: `10,385,756` bytes and exact SHA-256 match
 - Packed inventory: `9,702,970` media bytes, `630,525` JavaScript bytes, `31,584` CSS bytes, and `20,677` HTML/tag bytes; 31 active BlockFolk PNGs and zero unclaimed media
 
-## REPRESENTATIVE SAMSUNG CHECK
+## REPRESENTATIVE SAMSUNG CHECK — PASS
 
-Run this once on the replacement candidate:
+The replacement candidate was checked with the targeted sequence:
 
 > Put Square Window on the rear/left side of one Log → Snap → confirm the full window frame stays in front → Flip → confirm it remains in front
 
-Pass means Snap no longer pushes the rear/left window frame behind the Log, and Flip does not reintroduce the occlusion.
+The submitted Samsung screenshot confirms the connected rear/left window remains in front. `Unsnap` is visible, the complete frame is readable, and the adjacent Brick no longer paints over it.
 
 No Round Window matrix is required on the phone; the shared-contract automated proof owns that coverage.
 
-## REMAINING BLOCKER
+## REMAINING BLOCKERS
 
-- Stage 3 physical re-acceptance is pending the single foreground sequence above.
+- None for Stage 3.
+
+## NEXT ACTIONABLE STEP
+
+- Stop. Begin doors or any later stage only under a separate bounded request.
 
 ## EVIDENCE
 
@@ -91,6 +96,7 @@ No Round Window matrix is required on the phone; the shared-contract automated p
 - Exact replacement proof: `test-results/blockfolk-window-foreground-001/exact-window/browser/`
 - Live replacement window proof: `test-results/blockfolk-window-foreground-001/live-window/browser/`
 - Live replacement product proof: `test-results/blockfolk-window-foreground-001/live-product/`
+- Samsung foreground PASS: `test-results/blockfolk-window-foreground-001/samsung/window-left-foreground-pass.jpg` (`189c239bdf0615765e855805eb7a0ec7e05aaeb0f865e4098081c5ccad214d9d`)
 - Pages workflow: `https://github.com/falloutmule/single-file-html-software/actions/runs/32976877807`
 
 ## GITHUB PAGES URL
@@ -99,4 +105,4 @@ No Round Window matrix is required on the phone; the shared-contract automated p
 
 ## RESULT
 
-**STAGE 3: AUTOMATED PASS / EXACT PAGES ARTIFACT PUBLISHED / STOPPED FOR ONE REPRESENTATIVE SAMSUNG WINDOW CHECK**
+**STAGE 3: PASS / EXACT PAGES ARTIFACT PUBLISHED / SAMSUNG ACCEPTED**
