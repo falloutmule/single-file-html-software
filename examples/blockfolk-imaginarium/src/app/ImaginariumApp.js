@@ -31,6 +31,24 @@ const READ_ONLY_BLOCKED_ACTIONS = new Set([
   'undo', 'redo', 'add-emoji', 'snap-context', 'smaller', 'bigger', 'turn', 'flip', 'behind', 'in-front',
   'copy', 'trash', 'surprise-sticker', 'export-recovery', 'clear-data'
 ]);
+const ATTACHABLE_WINDOW_IDS = new Set([
+  'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
+]);
+
+function contentBounds(object) {
+  const center = object?.getCenterPoint?.() || { x: Number(object?.left || 0), y: Number(object?.top || 0) };
+  const halfWidth = Math.abs(Number(object?.width || 0) * Number(object?.scaleX || 1)) / 2;
+  const halfHeight = Math.abs(Number(object?.height || 0) * Number(object?.scaleY || 1)) / 2;
+  const radians = Number(object?.angle || 0) * Math.PI / 180;
+  const cosine = Math.abs(Math.cos(radians)); const sine = Math.abs(Math.sin(radians));
+  const extentX = cosine * halfWidth + sine * halfHeight; const extentY = sine * halfWidth + cosine * halfHeight;
+  return { left: center.x - extentX, top: center.y - extentY, right: center.x + extentX, bottom: center.y + extentY };
+}
+
+function rectangularOverlap(left, right) {
+  return Math.max(0, Math.min(left.right, right.right) - Math.max(left.left, right.left))
+    * Math.max(0, Math.min(left.bottom, right.bottom) - Math.max(left.top, right.top));
+}
 
 function dataUrlToBlob(dataUrl) {
   const [header, payload] = dataUrl.split(',');
@@ -80,6 +98,7 @@ export class BlockFolkImaginariumApp {
     this.worldPointers = new Map();
     this.worldInteraction = null;
     this.snapPreview = null;
+    this.windowAttachments = new Map();
     this.rendering = false;
     this.transformBefore = null;
     this.autosaveTimer = null;
@@ -190,11 +209,17 @@ export class BlockFolkImaginariumApp {
       const correctionX = left < 0 ? -left : right > WORLD_SIZE ? WORLD_SIZE - right : 0;
       const correctionY = top < 0 ? -top : bottom > WORLD_SIZE ? WORLD_SIZE - bottom : 0;
       if (correctionX || correctionY) for (const object of members) { object.set({ left: Number(object.left || 0) + correctionX, top: Number(object.top || 0) + correctionY }); object.setCoords(); }
+      const byId = new Map(this.canvas.getObjects().map((object) => [object.blockfolkLayerId, object]));
+      for (const { childId, hostId } of interaction.followerLinks || []) {
+        const child = byId.get(childId); const host = byId.get(hostId); const childOrigin = interaction.origins.get(childId); const hostOrigin = interaction.origins.get(hostId);
+        if (!child || !host || !childOrigin || !hostOrigin) continue;
+        child.set({ left: childOrigin.x + Number(host.left || 0) - hostOrigin.x, top: childOrigin.y + Number(host.top || 0) - hostOrigin.y }); child.setCoords();
+      }
     };
     const beginPinch = () => {
       const pointers = [...this.worldPointers.values()].slice(0, 2); if (pointers.length !== 2) return;
       if (this.worldInteraction?.mode === 'sticker' && this.worldInteraction.origins) {
-        for (const object of this.objectsForMemberIds(this.worldInteraction.memberIds)) { const origin = this.worldInteraction.origins.get(object.blockfolkLayerId); if (origin) { object.set(origin); object.setCoords(); } }
+        for (const object of this.objectsForMemberIds(new Set(this.worldInteraction.origins.keys()))) { const origin = this.worldInteraction.origins.get(object.blockfolkLayerId); if (origin) { object.set(origin); object.setCoords(); } }
         this.snapPreview = null;
       }
       const midpoint = { x: (pointers[0].x + pointers[1].x) / 2, y: (pointers[0].y + pointers[1].y) / 2 };
@@ -212,9 +237,12 @@ export class BlockFolkImaginariumApp {
       const before = this.snapshot();
       const editableTarget = target && !this.legacySession;
       const memberIds = editableTarget ? this.selectedMemberIds(target) : null;
-      const origins = editableTarget ? new Map(this.objectsForMemberIds(memberIds).map((object) => [object.blockfolkLayerId, { x: Number(object.left || 0), y: Number(object.top || 0) }])) : null;
+      const followerLinks = editableTarget && isSnappableAsset(target.blockfolkAssetId)
+        ? this.attachmentFollowersForHosts(memberIds).map(({ childId, hostId }) => ({ childId, hostId })) : [];
+      const movingIds = editableTarget ? new Set([...memberIds, ...followerLinks.map(({ childId }) => childId)]) : null;
+      const origins = editableTarget ? new Map(this.objectsForMemberIds(movingIds).map((object) => [object.blockfolkLayerId, { x: Number(object.left || 0), y: Number(object.top || 0) }])) : null;
       this.worldInteraction = editableTarget
-        ? { mode: 'sticker', before, target, memberIds, origins, start: location, last: location, moved: false }
+        ? { mode: 'sticker', before, target, memberIds, followerLinks, origins, start: location, last: location, moved: false }
         : { mode: 'pan', before, startCamera: structuredClone(this.camera), start: location, last: location, moved: false };
       if (target) { this.canvas.setActiveObject(target); this.canvas.requestRenderAll(); this.updateSelection(); }
     };
@@ -246,12 +274,13 @@ export class BlockFolkImaginariumApp {
       try { surface.releasePointerCapture(event.pointerId); } catch { /* already released */ }
       if (!interaction) return;
       if (cancelled) {
-        if (interaction.mode === 'sticker' && interaction.origins) for (const object of this.objectsForMemberIds(interaction.memberIds)) { const origin = interaction.origins.get(object.blockfolkLayerId); if (origin) { object.set(origin); object.setCoords(); } }
+        if (interaction.mode === 'sticker' && interaction.origins) for (const object of this.objectsForMemberIds(new Set(interaction.origins.keys()))) { const origin = interaction.origins.get(object.blockfolkLayerId); if (origin) { object.set(origin); object.setCoords(); } }
         this.camera = normalizeCamera(interaction.before?.page?.camera || interaction.startCamera || this.camera); this.applyCamera(); this.canvas.requestRenderAll();
       } else if (interaction.mode === 'sticker') {
         if (interaction.moved) placeStickerMembers(interaction, point(event));
         if (!interaction.moved) {
           this.moveMembersToEdge(interaction.memberIds, 1);
+          this.placeAttachmentsAfterHosts(interaction.memberIds);
         }
         this.snapPreview = null; this.canvas.setActiveObject(interaction.target); interaction.target.setCoords(); this.canvas.requestRenderAll();
         this.commit(interaction.before, interaction.moved ? 'Sticker moved.' : 'Sticker selected.');
@@ -361,7 +390,7 @@ export class BlockFolkImaginariumApp {
       await this.showGallery();
       return;
     }
-    this.legacySession = null;
+    this.legacySession = null; this.windowAttachments.clear();
     this.current = createPicture({ title: `My Picture ${pictures.length + 1}`, category: this.category });
     this.history.clear();
     await this.renderCurrentPicture();
@@ -385,6 +414,7 @@ export class BlockFolkImaginariumApp {
   async openPicture(id) {
     const picture = id ? await this.storage.getPicture(id) : this.current;
     if (!picture) return;
+    this.windowAttachments.clear();
     const legacySession = await ReadOnlyLegacySession.openIfSupported(picture);
     if (legacySession) {
       this.legacySession = legacySession;
@@ -623,6 +653,50 @@ export class BlockFolkImaginariumApp {
 
   activeSticker() { return this.canvas.getActiveObject(); }
 
+  isAttachableWindow(object) { return ATTACHABLE_WINDOW_IDS.has(object?.blockfolkAssetId); }
+
+  pruneWindowAttachments() {
+    const objects = new Map(this.canvas.getObjects().map((object) => [object.blockfolkLayerId, object]));
+    for (const [childId, hostId] of this.windowAttachments) {
+      const child = objects.get(childId); const host = objects.get(hostId);
+      if (!child || !host || !this.isAttachableWindow(child) || !isSnappableAsset(host.blockfolkAssetId)) this.windowAttachments.delete(childId);
+    }
+  }
+
+  attachmentFollowersForHosts(hostIds) {
+    this.pruneWindowAttachments();
+    const ids = hostIds instanceof Set ? hostIds : new Set(hostIds || []);
+    const objects = new Map(this.canvas.getObjects().map((object) => [object.blockfolkLayerId, object]));
+    return [...this.windowAttachments].filter(([, hostId]) => ids.has(hostId)).map(([childId, hostId]) => ({ child: objects.get(childId), host: objects.get(hostId), childId, hostId })).filter(({ child, host }) => child && host);
+  }
+
+  attachmentHostCandidate(child) {
+    if (!this.isAttachableWindow(child)) return null;
+    const objects = this.canvas.getObjects(); const candidates = objects.filter((object) => object !== child && isSnappableAsset(object.blockfolkAssetId));
+    const childBounds = contentBounds(child); const center = child.getCenterPoint?.() || { x: Number(child.left || 0), y: Number(child.top || 0) };
+    const containing = [...candidates].reverse().find((host) => {
+      const bounds = contentBounds(host);
+      return center.x >= bounds.left && center.x <= bounds.right && center.y >= bounds.top && center.y <= bounds.bottom;
+    });
+    if (containing) return containing;
+    let best = null; let bestArea = 0;
+    for (const host of candidates) {
+      const area = rectangularOverlap(childBounds, contentBounds(host));
+      if (area > 0 && area >= bestArea) { best = host; bestArea = area; }
+    }
+    return best;
+  }
+
+  placeAttachmentsAfterHosts(hostIds) {
+    const ids = hostIds instanceof Set ? hostIds : new Set(hostIds || []); const original = this.canvas.getObjects();
+    const followers = this.attachmentFollowersForHosts(ids).map(({ child }) => child).sort((left, right) => original.indexOf(left) - original.indexOf(right));
+    if (!followers.length) return;
+    const followerSet = new Set(followers); const remaining = original.filter((object) => !followerSet.has(object));
+    const hostIndices = remaining.map((object, index) => ids.has(object.blockfolkLayerId) ? index : -1).filter((index) => index >= 0);
+    if (!hostIndices.length) return;
+    remaining.splice(Math.max(...hostIndices) + 1, 0, ...followers); this.reorderObjects(remaining);
+  }
+
   selectedMemberIds(active = this.activeSticker()) {
     if (!active?.blockfolkLayerId) return new Set();
     return connectedLayerIds(this.current?.connections || [], active.blockfolkLayerId);
@@ -660,21 +734,48 @@ export class BlockFolkImaginariumApp {
 
   resolveSnapContext(active = this.activeSticker()) {
     if (!active || this.legacySession) return { action: 'disabled', candidate: { status: 'none' }, members: [] };
+    if (this.isAttachableWindow(active)) {
+      this.pruneWindowAttachments();
+      const hostId = this.windowAttachments.get(active.blockfolkLayerId) || null;
+      return hostId
+        ? { relation: 'attachment', action: 'unsnap', candidate: { status: 'none' }, members: [active], child: active, hostId }
+        : { relation: 'attachment', action: 'snap', candidate: { status: 'none' }, members: [active], child: active, host: this.attachmentHostCandidate(active) };
+    }
     const members = this.objectsForMemberIds(this.selectedMemberIds(active));
     const assembled = hasAssembly(this.current?.connections || [], active.blockfolkLayerId);
     const supported = members.length > 0 && members.every((object) => isSnappableAsset(object.blockfolkAssetId));
     if (!supported) return { action: assembled ? 'unsnap' : 'disabled', candidate: { status: 'none' }, members };
     const candidate = this.proposeSnap(members);
-    return { action: candidate.status !== 'none' || !assembled ? 'snap' : 'unsnap', candidate, members };
+    return { relation: 'structural', action: candidate.status !== 'none' || !assembled ? 'snap' : 'unsnap', candidate, members };
   }
 
   applySnapContextControl(control, resolution) {
     if (!control) return;
     const unsnap = resolution.action === 'unsnap';
+    const attachment = resolution.relation === 'attachment';
     this.controls.setContextState(control, unsnap
-      ? { state: 'unsnap', icon: '⤨', label: 'Unsnap', ariaLabel: 'Detach selected sticker from its assembly', title: 'Detach selected sticker from its assembly' }
-      : { state: 'snap', icon: '⌘', label: 'Snap', ariaLabel: 'Snap selected construction pieces', title: 'Snap selected construction pieces' });
+      ? { state: 'unsnap', icon: '⤨', label: 'Unsnap', ariaLabel: attachment ? 'Detach selected window from its block' : 'Detach selected sticker from its assembly', title: attachment ? 'Detach selected window from its block' : 'Detach selected sticker from its assembly' }
+      : { state: 'snap', icon: '⌘', label: 'Snap', ariaLabel: attachment ? 'Attach selected window to a block' : 'Snap selected construction pieces', title: attachment ? 'Attach selected window to a block' : 'Snap selected construction pieces' });
     this.controls.setEnabled(control, resolution.action !== 'disabled');
+  }
+
+  attachSelectedWindow(resolution) {
+    const child = resolution?.child || this.activeSticker(); const host = resolution?.host || null;
+    if (!child || !host) {
+      const message = 'Move onto a block to connect.'; this.toast(message); this.announce(message); return;
+    }
+    this.windowAttachments.set(child.blockfolkLayerId, host.blockfolkLayerId);
+    this.placeAttachmentsAfterHosts(this.selectedMemberIds(host));
+    this.canvas.setActiveObject(child); child.setCoords(); this.canvas.requestRenderAll();
+    this.updateSelection();
+    this.toast('Window attached.'); this.announce('Window attached.'); this.feedback('pop');
+  }
+
+  detachSelectedWindow(resolution) {
+    const child = resolution?.child || this.activeSticker();
+    if (!child || !this.windowAttachments.delete(child.blockfolkLayerId)) return;
+    this.canvas.requestRenderAll(); this.updateSelection();
+    this.toast('Window detached.'); this.announce('Window detached.'); this.feedback('turn');
   }
 
   async snapSelected(resolution = this.resolveSnapContext()) {
@@ -697,7 +798,18 @@ export class BlockFolkImaginariumApp {
     };
     if (!connection) return rollback();
 
+    const movingIds = new Set(members.map((member) => member.blockfolkLayerId));
+    const followers = this.attachmentFollowersForHosts(movingIds).map(({ child, host }) => ({
+      child, host, childLeft: Number(child.left || 0), childTop: Number(child.top || 0), hostLeft: Number(host.left || 0), hostTop: Number(host.top || 0)
+    }));
     this.translateObjects(members, result.dx, result.dy);
+    for (const follower of followers) {
+      follower.child.set({
+        left: follower.childLeft + Number(follower.host.left || 0) - follower.hostLeft,
+        top: follower.childTop + Number(follower.host.top || 0) - follower.hostTop
+      });
+      follower.child.setCoords();
+    }
     const layerIds = new Set(this.canvas.getObjects().map((object) => object.blockfolkLayerId));
     const nextConnections = validConnections([...connectionsBefore, connection], layerIds);
     if (nextConnections.length !== connectionsBefore.length + 1 || !nextConnections.some((item) => item.id === connection.id)) return rollback();
@@ -709,7 +821,7 @@ export class BlockFolkImaginariumApp {
     const joinedGrid = buildComponentGrid(this.current.connections, joinedObjects, connection.aLayerId);
     if (!joinedIds.has(connection.bLayerId) || !joinedGrid.consistent || joinedGrid.memberIds.size !== joinedObjects.length) return rollback();
 
-    this.ensureAssemblyContiguous(joinedIds); this.canonicalizeConstructionAssembly(joinedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
+    this.ensureAssemblyContiguous(joinedIds); this.canonicalizeConstructionAssembly(joinedIds); this.placeAttachmentsAfterHosts(joinedIds); this.canvas.setActiveObject(active); active.setCoords(); this.canvas.requestRenderAll();
     this.commit(before, 'Pieces connected.');
     this.toast('Pieces connected.'); this.feedback('pop');
   }
@@ -722,7 +834,10 @@ export class BlockFolkImaginariumApp {
     const resolution = this.resolveSnapContext(active);
     if (resolution.action === 'disabled') return;
     if (displayed !== resolution.action) { this.applySnapContextControl(control, resolution); return; }
-    if (resolution.action === 'snap') await this.snapSelected(resolution);
+    if (resolution.relation === 'attachment') {
+      if (resolution.action === 'snap') this.attachSelectedWindow(resolution);
+      else this.detachSelectedWindow(resolution);
+    } else if (resolution.action === 'snap') await this.snapSelected(resolution);
     else await this.unsnapSelected();
   }
 
@@ -793,10 +908,24 @@ export class BlockFolkImaginariumApp {
   async resizeSelected(factor) {
     const active = this.activeSticker(); if (!active) return;
     const before = this.snapshot();
-    const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const center = this.assemblyCenter(members);
+    const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds); const center = this.assemblyCenter(members);
+    const followers = isSnappableAsset(active.blockfolkAssetId) ? this.attachmentFollowersForHosts(memberIds).map(({ child, host }) => ({
+      child, host, childLeft: Number(child.left || 0), childTop: Number(child.top || 0), childScaleX: Number(child.scaleX || 1), childScaleY: Number(child.scaleY || 1),
+      hostLeft: Number(host.left || 0), hostTop: Number(host.top || 0), hostScaleX: Number(host.scaleX || 1)
+    })) : [];
     for (const member of members) {
       const resized = resizeSticker({ scaleX: member.scaleX, scaleY: member.scaleY }, factor); const applied = resized.scaleX / Math.max(.0001, Number(member.scaleX || 1));
       member.set({ left: center.x + (Number(member.left || 0) - center.x) * applied, top: center.y + (Number(member.top || 0) - center.y) * applied, scaleX: resized.scaleX, scaleY: resized.scaleY }); this.clampFabricObject(member); member.setCoords();
+    }
+    for (const follower of followers) {
+      const applied = Number(follower.host.scaleX || 1) / Math.max(.0001, follower.hostScaleX);
+      follower.child.set({
+        left: Number(follower.host.left || 0) + (follower.childLeft - follower.hostLeft) * applied,
+        top: Number(follower.host.top || 0) + (follower.childTop - follower.hostTop) * applied,
+        scaleX: follower.childScaleX * applied,
+        scaleY: follower.childScaleY * applied
+      });
+      follower.child.setCoords();
     }
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? (factor > 1 ? 'Assembly made bigger.' : 'Assembly made smaller.') : (factor > 1 ? 'Sticker made bigger.' : 'Sticker made smaller.')); this.feedback('turn');
   }
@@ -811,9 +940,10 @@ export class BlockFolkImaginariumApp {
 
   async flipSelected() {
     const active = this.activeSticker(); if (!active) return;
-    const before = this.snapshot(); const members = this.objectsForMemberIds(this.selectedMemberIds(active)); const center = this.assemblyCenter(members);
-    for (const member of members) { const flipped = flipSticker({ flipX: !!member.flipX }); member.set({ left: center.x - (Number(member.left || 0) - center.x), flipX: flipped.flipX, angle: (180 - Number(member.angle || 0) + 360) % 360 }); member.setCoords(); }
-    this.canonicalizeConstructionAssembly(new Set(members.map((member) => member.blockfolkLayerId)));
+    const before = this.snapshot(); const memberIds = this.selectedMemberIds(active); const members = this.objectsForMemberIds(memberIds); const center = this.assemblyCenter(members);
+    const followers = isSnappableAsset(active.blockfolkAssetId) ? this.attachmentFollowersForHosts(memberIds).map(({ child }) => child) : [];
+    for (const member of [...members, ...followers]) { const flipped = flipSticker({ flipX: !!member.flipX }); member.set({ left: center.x - (Number(member.left || 0) - center.x), flipX: flipped.flipX, angle: (180 - Number(member.angle || 0) + 360) % 360 }); member.setCoords(); }
+    this.canonicalizeConstructionAssembly(memberIds); this.placeAttachmentsAfterHosts(memberIds);
     this.canvas.requestRenderAll(); this.commit(before, members.length > 1 ? 'Assembly flipped.' : 'Sticker flipped.'); this.feedback('turn');
   }
 
@@ -840,7 +970,7 @@ export class BlockFolkImaginariumApp {
 
   async trashSelected() {
     const active = this.activeSticker(); if (!active) return;
-    const before = this.snapshot(); const memberIds = this.selectedMemberIds(active); for (const object of this.objectsForMemberIds(memberIds)) this.canvas.remove(object); this.current.connections = (this.current.connections || []).filter((connection) => !memberIds.has(connection.aLayerId) && !memberIds.has(connection.bLayerId)); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
+    const before = this.snapshot(); const memberIds = this.selectedMemberIds(active); for (const object of this.objectsForMemberIds(memberIds)) this.canvas.remove(object); this.current.connections = (this.current.connections || []).filter((connection) => !memberIds.has(connection.aLayerId) && !memberIds.has(connection.bLayerId)); this.pruneWindowAttachments(); this.canvas.discardActiveObject(); this.canvas.requestRenderAll();
     this.commit(before, memberIds.size > 1 ? 'Assembly put in the trash.' : 'Sticker put in the trash.'); this.feedback('trash');
   }
 
@@ -873,14 +1003,14 @@ export class BlockFolkImaginariumApp {
     if (this.legacySession) return;
     const selectedLayerId = this.activeSticker()?.blockfolkLayerId || null;
     const current = this.snapshot(); const prior = this.history.undo(current); if (!prior) return;
-    this.current = prior; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Undid the last change.');
+    this.current = prior; await this.renderCurrentPicture(selectedLayerId); this.pruneWindowAttachments(); this.scheduleAutosave(); this.announce('Undid the last change.');
   }
 
   async redo() {
     if (this.legacySession) return;
     const selectedLayerId = this.activeSticker()?.blockfolkLayerId || null;
     const current = this.snapshot(); const next = this.history.redo(current); if (!next) return;
-    this.current = next; await this.renderCurrentPicture(selectedLayerId); this.scheduleAutosave(); this.announce('Redid the change.');
+    this.current = next; await this.renderCurrentPicture(selectedLayerId); this.pruneWindowAttachments(); this.scheduleAutosave(); this.announce('Redid the change.');
   }
 
   updateSelection() {
@@ -1014,7 +1144,7 @@ export class BlockFolkImaginariumApp {
       await this.storage.putPicture(duplicatePicture(picture)); this.toast('Picture copied!'); return this.showGallery();
     }
     if (action === 'delete') {
-      if (await this.confirm(`Delete “${picture.title}”? This cannot be undone.`, 'Yes, delete')) { await this.storage.deletePicture(pictureId); if (this.current?.id === pictureId) this.current = null; this.toast('Picture deleted.'); await this.showGallery(); }
+      if (await this.confirm(`Delete “${picture.title}”? This cannot be undone.`, 'Yes, delete')) { await this.storage.deletePicture(pictureId); if (this.current?.id === pictureId) { this.current = null; this.windowAttachments.clear(); } this.toast('Picture deleted.'); await this.showGallery(); }
       return;
     }
     const restore = this.current ? structuredClone(this.current) : null;
@@ -1121,7 +1251,7 @@ export class BlockFolkImaginariumApp {
 
   async importRecovery(file) {
     if (!file) return;
-    const value = JSON.parse(await file.text()); validatePicture(value); this.current = normalizePicture(value); this.current.id = createStableId('blockfolk-picture'); this.current.updatedAt = new Date().toISOString();
+    const value = JSON.parse(await file.text()); validatePicture(value); this.windowAttachments.clear(); this.current = normalizePicture(value); this.current.id = createStableId('blockfolk-picture'); this.current.updatedAt = new Date().toISOString();
     await this.storage.putPicture(this.current); await this.renderCurrentPicture(); this.history.clear(); this.elements.recoveryInput.value = ''; this.showScreen('editor-screen'); this.toast('Picture recovery opened.');
   }
 
@@ -1129,7 +1259,7 @@ export class BlockFolkImaginariumApp {
     if (this.legacySession) return;
     const typed = prompt('Type CLEAR to erase all local BlockFolk Imaginarium pictures, packs, and settings.');
     if (typed !== 'CLEAR') { this.toast('Nothing was erased.'); return; }
-    await this.storage.clearAll(); localStorage.removeItem(PREFERENCE_KEY); this.current = null; this.packs = []; this.renderPackList(); this.renderLibrary(); this.toast('Local BlockFolk Imaginarium data cleared.'); await this.goHome();
+    await this.storage.clearAll(); localStorage.removeItem(PREFERENCE_KEY); this.windowAttachments.clear(); this.current = null; this.packs = []; this.renderPackList(); this.renderLibrary(); this.toast('Local BlockFolk Imaginarium data cleared.'); await this.goHome();
   }
 
   updatePreference(name, value) { this.preferences[name] = value; savePreferences(this.preferences); this.applyPreferences(); this.updateSelection(); this.announce('Setting saved.'); }

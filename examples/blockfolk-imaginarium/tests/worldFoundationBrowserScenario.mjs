@@ -526,8 +526,8 @@ await page.waitForFunction(() => window.BlockFolkImaginarium.app.current.connect
 assert.deepEqual(await page.evaluate((before) => { const app = window.BlockFolkImaginarium.app; const root = app.root.querySelector('[data-action="snap-context"]').closest('.sfhs-cf-root'); return { activationDelta: app.controls.activationCount - before, connections: app.current.connections.length, state: root.dataset.contextState, sameRoot: root === window.__blockfolkSnapContextRoot }; }, assistiveUnsnapBefore), { activationDelta: 1, connections: 0, state: 'snap', sameRoot: true }, 'assistive click activation must Unsnap once without replacing the contextual controller');
 await page.screenshot({ path: resolve(evidenceDirectory, 'construction-toolbar-and-assembly-400x844.png'), fullPage: true });
 
-// Doors and Windows are ordinary stickers in Phase 0. Their contextual Snap
-// control stays visible but disabled and must not emit a compatibility error.
+// Doors remain ordinary stickers. Windows use the bounded, in-memory attachment
+// prototype while remaining outside the structural construction graph.
 await page.evaluate(async () => {
   const app = window.BlockFolkImaginarium.app; await app.startNewPicture(false);
   await app.addSticker('sticker-blockfolk-stone-door'); await app.addSticker('sticker-blockfolk-square-window');
@@ -552,7 +552,9 @@ const ordinaryCount = await page.evaluate(() => window.BlockFolkImaginarium.app.
 await page.evaluate(() => window.BlockFolkImaginarium.app.copySelected()); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), ordinaryCount + 1, 'Door must remain copyable');
 await page.evaluate(() => window.BlockFolkImaginarium.app.trashSelected()); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), ordinaryCount, 'Door copy must remain deletable');
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects().find((object) => object.blockfolkAssetId === 'sticker-blockfolk-square-window')); app.updateSelection(); });
-assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').isDisabled(), true, 'Window Snap must also remain visibly disabled');
+assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').isDisabled(), false, 'Window Snap must expose the bounded attachment action');
+assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').getAttribute('aria-label'), 'Attach selected window to a block');
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.connections.length), 0, 'an unattached Window must remain outside the structural construction graph');
 await page.screenshot({ path: resolve(evidenceDirectory, 'door-window-ordinary-stickers-400x844.png'), fullPage: true });
 
 // Behind/In Front must change both serialized order and the rendered overlap.

@@ -13,10 +13,11 @@
     "test:page4-readonly-browser": "node tests/page4ReadOnlyBrowser.mjs",
     "test:grid-model": "node tests/constructionGridScenarios.mjs",
     "test:grid-browser": "node tests/gridBrowserScenario.mjs",
+    "test:attachment-browser": "node tests/windowAttachmentBrowserScenario.mjs",
     "test:block-calibration": "node tests/blockMaterialCalibration.mjs",
     "test:all-materials-browser": "node tests/blockMaterialCalibration.mjs && node tests/allBlockMaterialsBrowserScenario.mjs",
     "test:source": "node tests/constructionGridScenarios.mjs && node tests/focusedScenarios.mjs && node tests/historicalRecovery.mjs && node tools/static-audit.mjs",
-    "test:browser": "node tests/gridBrowserScenario.mjs && node tests/allBlockMaterialsBrowserScenario.mjs && node tests/worldFoundationBrowserScenario.mjs && node tests/page4ReadOnlyBrowser.mjs",
+    "test:browser": "node tests/gridBrowserScenario.mjs && node tests/allBlockMaterialsBrowserScenario.mjs && node tests/windowAttachmentBrowserScenario.mjs && node tests/worldFoundationBrowserScenario.mjs && node tests/page4ReadOnlyBrowser.mjs",
     "test:packed": "node tools/packed-audit.test.mjs && node tools/packed-audit.mjs"
   },
   "dependencies": {
