@@ -9,7 +9,8 @@ import { BlockFolkImaginariumControls } from './ImaginariumControls.js';
 import { PuzzleController } from './PuzzleController.js';
 import {
   GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, clampStickerPosition, createPicture,
-  createSticker, duplicatePicture, flipSticker, mapChildSafeError, normalizePicture, resizeSticker, rotateSticker, validatePicture
+  createSticker, duplicatePicture, flipSticker, mapChildSafeError, normalizePicture, resizeSticker, rotateSticker, validatePicture,
+  validWindowAttachments
 } from '../model/pageModel.js';
 import { createStableId } from '../model/ids.js';
 import { READ_ONLY_LEGACY_NOTICE, ReadOnlyLegacySession } from '../model/ReadOnlyLegacySession.js';
@@ -428,6 +429,7 @@ export class BlockFolkImaginariumApp {
     if (!this.legacySession) savePreferences(this.preferences);
     this.history.clear();
     await this.renderCurrentPicture();
+    if (!this.legacySession) this.restoreWindowAttachmentsFromCurrent();
     this.renderLibrary();
     this.applyLegacyCapabilities();
     this.showScreen('editor-screen');
@@ -482,6 +484,7 @@ export class BlockFolkImaginariumApp {
       ...(object.blockfolkSourceEmoji ? { sourceEmoji: object.blockfolkSourceEmoji } : {})
     }));
     this.current.connections = validConnections(this.current.connections || [], new Set(this.current.stickers.map((sticker) => sticker.layerId)));
+    this.syncWindowAttachmentsFromMap();
     this.current.page.backgroundAssetId = normalizeWorldBackgroundId(this.current.page.backgroundAssetId) || WORLD_BACKGROUND_ID;
     this.current.page.camera = normalizeCamera(this.camera);
     this.current.ui = { category: migrateBuiltInCategory(this.category) };
@@ -655,6 +658,23 @@ export class BlockFolkImaginariumApp {
 
   isAttachableWindow(object) { return ATTACHABLE_WINDOW_IDS.has(object?.blockfolkAssetId); }
 
+  restoreWindowAttachmentsFromCurrent() {
+    if (!this.current || this.legacySession) return;
+    const canonical = validWindowAttachments(this.current.attachments, this.current.stickers);
+    this.windowAttachments.clear();
+    for (const { childLayerId, hostLayerId } of canonical) this.windowAttachments.set(childLayerId, hostLayerId);
+    this.current.attachments = canonical;
+  }
+
+  syncWindowAttachmentsFromMap() {
+    if (!this.current || this.legacySession) return;
+    this.pruneWindowAttachments();
+    const canonical = validWindowAttachments([...this.windowAttachments].map(([childLayerId, hostLayerId]) => ({ childLayerId, hostLayerId })), this.current.stickers);
+    this.windowAttachments.clear();
+    for (const { childLayerId, hostLayerId } of canonical) this.windowAttachments.set(childLayerId, hostLayerId);
+    this.current.attachments = canonical;
+  }
+
   pruneWindowAttachments() {
     const objects = new Map(this.canvas.getObjects().map((object) => [object.blockfolkLayerId, object]));
     for (const [childId, hostId] of this.windowAttachments) {
@@ -767,14 +787,14 @@ export class BlockFolkImaginariumApp {
     this.windowAttachments.set(child.blockfolkLayerId, host.blockfolkLayerId);
     this.placeAttachmentsAfterHosts(this.selectedMemberIds(host));
     this.canvas.setActiveObject(child); child.setCoords(); this.canvas.requestRenderAll();
-    this.updateSelection();
+    this.syncCurrentFromCanvas(); this.scheduleAutosave(); this.updateSelection();
     this.toast('Window attached.'); this.announce('Window attached.'); this.feedback('pop');
   }
 
   detachSelectedWindow(resolution) {
     const child = resolution?.child || this.activeSticker();
     if (!child || !this.windowAttachments.delete(child.blockfolkLayerId)) return;
-    this.canvas.requestRenderAll(); this.updateSelection();
+    this.syncWindowAttachmentsFromMap(); this.scheduleAutosave(); this.canvas.requestRenderAll(); this.updateSelection();
     this.toast('Window detached.'); this.announce('Window detached.'); this.feedback('turn');
   }
 
@@ -1003,14 +1023,14 @@ export class BlockFolkImaginariumApp {
     if (this.legacySession) return;
     const selectedLayerId = this.activeSticker()?.blockfolkLayerId || null;
     const current = this.snapshot(); const prior = this.history.undo(current); if (!prior) return;
-    this.current = prior; await this.renderCurrentPicture(selectedLayerId); this.pruneWindowAttachments(); this.scheduleAutosave(); this.announce('Undid the last change.');
+    this.current = prior; await this.renderCurrentPicture(selectedLayerId); this.pruneWindowAttachments(); this.syncWindowAttachmentsFromMap(); this.scheduleAutosave(); this.announce('Undid the last change.');
   }
 
   async redo() {
     if (this.legacySession) return;
     const selectedLayerId = this.activeSticker()?.blockfolkLayerId || null;
     const current = this.snapshot(); const next = this.history.redo(current); if (!next) return;
-    this.current = next; await this.renderCurrentPicture(selectedLayerId); this.pruneWindowAttachments(); this.scheduleAutosave(); this.announce('Redid the change.');
+    this.current = next; await this.renderCurrentPicture(selectedLayerId); this.pruneWindowAttachments(); this.syncWindowAttachmentsFromMap(); this.scheduleAutosave(); this.announce('Redid the change.');
   }
 
   updateSelection() {
@@ -1252,7 +1272,7 @@ export class BlockFolkImaginariumApp {
   async importRecovery(file) {
     if (!file) return;
     const value = JSON.parse(await file.text()); validatePicture(value); this.windowAttachments.clear(); this.current = normalizePicture(value); this.current.id = createStableId('blockfolk-picture'); this.current.updatedAt = new Date().toISOString();
-    await this.storage.putPicture(this.current); await this.renderCurrentPicture(); this.history.clear(); this.elements.recoveryInput.value = ''; this.showScreen('editor-screen'); this.toast('Picture recovery opened.');
+    await this.storage.putPicture(this.current); await this.renderCurrentPicture(); this.restoreWindowAttachmentsFromCurrent(); this.history.clear(); this.elements.recoveryInput.value = ''; this.showScreen('editor-screen'); this.toast('Picture recovery opened.');
   }
 
   async clearData() {

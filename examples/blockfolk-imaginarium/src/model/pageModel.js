@@ -1,7 +1,7 @@
 import { createStableId } from './ids.js';
 import { migrateBuiltInCategory } from './categoryModel.js';
 import { DEFAULT_CAMERA, WORLD_BACKGROUND_ID, WORLD_SIZE, normalizeCamera, normalizeWorldBackgroundId } from './worldModel.js';
-import { duplicateConnections, validConnections } from './constructionModel.js';
+import { duplicateConnections, isSnappableAsset, validConnections } from './constructionModel.js';
 
 export const PAGE_SCHEMA = 'blockfolk-imaginarium.page@3';
 export const PREVIOUS_PAGE_SCHEMA = 'blockfolk-imaginarium.page@2';
@@ -11,13 +11,30 @@ export const PAGE_HEIGHT = WORLD_SIZE;
 export const GALLERY_LIMIT = 24;
 export const MIN_SCALE = 0.1;
 export const MAX_SCALE = 32;
+const ATTACHABLE_WINDOW_ASSET_IDS = new Set([
+  'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
+]);
+
+export function validWindowAttachments(attachments = [], stickers = []) {
+  if (!Array.isArray(attachments)) return [];
+  const byId = new Map((stickers || []).filter((sticker) => sticker && typeof sticker.layerId === 'string').map((sticker) => [sticker.layerId, sticker]));
+  const seenChildren = new Set(); const valid = [];
+  for (const attachment of attachments) {
+    const childLayerId = attachment?.childLayerId; const hostLayerId = attachment?.hostLayerId;
+    if (typeof childLayerId !== 'string' || typeof hostLayerId !== 'string' || !childLayerId || !hostLayerId || childLayerId === hostLayerId || seenChildren.has(childLayerId)) continue;
+    const child = byId.get(childLayerId); const host = byId.get(hostLayerId);
+    if (!child || !host || !ATTACHABLE_WINDOW_ASSET_IDS.has(child.assetId) || !isSnappableAsset(host.assetId)) continue;
+    seenChildren.add(childLayerId); valid.push({ childLayerId, hostLayerId });
+  }
+  return valid.sort((left, right) => left.childLayerId.localeCompare(right.childLayerId));
+}
 
 export function createPicture({ id = createStableId('blockfolk-picture'), title = 'My BlockFolk Picture', now = new Date().toISOString(), camera = DEFAULT_CAMERA, category = 'animals' } = {}) {
   return {
     schema: PAGE_SCHEMA, id, title, createdAt: now, updatedAt: now,
     page: { width: PAGE_WIDTH, height: PAGE_HEIGHT, backgroundAssetId: WORLD_BACKGROUND_ID, camera: normalizeCamera(camera) },
     ui: { category: migrateBuiltInCategory(category) },
-    stickers: [], connections: [], embeddedAssets: [], promptId: null
+    stickers: [], connections: [], attachments: [], embeddedAssets: [], promptId: null
   };
 }
 
@@ -63,6 +80,7 @@ function migrateLegacyPicture(value) {
 
 export function normalizePicture(value) {
   validatePicture(value);
+  const inputSchema = value.schema;
   const migrated = value.schema === LEGACY_PAGE_SCHEMA ? migrateLegacyPicture(value) : value;
   const layerIds = new Set((migrated.stickers || []).map((sticker) => sticker.layerId));
   const normalized = {
@@ -71,6 +89,7 @@ export function normalizePicture(value) {
     ui: { category: migrateBuiltInCategory(migrated.ui?.category) },
     stickers: migrated.stickers.map((sticker, index) => ({ ...sticker, flipX: sticker.flipX ?? false, flipY: sticker.flipY ?? false, opacity: sticker.opacity ?? 1, zIndex: sticker.zIndex ?? index })),
     connections: validConnections(migrated.connections || [], layerIds),
+    attachments: inputSchema === PAGE_SCHEMA ? validWindowAttachments(migrated.attachments, migrated.stickers) : [],
     embeddedAssets: migrated.embeddedAssets || []
   };
   validatePicture(normalized);
@@ -107,7 +126,7 @@ export function duplicatePicture(picture, title, now = new Date().toISOString())
   const copy = normalizePicture(picture); copy.id = createStableId('blockfolk-picture'); copy.title = title || `${picture.title} Copy`; copy.createdAt = now; copy.updatedAt = now;
   const idMap = new Map();
   copy.stickers = copy.stickers.map((sticker) => { const layerId = createStableId('blockfolk-sticker'); idMap.set(sticker.layerId, layerId); return { ...sticker, layerId }; });
-  copy.connections = duplicateConnections(copy.connections || [], idMap); return copy;
+  copy.connections = duplicateConnections(copy.connections || [], idMap); copy.attachments = []; return copy;
 }
 
 export function mapChildSafeError(error) {

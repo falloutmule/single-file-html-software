@@ -1,5 +1,6 @@
-/* global indexedDB, structuredClone, window */
+/* global document, indexedDB, structuredClone, window */
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -7,7 +8,7 @@ import { chromium } from '../../../packages/browser-runner/node_modules/playwrig
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const artifactUrl = process.env.BLOCKFOLK_ARTIFACT_URL || pathToFileURL(resolve(root, 'dist/index.html')).href;
-const evidence = resolve(root, process.env.BLOCKFOLK_ATTACHMENT_EVIDENCE_DIRECTORY || 'test-results/blockfolk-window-attachment-prototype-001/browser');
+const evidence = resolve(root, process.env.BLOCKFOLK_ATTACHMENT_EVIDENCE_DIRECTORY || 'test-results/blockfolk-window-attachment-persistence-001/browser');
 await mkdir(evidence, { recursive: true });
 
 const failures = []; const requests = [];
@@ -55,6 +56,7 @@ async function state() {
     const app = window.BlockFolkImaginarium.app; const transform = app.canvas.viewportTransform; const objects = app.canvas.getObjects();
     return {
       attachments: [...app.windowAttachments],
+      persistedAttachments: structuredClone(app.current.attachments || []),
       connections: structuredClone(app.current.connections),
       layers: objects.map((object, index) => ({
         id: object.blockfolkLayerId, assetId: object.blockfolkAssetId, index,
@@ -77,6 +79,13 @@ async function addVisible(assetId) {
 async function dragLayer(layerId, destination) {
   const layer = (await state()).layers.find((entry) => entry.id === layerId); assert.ok(layer);
   await nativeTouch(layer.x, layer.y, destination);
+}
+
+async function selectLayer(layerId) {
+  await page.evaluate((id) => {
+    const app = window.BlockFolkImaginarium.app; const object = app.canvas.getObjects().find((item) => item.blockfolkLayerId === id);
+    app.canvas.setActiveObject(object); object.setCoords(); app.canvas.requestRenderAll(); app.updateSelection();
+  }, layerId);
 }
 
 function transformOf(snapshot, layerId) {
@@ -115,6 +124,7 @@ const attached = await state();
 assertTransform(transformOf(attached, square.id), squareBeforeAttach, 'Snap must not move or resize the Square Window');
 assert.deepEqual(attached.connections, connectionsBeforeAttach, 'attachment must not enter the structural connection graph');
 assert.deepEqual(attached.attachments, [[square.id, rootBrick.id]], 'Square Window must record exactly one in-memory host ID');
+assert.deepEqual(attached.persistedAttachments, [{ childLayerId: square.id, hostLayerId: rootBrick.id }], 'Snap must immediately synchronize the canonical page relation without creating history');
 assert.ok(attached.layers.find((layer) => layer.id === square.id).index > attached.layers.find((layer) => layer.id === mateBrick.id).index, 'attached window must paint after its host assembly');
 assert.equal(await page.locator(snapSelector).getAttribute('aria-label'), 'Detach selected window from its block');
 await page.screenshot({ path: resolve(evidence, 'square-window-attached-400x844.png'), fullPage: true });
@@ -160,27 +170,72 @@ assert.notDeepEqual(transformOf(afterChildDrag, square.id), transformOf(readyFor
 await editControl('smaller'); const afterChildResize = await state();
 assert.deepEqual(afterChildResize.layers.filter((layer) => [rootBrick.id, mateBrick.id].includes(layer.id)).map(({ id, left, top, scaleX, scaleY, angle, flipX }) => ({ id, left, top, scaleX, scaleY, angle, flipX })), structuralBeforeChildEdit, 'direct window resize must not resize the host assembly');
 
-const beforeDetachTransform = transformOf(afterChildResize, square.id); await touchControl(snapSelector); const detached = await state();
-assert.equal(detached.attachments.length, 0); assertTransform(transformOf(detached, square.id), beforeDetachTransform, 'Unsnap must not transform the window');
-const freeChild = transformOf(detached, square.id); const detachedHost = detached.layers.find((layer) => layer.id === rootBrick.id);
-await nativeTouch(detachedHost.x, detachedHost.y, { x: detachedHost.x - 30, y: detachedHost.y + 10 });
+const persistedSquareTransform = transformOf(afterChildResize, square.id);
+await page.evaluate(async () => { const app = window.BlockFolkImaginarium.app; const id = app.current.id; await app.saveCurrent({ quiet: true }); await app.openPicture(id); });
+let reloaded = await state();
+assert.deepEqual(reloaded.attachments, [[square.id, rootBrick.id]], 'stored page@3 data must restore the runtime attachment Map exactly once on open');
+assert.deepEqual(reloaded.persistedAttachments, [{ childLayerId: square.id, hostLayerId: rootBrick.id }]);
+assertTransform(transformOf(reloaded, square.id), persistedSquareTransform, 'save/reload must preserve the exact repositioned and resized Square Window transform');
+await page.screenshot({ path: resolve(evidence, 'square-window-persisted-400x844.png'), fullPage: true });
+
+const reloadedMate = reloaded.layers.find((layer) => layer.id === mateBrick.id); await nativeTouch(reloadedMate.x, reloadedMate.y, { x: reloadedMate.x - 28, y: reloadedMate.y + 16 });
+const followedAfterReload = await state();
+const reloadedHostDelta = { x: transformOf(followedAfterReload, rootBrick.id).left - transformOf(reloaded, rootBrick.id).left, y: transformOf(followedAfterReload, rootBrick.id).top - transformOf(reloaded, rootBrick.id).top };
+const reloadedChildDelta = { x: transformOf(followedAfterReload, square.id).left - transformOf(reloaded, square.id).left, y: transformOf(followedAfterReload, square.id).top - transformOf(reloaded, square.id).top };
+assert.ok(Math.abs(reloadedHostDelta.x - reloadedChildDelta.x) < .01 && Math.abs(reloadedHostDelta.y - reloadedChildDelta.y) < .01, 'a restored attachment must follow its host again');
+
+await selectLayer(square.id); const originalCountBeforeCopy = followedAfterReload.layers.length; await touchControl('#selection-toolbar [data-action="copy"]');
+let copiedWindowState = await state(); const copiedWindowId = await page.evaluate(() => window.BlockFolkImaginarium.app.activeSticker()?.blockfolkLayerId); const copiedWindow = copiedWindowState.layers.find((layer) => layer.id === copiedWindowId);
+assert.equal(copiedWindowState.layers.length, originalCountBeforeCopy + 1); assert.equal(copiedWindow.assetId, SQUARE);
+assert.deepEqual(copiedWindowState.attachments, [[square.id, rootBrick.id]], 'toolbar Copy must keep the original Window attached and leave only the clone free');
+assert.deepEqual(copiedWindowState.persistedAttachments, [{ childLayerId: square.id, hostLayerId: rootBrick.id }]);
+await touchControl('#selection-toolbar [data-action="trash"]');
+
+await selectLayer(rootBrick.id); const assemblyCountBeforeCopy = (await state()).layers.length; await touchControl('#selection-toolbar [data-action="copy"]');
+const copiedAssemblyState = await state();
+assert.equal(copiedAssemblyState.layers.length, assemblyCountBeforeCopy + 2, 'structural assembly Copy must copy only its two structural members');
+assert.equal(copiedAssemblyState.layers.filter((layer) => layer.assetId === SQUARE).length, 1, 'structural assembly Copy must not copy attached decorations');
+assert.deepEqual(copiedAssemblyState.attachments, [[square.id, rootBrick.id]], 'the decoration must remain attached to the original structural host');
+await touchControl('#selection-toolbar [data-action="trash"]');
+
+await selectLayer(square.id); await editControl('bigger'); const attachedBeforeDetach = await state(); const beforeDetachTransform = transformOf(attachedBeforeDetach, square.id);
+await touchControl(snapSelector); let detached = await state();
+assert.equal(detached.attachments.length, 0); assert.deepEqual(detached.persistedAttachments, []); assertTransform(transformOf(detached, square.id), beforeDetachTransform, 'Unsnap must not transform the window');
+await touchControl('[data-action="undo"]'); detached = await state();
+assert.equal(detached.attachments.length, 0, 'Undo must not resurrect an attachment from a picture snapshot'); assert.deepEqual(detached.persistedAttachments, [], 'Undo must immediately rewrite snapshot attachment data from the live Map');
+await touchControl('[data-action="redo"]'); detached = await state();
+assert.equal(detached.attachments.length, 0, 'Redo must not resurrect an attachment from a picture snapshot'); assert.deepEqual(detached.persistedAttachments, []);
+
+const freeChild = transformOf(detached, square.id);
+await page.evaluate(async () => { const app = window.BlockFolkImaginarium.app; const id = app.current.id; await app.saveCurrent({ quiet: true }); await app.openPicture(id); });
+reloaded = await state(); assert.equal(reloaded.attachments.length, 0); assert.deepEqual(reloaded.persistedAttachments, []); assertTransform(transformOf(reloaded, square.id), freeChild, 'a detached Window must remain free after save/reload');
+const detachedHost = reloaded.layers.find((layer) => layer.id === rootBrick.id); await nativeTouch(detachedHost.x, detachedHost.y, { x: detachedHost.x - 30, y: detachedHost.y + 10 });
 assertTransform(transformOf(await state(), square.id), freeChild, 'detached window must not follow later building movement');
 
 const round = await addVisible(ROUND); scene = await state(); const currentHost = scene.layers.find((layer) => layer.id === rootBrick.id);
 await dragLayer(round.id, { x: currentHost.x, y: currentHost.y }); const roundBeforeAttach = transformOf(await state(), round.id); await touchControl(snapSelector);
-scene = await state(); assert.deepEqual(scene.attachments, [[round.id, rootBrick.id]], 'Round Window must use the same attachment path'); assertTransform(transformOf(scene, round.id), roundBeforeAttach, 'Round Window Snap must be non-transforming');
+await page.evaluate(async () => { const app = window.BlockFolkImaginarium.app; const id = app.current.id; await app.saveCurrent({ quiet: true }); await app.openPicture(id); });
+scene = await state(); assert.deepEqual(scene.attachments, [[round.id, rootBrick.id]], 'Round Window must use the same persisted attachment path'); assertTransform(transformOf(scene, round.id), roundBeforeAttach, 'Round Window save/reload must be non-transforming');
 await page.evaluate(async (layerId) => window.BlockFolkImaginarium.app.renderCurrentPicture(layerId), round.id);
 scene = await state(); assert.deepEqual(scene.attachments, [[round.id, rootBrick.id]], 'an internal current-picture rerender must retain a valid attachment');
-await touchControl('#selection-toolbar [data-action="trash"]');
-scene = await state(); assert.equal(scene.attachments.length, 0, 'deleting an endpoint must prune its attachment'); assert.equal(scene.layers.some((layer) => layer.id === rootBrick.id), true, 'deleting the child must not cascade to its host');
 
-const sessionSquare = await addVisible(SQUARE); scene = await state(); const sessionHost = scene.layers.find((layer) => layer.id === rootBrick.id);
-await dragLayer(sessionSquare.id, { x: sessionHost.x, y: sessionHost.y }); await touchControl(snapSelector);
-assert.equal((await state()).attachments.length, 1);
-await page.evaluate(async () => { const app = window.BlockFolkImaginarium.app; await app.saveCurrent({ quiet: true }); await app.openPicture(app.current.id); });
-assert.equal((await state()).attachments.length, 0, 'opening a picture starts a new session and clears attachment links');
+const roundRecoveryTransform = transformOf(scene, round.id);
+const recoveryJson = await page.evaluate((squareLayerId) => {
+  const app = window.BlockFolkImaginarium.app; app.syncCurrentFromCanvas(); const value = structuredClone(app.current);
+  value.attachments.push(null, { childLayerId: squareLayerId, hostLayerId: 'missing-host' }, { childLayerId: 'missing-child', hostLayerId: value.attachments[0].hostLayerId });
+  return JSON.stringify(value);
+}, square.id);
+await page.locator('#recovery-input').setInputFiles({ name: 'blockfolk-window-attachment-recovery.json', mimeType: 'application/json', buffer: Buffer.from(recoveryJson) });
+await page.waitForFunction(() => document.querySelector('#toast')?.textContent === 'Picture recovery opened.');
+scene = await state();
+assert.deepEqual(scene.attachments, [[round.id, rootBrick.id]], 'recovery import must restore only the valid relation and ignore malformed or dangling records');
+assert.deepEqual(scene.persistedAttachments, [{ childLayerId: round.id, hostLayerId: rootBrick.id }]);
+assertTransform(transformOf(scene, round.id), roundRecoveryTransform, 'recovery attachment restoration must not change the child transform');
 
-assert.deepEqual(requests, [], 'the attachment prototype must remain offline');
+await selectLayer(round.id); await touchControl('#selection-toolbar [data-action="trash"]');
+scene = await state(); assert.equal(scene.attachments.length, 0, 'deleting an endpoint must prune its attachment'); assert.deepEqual(scene.persistedAttachments, []); assert.equal(scene.layers.some((layer) => layer.id === rootBrick.id), true, 'deleting the child must not cascade to its host');
+
+assert.deepEqual(requests, [], 'window attachment persistence must remain offline');
 assert.deepEqual(failures, [], failures.join('\n'));
 await browser.close();
 console.log(`BlockFolk window attachment browser scenario passed: ${evidence}`);

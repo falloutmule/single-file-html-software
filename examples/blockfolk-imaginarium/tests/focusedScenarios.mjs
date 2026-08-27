@@ -19,7 +19,7 @@ import { createStableId, resetIdCounterForTests } from '../src/model/ids.js';
 import {
   GALLERY_LIMIT, MAX_SCALE, MIN_SCALE, PAGE_HEIGHT, PAGE_SCHEMA, PAGE_WIDTH, PREVIOUS_PAGE_SCHEMA, clampStickerPosition,
   createPicture, createSticker, duplicatePicture, duplicateSticker, flipSticker, mapChildSafeError, moveStickerOneStep,
-  normalizePicture, resizeSticker, rotateSticker, validatePicture
+  normalizePicture, resizeSticker, rotateSticker, validatePicture, validWindowAttachments
 } from '../src/model/pageModel.js';
 import { BlockFolkImaginariumStorage, DB_NAME, PREFERENCE_KEY } from '../src/model/storage.js';
 import { PACK_SCHEMA, inferPackManifest, normalizeArchivePath, resolveImportCategory, safeId, validatePackManifest } from '../src/model/stickerPacks.js';
@@ -188,6 +188,7 @@ assert.equal(picture.schema, PAGE_SCHEMA);
 assert.equal(picture.page.backgroundAssetId, WORLD_BACKGROUND_ID, 'a new world board must use the one production world');
 assert.deepEqual(picture.page.camera, DEFAULT_CAMERA);
 assert.equal(picture.ui.category, 'animals');
+assert.deepEqual(picture.attachments, []);
 assert.equal(validatePicture(picture), true);
 assert.deepEqual(normalizePicture(JSON.parse(JSON.stringify(picture))), picture, 'picture JSON must round-trip');
 const classicAliasPicture = JSON.parse(JSON.stringify(picture));
@@ -200,12 +201,43 @@ assert.deepEqual(normalizedClassicAliasPicture.stickers, classicAliasPicture.sti
 assert.throws(() => validatePicture({ ...picture, schema: 'blockfolk-imaginarium.page@99' }), /not supported/);
 assert.throws(() => validatePicture({ ...picture, stickers: [{ layerId: 'x', assetId: 'a', x: NaN, y: 0, scaleX: 1, scaleY: 1, angle: 0 }] }), /invalid sticker/);
 
+const attachmentPicture = createPicture({ id: 'attachment-picture', now: '2026-08-27T00:00:00.000Z' });
+attachmentPicture.stickers = [
+  createSticker('sticker-blockfolk-square-window', { layerId: 'a-square' }),
+  createSticker('sticker-blockfolk-round-window', { layerId: 'b-round' }),
+  createSticker('sticker-blockfolk-brick-stone-block', { layerId: 'host-brick' }),
+  createSticker('sticker-blockfolk-wood-log-block', { layerId: 'host-log' }),
+  createSticker('sticker-blockfolk-stone-door', { layerId: 'not-a-host' })
+];
+attachmentPicture.attachments = [
+  null,
+  { childLayerId: 'a-square', hostLayerId: 'host-brick', ignored: 'extra-data' },
+  { childLayerId: 'a-square', hostLayerId: 'host-log' },
+  { childLayerId: 'b-round', hostLayerId: 'not-a-host' },
+  { childLayerId: 'b-round', hostLayerId: 'host-log' },
+  { childLayerId: 'missing-window', hostLayerId: 'host-brick' },
+  { childLayerId: 'host-brick', hostLayerId: 'host-log' },
+  { childLayerId: 'a-square', hostLayerId: 'a-square' }
+];
+const expectedAttachments = [
+  { childLayerId: 'a-square', hostLayerId: 'host-brick' },
+  { childLayerId: 'b-round', hostLayerId: 'host-log' }
+];
+assert.deepEqual(validWindowAttachments(attachmentPicture.attachments, attachmentPicture.stickers), expectedAttachments, 'attachment normalization must keep the first valid structural host per supported window');
+assert.deepEqual(normalizePicture(attachmentPicture).attachments, expectedAttachments, 'valid page@3 attachments must round-trip canonically');
+assert.equal(validatePicture({ ...attachmentPicture, attachments: { malformed: true } }), true, 'malformed attachment input must not make an otherwise valid picture unreadable');
+assert.deepEqual(normalizePicture({ ...attachmentPicture, attachments: { malformed: true } }).attachments, [], 'non-array attachment input must normalize to an empty relation set');
+const duplicatedAttachmentPicture = duplicatePicture(attachmentPicture, 'Attachment Copy', '2026-08-27T00:01:00.000Z');
+assert.deepEqual(duplicatedAttachmentPicture.attachments, [], 'gallery picture duplication must deliberately leave every copied window free');
+assert.deepEqual(attachmentPicture.attachments.length, 8, 'gallery duplication must not mutate the source picture attachment input');
+
 const legacyWorldPicture = {
   ...JSON.parse(JSON.stringify(picture)),
   schema: 'blockfolk-imaginarium.page@1',
   page: { width: 1080, height: 1440, backgroundAssetId: null },
   ui: { selectedCategory: 'words' },
-  stickers: [{ ...createSticker('local-piece', { layerId: 'legacy-layer' }), x: 540, y: 720 }]
+  stickers: [{ ...createSticker('local-piece', { layerId: 'legacy-layer' }), x: 540, y: 720 }],
+  attachments: expectedAttachments
 };
 const migratedWorldPicture = normalizePicture(legacyWorldPicture);
 assert.equal(migratedWorldPicture.schema, PAGE_SCHEMA);
@@ -214,12 +246,14 @@ assert.equal(migratedWorldPicture.ui.category, 'emoji');
 assert.equal(migratedWorldPicture.stickers[0].x, 2048);
 assert.equal(migratedWorldPicture.stickers[0].y, 2048);
 assert.equal(migratedWorldPicture.stickers[0].assetId, 'local-piece', 'legacy migration must preserve user content');
+assert.deepEqual(migratedWorldPicture.attachments, [], 'page@1 data must never activate an undeclared attachment property');
 const preConstructionPicture = createPicture({ id: 'pre-construction', now: '2026-08-18T00:00:00.000Z' });
 preConstructionPicture.schema = PREVIOUS_PAGE_SCHEMA; delete preConstructionPicture.connections;
-preConstructionPicture.stickers.push({ ...createSticker('sticker-blockfolk-stone-block', { layerId: 'preserved-size', scale: .81 }), x: 1200, y: 1600, angle: 25, flipX: true, zIndex: 0 });
+preConstructionPicture.stickers.push({ ...createSticker('sticker-blockfolk-stone-block', { layerId: 'preserved-size', scale: .81 }), x: 1200, y: 1600, angle: 25, flipX: true, zIndex: 0 }); preConstructionPicture.attachments = expectedAttachments;
 const migratedConstructionPicture = normalizePicture(preConstructionPicture);
 assert.equal(migratedConstructionPicture.schema, PAGE_SCHEMA, 'the BlockFolk construction migration must be versioned');
 assert.deepEqual(migratedConstructionPicture.connections, [], 'a pre-snap picture must gain an empty connection list without destructive migration');
+assert.deepEqual(migratedConstructionPicture.attachments, [], 'page@2 data must never activate an undeclared attachment property');
 assert.deepEqual(migratedConstructionPicture.stickers[0], { ...preConstructionPicture.stickers[0], flipY: false, opacity: 1 }, 'pre-construction sticker coordinates, scale, flip, angle, and z-order must remain unchanged');
 
 const sticker = createSticker('pack-local-test-piece', { layerId: 'layer-a', scale: 1 });
