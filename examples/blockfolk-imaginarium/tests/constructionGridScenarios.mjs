@@ -32,9 +32,8 @@ assert.deepEqual(Object.fromEntries(Object.entries(GRID_DIRECTIONS).map(([id, va
 }, 'direction opposites and integer A/B/Z deltas must be exact');
 assert.equal(profileForAsset(LOG), profileForAsset(BRICK), 'representative materials share one logical profile object');
 assert.deepEqual(ALL_BLOCK_ASSET_IDS, ALL_BLOCKS, 'the canonical authored-material order must remain stable');
-assert.equal(Object.keys(CONSTRUCTION_PROFILES).length, 12, 'Stage 3 adds exactly two window profiles to the ten blocks');
-assert.deepEqual(Object.keys(CONSTRUCTION_PROFILES).slice(0, ALL_BLOCKS.length), ALL_BLOCKS, 'the Stage 2 block registry order remains stable');
-assert.equal(new Set(ALL_BLOCKS.map((assetId) => CONSTRUCTION_PROFILES[assetId])).size, 1, 'all block materials must reference the same frozen one-cell profile object');
+assert.deepEqual(Object.keys(CONSTRUCTION_PROFILES), ALL_BLOCKS, 'Stage 2 registry must contain all ten authored materials');
+assert.equal(new Set(Object.values(CONSTRUCTION_PROFILES)).size, 1, 'all materials must reference the same frozen one-cell profile object');
 for (const assetId of ALL_BLOCKS) {
   const profile = profileForAsset(assetId);
   assert.equal(profile, profileForAsset(BRICK), `${assetId} must not introduce material-specific topology`);

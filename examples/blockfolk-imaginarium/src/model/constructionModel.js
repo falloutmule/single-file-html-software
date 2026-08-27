@@ -7,11 +7,9 @@ const ALL_BLOCK_IDS = Object.freeze([
   'sticker-blockfolk-lava-block', 'sticker-blockfolk-wood-log-block', 'sticker-blockfolk-leaf-block',
   'sticker-blockfolk-brick-stone-block'
 ]);
-const ALL_WINDOW_IDS = Object.freeze([
-  'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
-]);
 const FACE_IDS = Object.freeze([
-  'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door', ...ALL_WINDOW_IDS
+  'sticker-blockfolk-wood-door', 'sticker-blockfolk-stone-door',
+  'sticker-blockfolk-square-window', 'sticker-blockfolk-round-window'
 ]);
 
 export const GRID_DIRECTIONS = Object.freeze({
@@ -65,64 +63,17 @@ const ONE_CELL_BLOCK_PROFILE = Object.freeze({
   visibleOrigin: Object.freeze({ x: 0, y: 0 })
 });
 
-// Windows are real one-cell wall occupants, not decorations mounted over a
-// hidden block. Their authored iso-a plane exposes logical ±A and ±Z; the
-// accepted whole-assembly Flip projects those same logical edges onto iso-b.
-// Each PNG is visibly scaled to one painted Z tier while its anchors continue
-// to use the accepted projected block-cell basis. Art size and logical topology
-// are deliberately independent; the construction rules remain shared.
-const CANONICAL_BLOCK_ASPECT = 273 / 325;
-const WINDOW_CALIBRATIONS = Object.freeze({
-  'sticker-blockfolk-square-window': Object.freeze({
-    sourceSize: Object.freeze({ width: 268, height: 363 }),
-    paintedBounds: Object.freeze({ left: 25, top: 25, right: 242, bottom: 337, width: 218, height: 313 }),
-    visualRatioAdjustment: 1
-  }),
-  'sticker-blockfolk-round-window': Object.freeze({
-    sourceSize: Object.freeze({ width: 305, height: 359 }),
-    paintedBounds: Object.freeze({ left: 25, top: 25, right: 279, bottom: 333, width: 255, height: 309 }),
-    visualRatioAdjustment: 1
-  })
-});
-const windowAnchors = Object.freeze({
-  northWest: blockAnchors.northWest, southEast: blockAnchors.southEast,
-  stackTop: blockAnchors.stackTop, stackBase: blockAnchors.stackBase
-});
-const oneCellWindowProfile = (assetId) => Object.freeze({
-  ...(() => {
-    const calibration = WINDOW_CALIBRATIONS[assetId];
-    const initialVisibleScaleRatio = CANONICAL_Z_TIER_WORLD * calibration.sourceSize.height
-      / (calibration.paintedBounds.height * CANONICAL_BLOCK_EXTENT_WORLD);
-    const visibleScaleRatio = initialVisibleScaleRatio * calibration.visualRatioAdjustment;
-    return {
-      sourceSize: calibration.sourceSize, paintedBounds: calibration.paintedBounds,
-      initialVisibleScaleRatio, visibleScaleRatio,
-      defaultWorldExtent: CANONICAL_BLOCK_EXTENT_WORLD * visibleScaleRatio,
-      logicalAspect: CANONICAL_BLOCK_ASPECT
-    };
-  })(),
-  id: 'blockfolk-one-cell-window@1', kind: 'window', calibrationVersion: 1,
-  footprint: Object.freeze([Object.freeze({ a: 0, b: 0, z: 0 })]),
-  directions: Object.freeze(['+A', '-A', '+Z', '-Z']),
-  supportedOrientations: Object.freeze(['iso-a', 'iso-b']),
-  wallPlanes: Object.freeze(['wall-iso-a', 'wall-iso-b']),
-  anchors: windowAnchors,
-  visibleOrigin: Object.freeze({ x: 0, y: 0 })
-});
-
 // Every authored BlockFolk material is the same logical one-cell construction
 // primitive. The engine has no material-pair path; visible art calibration is
 // verified independently without changing topology or grid geometry.
 export const CONSTRUCTION_PROFILES = Object.freeze(Object.fromEntries(
-  [...ALL_BLOCK_IDS.map((assetId) => [assetId, ONE_CELL_BLOCK_PROFILE]),
-    ...ALL_WINDOW_IDS.map((assetId) => [assetId, oneCellWindowProfile(assetId)])]
+  ALL_BLOCK_IDS.map((assetId) => [assetId, ONE_CELL_BLOCK_PROFILE])
 ));
 export const SNAPPABLE_ASSET_METADATA = Object.freeze(Object.fromEntries(
   Object.entries(CONSTRUCTION_PROFILES).map(([assetId, profile]) => [assetId, Object.freeze({ kind: profile.kind, anchors: profile.anchors, profile })])
 ));
 export const SNAPPABLE_ASSET_IDS = Object.freeze(Object.keys(CONSTRUCTION_PROFILES));
 export const ALL_BLOCK_ASSET_IDS = ALL_BLOCK_IDS;
-export const ALL_WINDOW_ASSET_IDS = ALL_WINDOW_IDS;
 
 // Page@3 readers retain every historic block/face anchor. Reader compatibility
 // is not a second candidate engine: only CONSTRUCTION_PROFILES can extend a grid.
@@ -142,13 +93,7 @@ export const SNAP_SCALE_TOLERANCE = .02;
 export function profileForAsset(assetId) { return CONSTRUCTION_PROFILES[assetId] || null; }
 export function isSnappableAsset(assetId) { return !!profileForAsset(assetId); }
 export function anchorsForAsset(assetId) { return profileForAsset(assetId)?.anchors || null; }
-export function creationExtentForAsset(assetId, fallbackExtent) {
-  return Number(profileForAsset(assetId)?.defaultWorldExtent || fallbackExtent);
-}
-function anchorsForConnectionAsset(assetId) {
-  const active = anchorsForAsset(assetId); const legacy = LEGACY_CONNECTION_ASSET_METADATA[assetId]?.anchors;
-  return active && legacy ? { ...legacy, ...active } : active || legacy || null;
-}
+function anchorsForConnectionAsset(assetId) { return LEGACY_CONNECTION_ASSET_METADATA[assetId]?.anchors || null; }
 
 function rotate(x, y, degrees = 0) {
   const radians = degrees * Math.PI / 180;
@@ -164,17 +109,14 @@ export function constructionOrientation(object) {
 }
 
 export function constructionScale(object) {
-  const renderedExtent = Math.max(Math.abs(Number(object?.getScaledWidth?.() || 0)), Math.abs(Number(object?.getScaledHeight?.() || 0)));
-  const visibleScaleRatio = Number(profileForAsset(object?.blockfolkAssetId)?.visibleScaleRatio || 1);
-  return renderedExtent / Math.max(visibleScaleRatio, Number.EPSILON);
+  return Math.max(Math.abs(Number(object?.getScaledWidth?.() || 0)), Math.abs(Number(object?.getScaledHeight?.() || 0)));
 }
 
 export function objectAnchor(object, anchorId) {
-  const profile = profileForAsset(object?.blockfolkAssetId); const anchor = profile?.anchors?.[anchorId];
+  const anchor = anchorsForAsset(object?.blockfolkAssetId)?.[anchorId];
   if (!anchor) return null;
-  const logicalExtent = constructionScale(object);
-  const width = profile.logicalAspect ? logicalExtent * profile.logicalAspect / 2 : Math.abs(Number(object.getScaledWidth?.() || 0)) / 2;
-  const height = profile.logicalAspect ? logicalExtent / 2 : Math.abs(Number(object.getScaledHeight?.() || 0)) / 2;
+  const width = Math.abs(Number(object.getScaledWidth?.() || 0)) / 2;
+  const height = Math.abs(Number(object.getScaledHeight?.() || 0)) / 2;
   const offset = rotate(anchor.x * width, anchor.y * height, Number(object.angle || 0));
   const normal = rotate(anchor.nx, anchor.ny, Number(object.angle || 0));
   return {

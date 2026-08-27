@@ -12,13 +12,11 @@
     "test:recovery-core": "node tests/historicalRecovery.mjs",
     "test:page4-readonly-browser": "node tests/page4ReadOnlyBrowser.mjs",
     "test:grid-model": "node tests/constructionGridScenarios.mjs",
-    "test:window-model": "node tests/windowConstructionScenarios.mjs",
     "test:grid-browser": "node tests/gridBrowserScenario.mjs",
     "test:block-calibration": "node tests/blockMaterialCalibration.mjs",
     "test:all-materials-browser": "node tests/blockMaterialCalibration.mjs && node tests/allBlockMaterialsBrowserScenario.mjs",
-    "test:window-browser": "node tests/windowCalibration.mjs && node tests/windowBrowserScenario.mjs",
-    "test:source": "node tests/constructionGridScenarios.mjs && node tests/windowConstructionScenarios.mjs && node tests/focusedScenarios.mjs && node tests/historicalRecovery.mjs && node tools/static-audit.mjs",
-    "test:browser": "node tests/gridBrowserScenario.mjs && node tests/allBlockMaterialsBrowserScenario.mjs && node tests/windowBrowserScenario.mjs && node tests/worldFoundationBrowserScenario.mjs && node tests/page4ReadOnlyBrowser.mjs",
+    "test:source": "node tests/constructionGridScenarios.mjs && node tests/focusedScenarios.mjs && node tests/historicalRecovery.mjs && node tools/static-audit.mjs",
+    "test:browser": "node tests/gridBrowserScenario.mjs && node tests/allBlockMaterialsBrowserScenario.mjs && node tests/worldFoundationBrowserScenario.mjs && node tests/page4ReadOnlyBrowser.mjs",
     "test:packed": "node tools/packed-audit.test.mjs && node tools/packed-audit.mjs"
   },
   "dependencies": {

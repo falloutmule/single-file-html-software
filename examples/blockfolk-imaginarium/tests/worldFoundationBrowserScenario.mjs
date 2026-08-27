@@ -5,7 +5,6 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { zipSync, strToU8 } from 'fflate';
 import { chromium } from '../../../packages/browser-runner/node_modules/playwright/index.mjs';
-import { creationExtentForAsset } from '../src/model/constructionModel.js';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const artifactUrl = process.env.BLOCKFOLK_ARTIFACT_URL || pathToFileURL(resolve(projectRoot, 'dist/index.html')).href;
@@ -220,9 +219,7 @@ for (const [id, title] of expectedCategories) {
 assert.equal(placedCatalogCount, 30); assert.equal((await stickerState()).length, 30);
 assert.equal(activeProductionDataUrls.size, 31, 'the live production UI must consume 30 unique sticker PNGs plus one unique Classic world PNG');
 assert.equal([...activeProductionDataUrls].every((dataUrl) => dataUrl.startsWith('data:image/png;base64,')), true, 'every active production image must be an embedded PNG data URL');
-const defaultCreationExtent = 420 / (1.1 ** 10);
-const creationExtents = Object.fromEntries((await stickerState()).map((sticker) => [sticker.assetId, creationExtentForAsset(sticker.assetId, defaultCreationExtent)]));
-assert.equal(await page.evaluate((expected) => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => Math.abs(Math.max(object.getScaledWidth(), object.getScaledHeight()) - expected[object.blockfolkAssetId]) < 1), creationExtents), true, 'ordinary art keeps the accepted spawn extent while construction-profile windows use their measured visible extent');
+assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.canvas.getObjects().every((object) => Math.abs(Math.max(object.getScaledWidth(), object.getScaledHeight()) - (420 / (1.1 ** 10))) < 1)), true, 'new artwork stickers must spawn exactly ten Smaller steps below the previous default');
 await page.screenshot({ path: resolve(evidenceDirectory, 'catalog-all-30-400x844.png'), fullPage: true });
 await page.evaluate(async (pictureId) => window.BlockFolkImaginarium.app.openPicture(pictureId), existingEmptyPictureId);
 assert.equal((await stickerState()).length, 0, 'a previously saved empty-world picture must reopen without destructive migration');
@@ -555,8 +552,7 @@ const ordinaryCount = await page.evaluate(() => window.BlockFolkImaginarium.app.
 await page.evaluate(() => window.BlockFolkImaginarium.app.copySelected()); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), ordinaryCount + 1, 'Door must remain copyable');
 await page.evaluate(() => window.BlockFolkImaginarium.app.trashSelected()); assert.equal(await page.evaluate(() => window.BlockFolkImaginarium.app.current.stickers.length), ordinaryCount, 'Door copy must remain deletable');
 await page.evaluate(() => { const app = window.BlockFolkImaginarium.app; app.canvas.setActiveObject(app.canvas.getObjects().find((object) => object.blockfolkAssetId === 'sticker-blockfolk-square-window')); app.updateSelection(); });
-assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').isDisabled(), false, 'Stage 3 Window Snap must remain visibly enabled');
-assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').getAttribute('aria-label'), 'Snap selected construction pieces', 'loose Stage 3 Window must expose Snap through the permanent controller');
+assert.equal(await page.locator('#selection-toolbar [data-action="snap-context"]').isDisabled(), true, 'Window Snap must also remain visibly disabled');
 await page.screenshot({ path: resolve(evidenceDirectory, 'door-window-ordinary-stickers-400x844.png'), fullPage: true });
 
 // Behind/In Front must change both serialized order and the rendered overlap.
